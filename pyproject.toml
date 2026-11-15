@@ -12,6 +12,10 @@ requires-python = ">=3.11,<3.12"
 dependencies = [
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
+    # Phase 1 — corpus
+    "httpx>=0.27",      # HTTP client (streaming downloads; reused later for API calls)
+    "pyyaml>=6.0",      # reads data/sources.yaml
+    "faker>=26.0",      # fake names, e-mails, IBANs for the synthetic corpus
 ]
 
 [project.optional-dependencies]
@@ -19,6 +23,7 @@ dev = [
     "pytest>=8.2",
     "ruff>=0.6",
     "mypy>=1.10",
+    "types-PyYAML",     # type information for pyyaml (used by mypy)
 ]
 
 [tool.setuptools.packages.find]
@@ -34,12 +39,16 @@ src = ["src", "tests"]
 # E/F = pycodestyle + pyflakes, I = import order, B = bugbear, UP = modern syntax, N = naming
 select = ["E", "F", "I", "B", "UP", "N"]
 
+[tool.ruff.lint.per-file-ignores]
+# Prose templates: re-wrapping French/English sentences to 100 columns hurts readability.
+"src/reglens/corpus/policy_templates.py" = ["E501"]
+
 # ---------- mypy (static type checker) ----------
 [tool.mypy]
 python_version = "3.11"
 strict = true
 mypy_path = "src"
-packages = ["reglens"]
+files = ["src", "scripts", "tests"]
 plugins = ["pydantic.mypy"]
 
 # ---------- pytest ----------

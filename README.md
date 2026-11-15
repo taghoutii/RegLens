@@ -107,12 +107,22 @@ The corpus is listed in [`data/sources.yaml`](data/sources.yaml):
 - **reports**: Pillar 3 risk reports of European banks (PDF);
 - **policies** and **logs**: internal documents and an ICT incident log of a fictional fintech, generated with fake personal data.
 
-Raw files live in `data/raw/<type>/` and are **not committed** (bank reports are copyrighted). They are rebuilt from the source list by `scripts/download_corpus.py` (downloads) and `scripts/generate_synthetic.py` (synthetic data); both scripts arrive in the next phase.
+Raw files live in `data/raw/<type>/` and are **not committed** (bank reports are copyrighted). Rebuild them with:
+
+```powershell
+python scripts/download_corpus.py      # regulations + reports (skips files already present)
+python scripts/generate_synthetic.py   # 50 policies + ~50 000 log lines, reproducible (seed 42)
+```
+
+Every download is checked (content type, file signature, size) before it is kept; failures are listed at the end and the script exits with code 1. Regulations are fetched through the EU Publications Office repository (CELLAR), which serves the same documents as the EUR-Lex links in `sources.yaml` in a machine-readable form.
+
+The generator also writes `data/raw/ground_truth/`: every planted fake personal data value and secret, which policies break a regulatory rule, and which incidents were reported late. Later phases test against it.
 
 ## Project status
 
 | Phase | Status |
 | :--- | :--- |
 | 0. Setup (repository, tooling, Docker infrastructure, CI) | ✅ done |
-| 1. Corpus download and synthetic data | ⏳ next |
-| 2–11. Parsing, chunking, evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |
+| 1. Corpus download and synthetic data | ✅ done |
+| 2. Parsing and PII masking | ⏳ next |
+| 3–11. Chunking, evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |

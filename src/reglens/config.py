@@ -5,6 +5,7 @@ hard-coded in the logic and tests can override values easily.
 """
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,6 +15,18 @@ class Settings(BaseSettings):
     """Typed view of the configuration. Field names map to UPPER_CASE env vars."""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # Corpus locations (relative to the repository root, where scripts are run)
+    data_dir: Path = Path("data")
+    synthetic_seed: int = 42
+
+    @property
+    def sources_file(self) -> Path:
+        return self.data_dir / "sources.yaml"
+
+    @property
+    def raw_dir(self) -> Path:
+        return self.data_dir / "raw"
 
     # Vector database
     qdrant_url: str = "http://localhost:6333"
