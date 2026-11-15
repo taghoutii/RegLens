@@ -1,0 +1,139 @@
+# RegLens — liste du corpus
+# Mettre ce fichier dans data/sources.yaml.
+# mode: auto      -> téléchargé par scripts/download_corpus.py
+# mode: generated -> créé par scripts/generate_synthetic.py (aucun téléchargement)
+# Les fichiers téléchargés vont dans data/raw/<type>/<id>.<format> (dossier ignoré par git).
+
+regulations:   # Lois européennes — source unique : EUR-Lex (base officielle du droit de l'UE)
+  - id: dora
+    title: "DORA — Règlement (UE) 2022/2554 sur la résilience opérationnelle numérique"
+    what: "Règles de sécurité informatique pour le secteur financier : gestion des risques IT, déclaration des incidents, tests, prestataires IT."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32022R2554
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32022R2554
+
+  - id: dora_rts_incident_classification
+    title: "Règlement délégué (UE) 2024/1772 — classification des incidents"
+    what: "Complète DORA : critères et seuils pour décider si un incident informatique est « majeur »."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32024R1772
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R1772
+
+  - id: dora_rts_incident_reporting
+    title: "Règlement délégué (UE) 2025/301 — contenu et délais des déclarations d'incidents"
+    what: "Complète DORA : quoi déclarer et dans quel délai (notification initiale, rapport intermédiaire, rapport final)."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32025R0301
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32025R0301
+
+  - id: dora_its_incident_templates
+    title: "Règlement d'exécution (UE) 2025/302 — formulaires de déclaration d'incidents"
+    what: "Complète DORA : les formulaires et modèles standard à utiliser pour déclarer un incident."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32025R0302
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32025R0302
+
+  - id: ai_act
+    title: "AI Act — Règlement (UE) 2024/1689 sur l'intelligence artificielle"
+    what: "Règles sur les systèmes d'IA selon leur niveau de risque (ex. le scoring de crédit est « à haut risque »)."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32024R1689
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R1689
+
+  - id: mica
+    title: "MiCA — Règlement (UE) 2023/1114 sur les marchés de crypto-actifs"
+    what: "Règles pour les émetteurs et prestataires de crypto-actifs : agrément, livre blanc, protection des clients."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32023R1114
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32023R1114
+
+  - id: gdpr
+    title: "RGPD — Règlement (UE) 2016/679 sur la protection des données"
+    what: "Règles sur les données personnelles : base légale, droits des personnes, notification des fuites de données."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679
+
+  - id: amlr
+    title: "AMLR — Règlement (UE) 2024/1624 sur la lutte contre le blanchiment"
+    what: "Règles anti-blanchiment : vérification des clients (KYC), surveillance, déclaration des opérations suspectes."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32024R1624
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R1624
+
+reports:   # Rapports Pillar 3 — publiés par chaque banque sur son site investisseurs
+  - id: bnpp_fortis_pillar3_2025
+    title: "BNP Paribas Fortis — Pillar 3 2025 (partie texte)"
+    what: "Organisation et gestion des risques de la banque, avec des tableaux."
+    format: pdf
+    mode: auto
+    language: en
+    url: https://app.easybanking.bnpparibasfortis.be/rsc/documents/investors/pillar-3-disclosure-2025.pdf
+
+  - id: bnpp_fortis_pillar3_2025_tables
+    title: "BNP Paribas Fortis — Pillar 3 2025 (annexe tableaux)"
+    what: "Tableaux chiffrés : fonds propres, ratios CET1 et Tier 1, 2025 vs 2024."
+    format: pdf
+    mode: auto
+    language: en
+    url: https://app.easybanking.bnpparibasfortis.be/rsc/documents/investors/additional-pillar-3-2025.pdf
+
+  - id: ing_group_pillar3_2025
+    title: "ING Groep — Additional Pillar III Report 2025"
+    what: "Rapport de risques annuel d'ING (Pays-Bas), très riche en tableaux."
+    format: pdf
+    mode: auto
+    language: en
+    url: https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-additional-pillar-iii-report.pdf
+
+  - id: socgen_pillar3_2025_en
+    title: "Société Générale — Pillar 3 au 31/12/2025 (anglais)"
+    what: "Rapport de risques annuel de Société Générale (~300 pages)."
+    format: pdf
+    mode: auto
+    language: en
+    url: https://www.societegenerale.com/sites/default/files/documents/2026-03/pillar-3-31122025-en.pdf
+
+  - id: socgen_pillar3_2025_fr
+    title: "Société Générale — Pilier 3 au 31/12/2025 (français)"
+    what: "Même rapport en français : permet de tester les questions en français."
+    format: pdf
+    mode: auto
+    language: fr
+    url: https://www.societegenerale.com/sites/default/files/documents/2026-03/pilier-3-31122025-fr.pdf
+
+  - id: socgen_pillar3_2025_h1_en
+    title: "Société Générale — Pillar 3 au 30/06/2025 (semestriel, anglais)"
+    what: "Mise à jour semestrielle : permet des questions de comparaison dans le temps."
+    format: pdf
+    mode: auto
+    language: en
+    url: https://www.societegenerale.com/sites/default/files/documents/2025-09/pillar-3-30062025.pdf
+
+policies:   # Documents internes d'une fintech fictive — générés, jamais téléchargés
+  - id: synthetic_policies
+    what: "50 politiques internes en Markdown (gestion des incidents IT, anti-blanchiment, sous-traitance), avec fausses PII (noms, e-mails, IBAN) et une fausse clé API chacune."
+    format: md
+    mode: generated
+
+logs:   # Journal des incidents IT de la fintech fictive — généré
+  - id: synthetic_incident_logs
+    what: "~50 000 lignes JSON pour ~200 incidents (incident_id, timestamp, severity, system, status, detected_at, reported_at). Certains incidents sont volontairement déclarés en retard."
+    format: json
+    mode: generated

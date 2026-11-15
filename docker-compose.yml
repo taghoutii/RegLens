@@ -1,0 +1,66 @@
+# Development infrastructure for RegLens.
+# Ports are bound to 127.0.0.1 so the databases are reachable only from this machine.
+# Start:  docker compose up -d      Stop:  docker compose down
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    container_name: reglens-qdrant
+    ports:
+      - "127.0.0.1:6333:6333"   # REST API + web dashboard
+      - "127.0.0.1:6334:6334"   # gRPC API
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      # The Qdrant image ships without curl/wget, so we open a raw TCP connection
+      # with bash and check that /readyz answers "200 OK".
+      test:
+        - CMD-SHELL
+        - >-
+          bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 &&
+          printf "GET /readyz HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 &&
+          head -n 1 <&3 | grep -q "200"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: reglens-redis
+    command: ["redis-server", "--appendonly", "yes"]   # persist data to disk
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: reglens-postgres
+    environment:
+      # Values come from .env (copy .env.example). Compose fails loudly if missing.
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
+  redis_data:
+  postgres_data:

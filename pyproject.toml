@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reglens"
+version = "0.1.0"
+description = "RAG assistant for EU regulatory compliance in mid-size fintechs, with exact citations."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+# Dependencies are added phase by phase, only when a phase needs them.
+dependencies = [
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ---------- ruff (linter + formatter) ----------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# E/F = pycodestyle + pyflakes, I = import order, B = bugbear, UP = modern syntax, N = naming
+select = ["E", "F", "I", "B", "UP", "N"]
+
+# ---------- mypy (static type checker) ----------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+packages = ["reglens"]
+plugins = ["pydantic.mypy"]
+
+# ---------- pytest ----------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
