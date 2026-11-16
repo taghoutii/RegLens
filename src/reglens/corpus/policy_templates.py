@@ -1,13 +1,4 @@
-"""Text templates for the synthetic internal policies of the fictional fintech.
-
-Each topic exists in English and French. Placeholders in {braces} are filled by
-`synthetic.py`. Some topics have a *compliance check*: a parameter (a deadline,
-a retention period) that is usually set to the value the regulation requires,
-and sometimes deliberately set to a wrong value. The ground-truth file records
-which policies are compliant, so the golden set can ask "is this policy compliant?".
-
-The company "Velora Fintech SAS" is fictional.
-"""
+"""Text templates for the synthetic internal policies"""
 
 from dataclasses import dataclass, field
 from typing import Literal
@@ -18,15 +9,51 @@ ParamValues = dict[str, int]
 COMPANY = "Velora Fintech SAS"
 EMAIL_DOMAIN = "velora-fintech.example"  # .example is reserved: can never be a real domain
 
-UNITS: dict[Lang, list[str]] = {
-    "en": ["Payments", "Consumer Lending", "Crypto Services", "Group IT", "Customer Operations"],
-    "fr": [
-        "Paiements",
-        "Crédit à la consommation",
-        "Services crypto",
-        "DSI Groupe",
-        "Relations clients",
-    ],
+
+@dataclass(frozen=True)
+class Unit:
+    """A business unit. The code is identical in every language, so an English log line
+    ("Payments (BU-PAY)") can be matched to a French policy ("Paiements (BU-PAY)")."""
+
+    code: str
+    name: dict[Lang, str]
+
+    def label(self, lang: Lang) -> str:
+        return f"{self.name[lang]} ({self.code})"
+
+
+UNITS: list[Unit] = [
+    Unit("BU-PAY", {"en": "Payments", "fr": "Paiements"}),
+    Unit("BU-LEN", {"en": "Consumer Lending", "fr": "Crédit à la consommation"}),
+    Unit("BU-CRY", {"en": "Crypto Services", "fr": "Services crypto"}),
+    Unit("BU-GIT", {"en": "Group IT", "fr": "DSI Groupe"}),
+    Unit("BU-OPS", {"en": "Customer Operations", "fr": "Relations clients"}),
+]
+UNITS_BY_CODE: dict[str, Unit] = {u.code: u for u in UNITS}
+
+# Which business unit owns each technical system (used by the incident log).
+SYSTEM_OWNERS: dict[str, str] = {
+    "payments-gateway": "BU-PAY",
+    "card-processing": "BU-PAY",
+    "core-banking-api": "BU-LEN",  # loan accounts live in core banking
+    "crypto-wallet": "BU-CRY",
+    "identity-provider": "BU-GIT",
+    "data-warehouse": "BU-GIT",
+    "kyc-service": "BU-OPS",
+    "mobile-app-backend": "BU-OPS",
+}
+
+# Each unit has exactly one ict_incident policy, with these deadlines (hours after
+# classification / hours after detection). Set explicitly rather than drawn at random,
+# so that "late per DORA" and "late per policy" differ in both directions:
+#   lenient (non-compliant) policies forgive some DORA-late incidents,
+#   the strict (still compliant) policy flags some incidents DORA accepts.
+INCIDENT_POLICY_DEADLINES: dict[str, ParamValues] = {
+    "BU-PAY": {"initial_hours": 48, "initial_cap_hours": 72},  # lenient -> non-compliant
+    "BU-LEN": {"initial_hours": 12, "initial_cap_hours": 48},  # lenient -> non-compliant
+    "BU-CRY": {"initial_hours": 4, "initial_cap_hours": 24},  # exactly DORA
+    "BU-GIT": {"initial_hours": 4, "initial_cap_hours": 24},  # exactly DORA
+    "BU-OPS": {"initial_hours": 2, "initial_cap_hours": 12},  # stricter than DORA -> compliant
 }
 
 
@@ -84,11 +111,18 @@ FOOTER: dict[Lang, list[tuple[str, str]]] = {
 }
 
 HEADER_LABELS: dict[Lang, dict[str, str]] = {
-    "en": {"id": "Policy ID", "version": "Version", "date": "Effective date", "company": "Company"},
+    "en": {
+        "id": "Policy ID",
+        "version": "Version",
+        "date": "Effective date",
+        "unit": "Business unit",
+        "company": "Company",
+    },
     "fr": {
         "id": "Identifiant",
         "version": "Version",
         "date": "Date d'entrée en vigueur",
+        "unit": "Unité",
         "company": "Société",
     },
 }
@@ -174,7 +208,10 @@ TEMPLATES: list[PolicyTemplate] = [
             rule="Initial notification of a major ICT incident within 4 hours of classification "
             "and at the latest 24 hours after becoming aware of the incident.",
             reference="Delegated Regulation (EU) 2025/301 (DORA incident reporting time limits)",
-            compliant=[{"initial_hours": 4, "initial_cap_hours": 24}],
+            compliant=[
+                {"initial_hours": 4, "initial_cap_hours": 24},
+                {"initial_hours": 2, "initial_cap_hours": 12},  # stricter is still compliant
+            ],
             non_compliant=[
                 {"initial_hours": 24, "initial_cap_hours": 72},
                 {"initial_hours": 48, "initial_cap_hours": 72},

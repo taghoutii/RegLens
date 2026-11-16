@@ -1,12 +1,5 @@
 """Generate the synthetic part of the corpus: internal policies and an ICT incident log.
-
-Everything is driven by one seed, so the same seed always produces byte-identical
-files. That keeps golden-set answers ("INC-0042 was reported late") true when
-the corpus is rebuilt.
-
-Besides the corpus files, a *ground truth* file records what was planted: every
-fake PII value and secret (to prove later that none reach Qdrant or an answer),
-which policies break a rule, and which incidents were reported late.
+Everything is driven by one seed
 """
 
 import json
@@ -26,15 +19,24 @@ from reglens.corpus.policy_templates import (
     EMAIL_DOMAIN,
     FOOTER,
     HEADER_LABELS,
+    INCIDENT_POLICY_DEADLINES,
+    SYSTEM_OWNERS,
     TEMPLATES,
     UNITS,
+    UNITS_BY_CODE,
     Lang,
     ParamValues,
     PolicyTemplate,
+    Unit,
 )
 
 FAKER_LOCALES: dict[Lang, str] = {"en": "en_GB", "fr": "fr_FR"}
-NON_COMPLIANT_RATE = 0.3  # share of policies (with a check) that deliberately break the rule
+NON_COMPLIANT_RATE = 0.3  # share of policies (with a random check) that break the rule
+INCIDENT_TOPIC = "ict_incident"
+
+# The ict_incident policies are always the first ones, one per unit in UNITS order,
+# so their IDs are fixed (POL-001 ... POL-005) whatever the seed.
+INCIDENT_POLICY_IDS: dict[str, str] = {u.code: f"POL-{k + 1:03d}" for k, u in enumerate(UNITS)}
 
 
 # ============================================================================ helpers
@@ -62,6 +64,11 @@ def _write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def is_inside(path: Path, folder: Path) -> bool:
+    """True if `path` is `folder` itself or somewhere below it."""
+    return path.resolve().is_relative_to(folder.resolve())
+
+
 # ============================================================================ policies
 
 
@@ -74,6 +81,7 @@ class PolicyTruth:
     topic: str
     language: Lang
     unit: str
+    unit_code: str
     version: str
     effective_date: str
     params: ParamValues
@@ -84,13 +92,38 @@ class PolicyTruth:
     secrets: list[str]
 
 
-def _choose_params(tpl: PolicyTemplate, rng: random.Random) -> tuple[ParamValues, bool | None]:
+def plan_policies(n: int, rng: random.Random) -> list[tuple[PolicyTemplate, Lang, Unit]]:
+    """Decide topic, language and unit of every policy.
+
+    First one ict_incident policy per unit (languages alternate, so some are French),
+    then the other topics in turn, each in both languages, with a random unit.
+    """
+    if n < len(UNITS):
+        raise ValueError(f"need at least {len(UNITS)} policies (one ict_incident per unit)")
+    incident_tpl = next(t for t in TEMPLATES if t.topic == INCIDENT_TOPIC)
+    others = [t for t in TEMPLATES if t.topic != INCIDENT_TOPIC]
+
+    plan: list[tuple[PolicyTemplate, Lang, Unit]] = [
+        (incident_tpl, "en" if k % 2 == 0 else "fr", unit) for k, unit in enumerate(UNITS)
+    ]
+    for k in range(n - len(UNITS)):
+        lang: Lang = "en" if (k // len(others)) % 2 == 0 else "fr"
+        plan.append((others[k % len(others)], lang, rng.choice(UNITS)))
+    return plan
+
+
+def _choose_params(
+    tpl: PolicyTemplate, unit: Unit, rng: random.Random
+) -> tuple[ParamValues, bool | None]:
     params: ParamValues = {name: rng.choice(values) for name, values in tpl.params.items()}
-    compliant: bool | None = None
-    if tpl.check is not None:
-        compliant = rng.random() >= NON_COMPLIANT_RATE
-        options = tpl.check.compliant if compliant else tpl.check.non_compliant
-        params.update(rng.choice(options))
+    if tpl.check is None:
+        return params, None
+    if tpl.topic == INCIDENT_TOPIC:  # fixed per unit, see INCIDENT_POLICY_DEADLINES
+        params.update(INCIDENT_POLICY_DEADLINES[unit.code])
+        return params, params in tpl.check.compliant
+    compliant = rng.random() >= NON_COMPLIANT_RATE
+    options = tpl.check.compliant if compliant else tpl.check.non_compliant
+    params.update(rng.choice(options))
     return params, compliant
 
 
@@ -101,7 +134,9 @@ def render_policy(tpl: PolicyTemplate, lang: Lang, values: dict[str, Any], polic
         f"# {tpl.title[lang]} — {values['unit']}",
         "",
         f"**{labels['id']}:** {policy_id} · **{labels['version']}:** {values['version']} · "
-        f"**{labels['date']}:** {values['effective_date']} · **{labels['company']}:** {COMPANY}",
+        f"**{labels['date']}:** {values['effective_date']} · "
+        f"**{labels['unit']}:** {values['unit']} ({values['unit_code']}) · "
+        f"**{labels['company']}:** {COMPANY}",
     ]
     for number, (heading, body) in enumerate(tpl.sections[lang] + FOOTER[lang], start=1):
         lines += ["", f"## {number}. {heading}", "", body.format(**values)]
@@ -120,17 +155,16 @@ def generate_policies(out_dir: Path, truth_path: Path, *, n: int = 50, seed: int
         old.unlink()
 
     truths: list[PolicyTruth] = []
-    for i in range(n):
-        tpl = TEMPLATES[i % len(TEMPLATES)]
-        lang: Lang = "en" if (i // len(TEMPLATES)) % 2 == 0 else "fr"  # each topic in both
+    for i, (tpl, lang, unit) in enumerate(plan_policies(n, rng)):
         fake = fakers[lang]
         policy_id = f"POL-{i + 1:03d}"
 
-        params, compliant = _choose_params(tpl, rng)
+        params, compliant = _choose_params(tpl, unit, rng)
         owner, deputy = fake.name(), fake.name()
         values: dict[str, Any] = {
             "company": COMPANY,
-            "unit": rng.choice(UNITS[lang]),
+            "unit": unit.name[lang],
+            "unit_code": unit.code,
             "version": f"{rng.randint(1, 3)}.{rng.randint(0, 4)}",
             "effective_date": (datetime(2024, 6, 1) + timedelta(days=rng.randrange(580)))
             .date()
@@ -158,6 +192,7 @@ def generate_policies(out_dir: Path, truth_path: Path, *, n: int = 50, seed: int
                 topic=tpl.topic,
                 language=lang,
                 unit=values["unit"],
+                unit_code=unit.code,
                 version=values["version"],
                 effective_date=values["effective_date"],
                 params=params,
@@ -179,23 +214,15 @@ def generate_policies(out_dir: Path, truth_path: Path, *, n: int = 50, seed: int
 
 # ============================================================================ incident log
 
-SYSTEMS = [
-    "payments-gateway",
-    "core-banking-api",
-    "card-processing",
-    "kyc-service",
-    "mobile-app-backend",
-    "crypto-wallet",
-    "data-warehouse",
-    "identity-provider",
-]
+SYSTEMS = list(SYSTEM_OWNERS)
 SEVERITIES = ["low", "medium", "high", "critical"]
 SEVERITY_WEIGHTS = [40, 30, 20, 10]
-LATE_RATE = 0.25  # share of major incidents deliberately reported late
+LATE_RATE = 0.25  # share of major incidents deliberately reported late (against DORA)
+LOG_FAKER_SEED_OFFSET = 100  # log people come from a different Faker stream than policy people
 
 # DORA time limits for the initial notification (see policy_templates, ict_incident check)
-MAX_HOURS_AFTER_CLASSIFICATION = 4
-MAX_HOURS_AFTER_DETECTION = 24
+DORA_HOURS_AFTER_CLASSIFICATION = 4
+DORA_HOURS_AFTER_DETECTION = 24
 
 LOG_START = datetime(2025, 1, 17, tzinfo=UTC)  # DORA applies from 17 January 2025
 LOG_DAYS = 348
@@ -216,6 +243,10 @@ MONITORING_MESSAGES = [
 class IncidentTruth:
     incident_id: str
     system: str
+    owning_unit: str  # English name of the unit that owns the system
+    owning_unit_code: str
+    applicable_policy_id: str  # that unit's ict_incident policy
+    policy_deadlines: ParamValues  # the deadlines that policy sets
     severity: str
     classification: str  # "major" or "non-major" (DORA)
     detected_at: str
@@ -224,10 +255,26 @@ class IncidentTruth:
     resolved_at: str
     hours_detection_to_report: float | None
     hours_classification_to_report: float | None
-    reported_late: bool | None  # None = not a major incident, no report due
+    reported_late: bool | None  # judged against DORA; None = not major, no report due
+    reported_late_per_policy: bool | None  # judged against the applicable policy
     on_call_engineer: str
     on_call_email: str
     n_lines: int
+
+
+def is_reported_late(
+    detected: datetime,
+    classified: datetime,
+    reported: datetime,
+    *,
+    max_hours_after_classification: int = DORA_HOURS_AFTER_CLASSIFICATION,
+    max_hours_after_detection: int = DORA_HOURS_AFTER_DETECTION,
+) -> bool:
+    """The lateness rule, written once. Defaults are DORA's limits; pass a policy's own
+    deadlines to judge against that policy instead."""
+    return reported - classified > timedelta(hours=max_hours_after_classification) or (
+        reported - detected > timedelta(hours=max_hours_after_detection)
+    )
 
 
 def _iso(dt: datetime) -> str:
@@ -259,8 +306,8 @@ def _report_time(
 ) -> datetime:
     """Pick the notification time: inside both DORA limits, or deliberately outside one."""
     deadline = min(
-        classified + timedelta(hours=MAX_HOURS_AFTER_CLASSIFICATION),
-        detected + timedelta(hours=MAX_HOURS_AFTER_DETECTION),
+        classified + timedelta(hours=DORA_HOURS_AFTER_CLASSIFICATION),
+        detected + timedelta(hours=DORA_HOURS_AFTER_DETECTION),
     )
     if late:
         return deadline + timedelta(minutes=rng.randint(30, 40 * 60))
@@ -279,13 +326,17 @@ def generate_logs(
     """Write the incident log as JSON Lines (one event per line); return the line count."""
     rng = random.Random(seed)
     fake = Faker(FAKER_LOCALES["en"])
-    fake.seed_instance(seed)
+    # Own Faker seed: with the policies' seed, both generators would draw the same name
+    # sequence and create accidental "links" (same person in a policy and in the log).
+    fake.seed_instance(seed + LOG_FAKER_SEED_OFFSET)
 
     events: list[dict[str, Any]] = []
     truths: list[IncidentTruth] = []
     for i in range(n_incidents):
         incident_id = f"INC-{i + 1:04d}"
         system = rng.choice(SYSTEMS)
+        unit = UNITS_BY_CODE[SYSTEM_OWNERS[system]]
+        deadlines = INCIDENT_POLICY_DEADLINES[unit.code]
         severity = rng.choices(SEVERITIES, SEVERITY_WEIGHTS)[0]
         major = severity == "critical" or (severity == "high" and rng.random() < 0.5)
         detected = LOG_START + timedelta(minutes=rng.randrange(LOG_DAYS * 24 * 60))
@@ -300,12 +351,18 @@ def generate_logs(
             "incident_id": incident_id,
             "severity": severity,
             "system": system,
+            "owning_unit": unit.label("en"),  # e.g. "Payments (BU-PAY)": the link to policies
             "detected_at": _iso(detected),
         }
         event = partial(_event, base, reported)  # fixes the per-incident arguments
 
         lifecycle = [
-            event(detected, "detected", "status_change", f"Alert raised on {system}"),
+            event(
+                detected,
+                "detected",
+                "status_change",
+                f"Alert raised on {system}, owned by {unit.label('en')}",
+            ),
             event(
                 detected + timedelta(minutes=rng.randint(1, 9)),
                 "investigating",
@@ -350,6 +407,10 @@ def generate_logs(
             IncidentTruth(
                 incident_id=incident_id,
                 system=system,
+                owning_unit=unit.name["en"],
+                owning_unit_code=unit.code,
+                applicable_policy_id=INCIDENT_POLICY_IDS[unit.code],
+                policy_deadlines=deadlines,
                 severity=severity,
                 classification="major" if major else "non-major",
                 detected_at=_iso(detected),
@@ -364,6 +425,17 @@ def generate_logs(
                 ),
                 reported_late=(
                     is_reported_late(detected, classified, reported) if reported else None
+                ),
+                reported_late_per_policy=(
+                    is_reported_late(
+                        detected,
+                        classified,
+                        reported,
+                        max_hours_after_classification=deadlines["initial_hours"],
+                        max_hours_after_detection=deadlines["initial_cap_hours"],
+                    )
+                    if reported
+                    else None
                 ),
                 on_call_engineer=engineer,
                 on_call_email=email,
@@ -381,8 +453,41 @@ def generate_logs(
     return len(events)
 
 
-def is_reported_late(detected: datetime, classified: datetime, reported: datetime) -> bool:
-    """The DORA rule, written once, so tests and later phases use the same definition."""
-    return reported - classified > timedelta(hours=MAX_HOURS_AFTER_CLASSIFICATION) or (
-        reported - detected > timedelta(hours=MAX_HOURS_AFTER_DETECTION)
-    )
+# ============================================================================ both
+
+
+@dataclass(frozen=True)
+class GenerationReport:
+    n_policies: int | None
+    n_log_lines: int | None
+
+
+def generate_all(
+    raw_dir: Path,
+    truth_dir: Path,
+    *,
+    seed: int = 42,
+    n_policies: int = 50,
+    n_incidents: int = 200,
+    only: str | None = None,
+) -> GenerationReport:
+    """Generate policies and/or logs into raw_dir, ground truth into truth_dir.
+
+    Refuses a truth_dir inside raw_dir: ingestion reads everything under data/raw/,
+    and the answers must never be indexed next to the questions' sources.
+    """
+    if is_inside(truth_dir, raw_dir):
+        raise ValueError(f"ground truth dir {truth_dir} must not be inside {raw_dir}")
+    n_pol = n_lines = None
+    if only in (None, "policies"):
+        n_pol = generate_policies(
+            raw_dir / "policies", truth_dir / "policies.json", n=n_policies, seed=seed
+        )
+    if only in (None, "logs"):
+        n_lines = generate_logs(
+            raw_dir / "logs" / "incident_log.jsonl",
+            truth_dir / "incidents.json",
+            n_incidents=n_incidents,
+            seed=seed,
+        )
+    return GenerationReport(n_pol, n_lines)
