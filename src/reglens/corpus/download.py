@@ -1,8 +1,7 @@
 """Download corpus files safely.
 
 Each file is streamed to `<name>.part`, checked, and only then renamed to its
-final name. So a file in data/raw/ is always complete and of the right type;
-an interrupted or rejected download leaves nothing behind.
+final name. So a file in data/raw/ is always complete and of the right type
 """
 
 import logging

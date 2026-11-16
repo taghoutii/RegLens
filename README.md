@@ -56,7 +56,8 @@ Three decoupled parts: ingestion never slows down a question.
 RegLens/
 ├── data/
 │   ├── sources.yaml        # list of corpus documents (committed)
-│   ├── raw/                # downloaded + generated files (not committed)
+│   ├── raw/                # downloaded + generated files (not committed) — the only folder ingested
+│   ├── ground_truth/       # what the synthetic generator planted (not committed, never ingested)
 │   └── golden_set/         # evaluation questions
 ├── docs/                   # project scoping and backlog
 ├── scripts/                # corpus download, synthetic data, evaluation
@@ -116,7 +117,9 @@ python scripts/generate_synthetic.py   # 50 policies + ~50 000 log lines, reprod
 
 Every download is checked (content type, file signature, size) before it is kept; failures are listed at the end and the script exits with code 1. Regulations are fetched through the EU Publications Office repository (CELLAR), which serves the same documents as the EUR-Lex links in `sources.yaml` in a machine-readable form.
 
-The generator also writes `data/raw/ground_truth/`: every planted fake personal data value and secret, which policies break a regulatory rule, and which incidents were reported late. Later phases test against it.
+The synthetic documents are linked the way real ones would be. Every log line names the business unit that owns the failing system, e.g. `"owning_unit": "Payments (BU-PAY)"`. Each unit has exactly one ICT incident policy, whose header carries the same unit code. That policy sets the unit's own reporting deadline, which may be stricter or more lenient than DORA's.
+
+The generator also writes `data/ground_truth/` (not committed): every planted fake personal data value and secret, which policies break a regulatory rule, the policy that applies to each incident, and whether each incident was reported late under DORA and under that policy. It sits outside `data/raw/` on purpose: ingestion reads only `data/raw/`, so these answers can never end up in the search index. Later phases test against it.
 
 ## Project status
 

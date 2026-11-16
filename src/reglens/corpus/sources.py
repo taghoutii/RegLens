@@ -1,8 +1,4 @@
 """Load and validate `data/sources.yaml`.
-
-The YAML file is the single list of documents in the corpus. Parsing it into
-Pydantic models means a typo (wrong format, missing URL) fails immediately with a
-clear message, instead of producing a strange file path halfway through a download.
 """
 
 from dataclasses import dataclass

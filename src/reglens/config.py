@@ -26,7 +26,14 @@ class Settings(BaseSettings):
 
     @property
     def raw_dir(self) -> Path:
+        """Corpus files. Ingestion reads this folder and nothing else."""
         return self.data_dir / "raw"
+
+    @property
+    def ground_truth_dir(self) -> Path:
+        """What the synthetic generator planted (PII, late incidents…). Never ingested,
+        so it sits next to data/raw/, not inside it."""
+        return self.data_dir / "ground_truth"
 
     # Vector database
     qdrant_url: str = "http://localhost:6333"

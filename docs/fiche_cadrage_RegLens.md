@@ -7,9 +7,8 @@
 
 - **Nom du Projet :** `RegLens — Assistant de conformité réglementaire pour fintechs européennes`
 - **Membres de l'Équipe :**
-  1. *[Nom Prénom - Rôle : Lead Data / Retrieval]*
-  2. *[Nom Prénom - Rôle : Lead Backend / MLOps]*
-  3. *[Nom Prénom - Rôle : Lead Frontend / Infra]* (si trinôme)
+  1. *[Eya Taghouti]*
+  2. *[Med Aziz Mimouni]*  
 - **Lien du Dépôt GitHub :** `https://github.com/taghoutii/reglens`
 - **Branche de travail principale :** `main` (protégée : merge uniquement via Pull Request, CI verte obligatoire)
 
