@@ -1,5 +1,4 @@
-"""Load and validate `data/sources.yaml`.
-"""
+"""Load and validate `data/sources.yaml`."""
 
 from dataclasses import dataclass
 from pathlib import Path

@@ -1,5 +1,4 @@
-"""Text templates for the synthetic internal policies
-"""
+"""Text templates for the synthetic internal policies"""
 
 from dataclasses import dataclass, field
 from typing import Literal
