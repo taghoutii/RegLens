@@ -1,0 +1,327 @@
+{
+  "name": "pii_masking",
+  "date": "2026-11-20",
+  "config": {
+    "spacy_models": {
+      "en": "en_core_web_md",
+      "fr": "fr_core_news_md"
+    },
+    "score_threshold": 0.35,
+    "phone_regions": [
+      "GB",
+      "FR"
+    ],
+    "phone_detection": "phonenumbers VALID + UK/FR format pattern",
+    "context_names": true,
+    "person_filter": "drop PERSON spans with no lowercase letter, with digits or '|', or made only of legal structure words",
+    "batch_size": 64
+  },
+  "synthetic": {
+    "planted": {
+      "names": 300,
+      "emails": 300,
+      "phones": 50,
+      "ibans": 50,
+      "secrets": 50
+    },
+    "leaked": {},
+    "recall": {
+      "names": 1.0,
+      "emails": 1.0,
+      "phones": 1.0,
+      "ibans": 1.0,
+      "secrets": 1.0
+    },
+    "failures": []
+  },
+  "regulations_false_positives": {
+    "documents": 16,
+    "chars_scanned": 5349367,
+    "detections_by_type": {
+      "PERSON": 47
+    },
+    "dropped_by_person_filter": 638,
+    "caps_multiword_masked": 0,
+    "top_examples": [
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique",
+        "count": 12
+      },
+      {
+        "entity": "PERSON",
+        "text": "Charter",
+        "count": 10
+      },
+      {
+        "entity": "PERSON",
+        "text": "nominee shareholders",
+        "count": 5
+      },
+      {
+        "entity": "PERSON",
+        "text": "Contenu",
+        "count": 3
+      },
+      {
+        "entity": "PERSON",
+        "text": "lex specialis",
+        "count": 2
+      },
+      {
+        "entity": "PERSON",
+        "text": "Exigences",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique\n",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Booléen",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique\nContenu",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Harmonised",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "specialis",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Structures",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Titles III",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Fourniture",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Anonymous crypto-asset",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Euratom",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Ruby",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Treuhand",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "vii",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Succursales",
+        "count": 1
+      }
+    ],
+    "caps_multiword_masked_spans": {},
+    "top_dropped": [
+      {
+        "text": "CHAPTER III HIGH-RISK",
+        "count": 247
+      },
+      {
+        "text": "CHAPTER VI",
+        "count": 55
+      },
+      {
+        "text": "Chapter III",
+        "count": 44
+      },
+      {
+        "text": "Annex III",
+        "count": 40
+      },
+      {
+        "text": "Annex",
+        "count": 38
+      },
+      {
+        "text": "CRF",
+        "count": 30
+      },
+      {
+        "text": "CHAPTER III ICT",
+        "count": 29
+      },
+      {
+        "text": "| Oui",
+        "count": 20
+      },
+      {
+        "text": "2024/1620",
+        "count": 12
+      },
+      {
+        "text": "JON",
+        "count": 9
+      },
+      {
+        "text": "YYYY-MM-DD",
+        "count": 8
+      },
+      {
+        "text": "Directive",
+        "count": 7
+      },
+      {
+        "text": "Chapter",
+        "count": 7
+      },
+      {
+        "text": "| Oui | Alphanumérique",
+        "count": 7
+      },
+      {
+        "text": "2023/1114",
+        "count": 7
+      },
+      {
+        "text": "TFEU",
+        "count": 6
+      },
+      {
+        "text": "Annex VI",
+        "count": 6
+      },
+      {
+        "text": "Annex I.",
+        "count": 5
+      },
+      {
+        "text": "Annex IV",
+        "count": 5
+      },
+      {
+        "text": "| Non",
+        "count": 5
+      },
+      {
+        "text": "Chapter IV",
+        "count": 4
+      },
+      {
+        "text": "ANNEX III",
+        "count": 4
+      },
+      {
+        "text": "ELI",
+        "count": 4
+      },
+      {
+        "text": "Annex XI",
+        "count": 3
+      },
+      {
+        "text": "Chapter VI",
+        "count": 3
+      },
+      {
+        "text": "| Oui |",
+        "count": 2
+      },
+      {
+        "text": "Annex X",
+        "count": 2
+      },
+      {
+        "text": "2018/1860",
+        "count": 2
+      },
+      {
+        "text": "June 2023",
+        "count": 2
+      },
+      {
+        "text": "2022/2557",
+        "count": 1
+      },
+      {
+        "text": "IV",
+        "count": 1
+      },
+      {
+        "text": "2016/1148",
+        "count": 1
+      },
+      {
+        "text": "| Alphanumérique",
+        "count": 1
+      },
+      {
+        "text": "Annexes VI",
+        "count": 1
+      },
+      {
+        "text": "Annex IX",
+        "count": 1
+      },
+      {
+        "text": "Annex XIII",
+        "count": 1
+      },
+      {
+        "text": "Annexes XI",
+        "count": 1
+      },
+      {
+        "text": "Articles",
+        "count": 1
+      },
+      {
+        "text": "Chapter XII",
+        "count": 1
+      },
+      {
+        "text": "26.5.2016",
+        "count": 1
+      }
+    ]
+  },
+  "reports_false_positives": {
+    "documents": 6,
+    "chars_scanned": 3505660,
+    "detections_by_type": {
+      "PERSON": 669,
+      "PHONE_NUMBER": 1
+    },
+    "dropped_by_person_filter": 2094,
+    "caps_multiword_masked": 21
+  },
+  "timing_s": {
+    "analyzer_load": 7.5,
+    "synthetic_parse_and_mask": 91.7,
+    "regulations_scan": 249.1,
+    "reports_scan": 202.0
+  }
+}

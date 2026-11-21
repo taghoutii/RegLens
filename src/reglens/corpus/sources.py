@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 DocType = Literal["regulations", "reports", "policies", "logs"]
 Language = Literal["en", "fr"]
-FileFormat = Literal["html", "pdf", "md", "json"]
+FileFormat = Literal["html", "pdf", "md", "jsonl"]
 
 
 class Source(BaseModel):
@@ -19,6 +19,7 @@ class Source(BaseModel):
 
     id: str = Field(pattern=r"^[a-z0-9_]+$")
     title: str | None = None
+    short_name: str | None = None  # regulation short name ("DORA"), stored as `reglement`
     what: str
     format: FileFormat
     mode: Literal["auto", "generated"]

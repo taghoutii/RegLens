@@ -69,7 +69,7 @@ Une interface de question-réponse en streaming qui interroge la réglementation
     2. Si un morceau dépasse 512 tokens : coupure sémantique là où le sujet change.
     3. Si un morceau fait moins de ~100 tokens : fusion avec son voisin du même article.
     4. Chaque chunk garde l'identifiant de son article parent. La recherche se fait sur les petits chunks (précision) ; le LLM reçoit l'article parent (contexte), limité à ~1 500 tokens.
-  - **Autres types :** 1 tableau = 1 chunk (Markdown + résumé) ; 1 incident = 1 chunk ; politiques internes = 1 chunk par section.
+  - **Autres types :** 1 tableau = 1 chunk (Markdown + résumé par gabarit ; résumé par LLM, appels limités en débit, retenu seulement si l’expérience de la Phase 6 montre un gain) ; 1 incident = 1 chunk ; politiques internes = 1 chunk par section.
   - **Validation :** comparaison de 3 stratégies (récursif 512, sémantique seul, structure + sémantique) sur le Recall@5 ; tests complémentaires : overlap 64 vs 0, article parent avec vs sans (Ragas).
   - *Métadonnées :* `doc_id, chunk_id, page_number, source, type_doc, reglement, article, parent_id, langue`.
 - **Modèle d'Embeddings :** `BAAI/bge-m3` (Dimension : `1024`) — un vecteur **dense** (le sens) et un vecteur **sparse** (les mots-clés, comme un BM25 appris), en français et en anglais. La question est vectorisée une seule fois, pour le cache, le routeur et la recherche.
@@ -84,7 +84,7 @@ Une interface de question-réponse en streaming qui interroge la réglementation
   - **Tableaux** → questions chiffrées : text-to-SQL sur PostgreSQL + calculatrice pour les variations.
 - **Reranker (Cross-Encoder) :** `BAAI/bge-reranker-v2-m3`, exécuté localement ; top-20 → top-5.
 - **LLM :** `Mistral Small via l'API Mistral` (rapide, fournisseur européen ; pas de GPU nécessaire). Appelé derrière une interface unique, remplaçable par un modèle local (vLLM / Ollama) par configuration.
-  - **Rôles du LLM :** générer la réponse ; text-to-SQL pour les questions chiffrées ; à l'ingestion : résumer chaque tableau (pour qu'il soit trouvable par le sens) et extraire les obligations pour le graphe.
+  - **Rôles du LLM :** générer la réponse ; text-to-SQL pour les questions chiffrées ; à l'ingestion : extraire les obligations pour le graphe. Les tableaux sont résumés par gabarit (légende + en-têtes de colonnes, sans appel au LLM) pour être trouvables par le sens ; un résumé par LLM n'est retenu que si l’expérience de la Phase 6 montre un gain.
 - **Cache sémantique :** Redis — question similaire à ≥ 0,95 (mêmes filtres) → réponse en < 50 ms. Vidé à chaque nouvelle ingestion (TTL 24 h).
 - **API & UI :** FastAPI async + Pydantic v2 (validation stricte) ; Next.js avec affichage en streaming et citations cliquables.
 - **Observabilité & Évaluation :** Langfuse (traces et latence de chaque étape) ; Ragas (évaluation continue, avec un modèle juge différent du modèle qui répond).
@@ -130,6 +130,6 @@ Une interface de question-réponse en streaming qui interroge la réglementation
   - **Retries :** uniquement sur erreurs temporaires (429, 5xx, timeout), avec attente croissante (0,5 s → 1 s → 2 s), et seulement avant le début du streaming. Après le début, une coupure envoie un événement SSE `error`.
   - **Limitation du débit :** nombre d'appels simultanés limité vers l'API Mistral ; limite de requêtes par utilisateur sur FastAPI ; `max_tokens` fixé.
   - **Repli :** modèle plus petit ou message « service occupé » après échec.
-  - **Ingestion :** appels LLM (résumés de tableaux) limités en débit ; jobs rejouables sans doublon.
+  - **Ingestion :** résumés de tableaux par gabarit, sans appel LLM (si le résumé par LLM est retenu après la Phase 6, ses appels sont limités en débit) ; jobs rejouables sans doublon.
 - **Protection des Secrets :** variables d'environnement via `.env` uniquement (jamais dans le code), `.env` dans `.gitignore`, scan `gitleaks` en CI.
 - **Isolation Réseau :** Qdrant, Neo4j, Redis et PostgreSQL dans un réseau Docker interne ; seuls l'API et le front sont exposés.

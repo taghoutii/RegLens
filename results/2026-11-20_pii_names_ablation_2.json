@@ -1,0 +1,73 @@
+{
+  "name": "pii_names_ablation",
+  "date": "2026-11-20",
+  "config": {
+    "models": {
+      "md": {
+        "en": "en_core_web_md",
+        "fr": "fr_core_news_md"
+      },
+      "lg": {
+        "en": "en_core_web_lg",
+        "fr": "fr_core_news_lg"
+      }
+    },
+    "variants": [
+      "md+context"
+    ],
+    "person_filter": "no lowercase letter, digits or '|', legal structure words",
+    "score_threshold": 0.35,
+    "seeds": {
+      "main": 42,
+      "heldout": 43
+    }
+  },
+  "runs": [
+    {
+      "variant": "md+context",
+      "seed": 42,
+      "heldout": false,
+      "planted": {
+        "names": 300,
+        "emails": 300,
+        "phones": 50,
+        "ibans": 50,
+        "secrets": 50
+      },
+      "leaked": {},
+      "recall": {
+        "names": 1.0,
+        "emails": 1.0,
+        "phones": 1.0,
+        "ibans": 1.0,
+        "secrets": 1.0
+      },
+      "failures": [],
+      "load_s": 8.1,
+      "mask_s": 90.0
+    },
+    {
+      "variant": "md+context",
+      "seed": 43,
+      "heldout": true,
+      "planted": {
+        "names": 300,
+        "emails": 300,
+        "phones": 50,
+        "ibans": 50,
+        "secrets": 50
+      },
+      "leaked": {},
+      "recall": {
+        "names": 1.0,
+        "emails": 1.0,
+        "phones": 1.0,
+        "ibans": 1.0,
+        "secrets": 1.0
+      },
+      "failures": [],
+      "load_s": 8.1,
+      "mask_s": 91.1
+    }
+  ]
+}

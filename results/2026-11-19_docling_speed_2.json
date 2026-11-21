@@ -1,0 +1,141 @@
+{
+  "name": "docling_speed",
+  "date": "2026-11-19",
+  "pdf": "data/raw/reports/bnpp_fortis_pillar3_2025_tables.pdf",
+  "pages": [
+    5,
+    9
+  ],
+  "cpu_count": 8,
+  "reference": "first variant (accurate, 4 threads, OCR off)",
+  "runs": [
+    {
+      "table_mode": "accurate",
+      "threads": 4,
+      "ocr": false,
+      "init_s": 7.3,
+      "convert_s": 60.83,
+      "s_per_page": 12.2,
+      "tables": 5,
+      "table_shapes": [
+        [
+          55,
+          5
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          44,
+          6
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          33,
+          5
+        ]
+      ],
+      "cells_identical_to_reference": "790/790"
+    },
+    {
+      "table_mode": "accurate",
+      "threads": 8,
+      "ocr": false,
+      "init_s": 2.0,
+      "convert_s": 40.26,
+      "s_per_page": 8.1,
+      "tables": 5,
+      "table_shapes": [
+        [
+          55,
+          5
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          44,
+          6
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          33,
+          5
+        ]
+      ],
+      "cells_identical_to_reference": "790/790"
+    },
+    {
+      "table_mode": "fast",
+      "threads": 8,
+      "ocr": false,
+      "init_s": 1.9,
+      "convert_s": 17.94,
+      "s_per_page": 3.6,
+      "tables": 5,
+      "table_shapes": [
+        [
+          50,
+          5
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          45,
+          6
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          31,
+          5
+        ]
+      ],
+      "cells_identical_to_reference": "289/790"
+    },
+    {
+      "table_mode": "accurate",
+      "threads": 4,
+      "ocr": true,
+      "init_s": 2.2,
+      "convert_s": 67.34,
+      "s_per_page": 13.5,
+      "tables": 5,
+      "table_shapes": [
+        [
+          55,
+          5
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          44,
+          6
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          33,
+          5
+        ]
+      ],
+      "cells_identical_to_reference": "790/790"
+    }
+  ]
+}
