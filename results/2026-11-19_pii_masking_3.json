@@ -1,0 +1,245 @@
+{
+  "name": "pii_masking",
+  "date": "2026-11-19",
+  "config": {
+    "spacy_models": {
+      "en": "en_core_web_md",
+      "fr": "fr_core_news_md"
+    },
+    "score_threshold": 0.35,
+    "phone_regions": [
+      "GB",
+      "FR"
+    ],
+    "phone_detection": "phonenumbers VALID + UK/FR format pattern",
+    "context_names": true,
+    "legal_structure_filter": true,
+    "batch_size": 64
+  },
+  "synthetic": {
+    "planted": {
+      "names": 300,
+      "emails": 300,
+      "phones": 50,
+      "ibans": 50,
+      "secrets": 50
+    },
+    "leaked": {},
+    "recall": {
+      "names": 1.0,
+      "emails": 1.0,
+      "phones": 1.0,
+      "ibans": 1.0,
+      "secrets": 1.0
+    },
+    "failures": []
+  },
+  "regulations_false_positives": {
+    "detections_by_type": {
+      "PERSON": 167
+    },
+    "chars_scanned": 5027681,
+    "top_examples": [
+      {
+        "entity": "PERSON",
+        "text": "CRF",
+        "count": 30
+      },
+      {
+        "entity": "PERSON",
+        "text": "| Oui",
+        "count": 20
+      },
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique",
+        "count": 12
+      },
+      {
+        "entity": "PERSON",
+        "text": "2024/1620",
+        "count": 12
+      },
+      {
+        "entity": "PERSON",
+        "text": "Charter",
+        "count": 10
+      },
+      {
+        "entity": "PERSON",
+        "text": "JON",
+        "count": 9
+      },
+      {
+        "entity": "PERSON",
+        "text": "YYYY-MM-DD",
+        "count": 8
+      },
+      {
+        "entity": "PERSON",
+        "text": "| Oui | Alphanumérique",
+        "count": 7
+      },
+      {
+        "entity": "PERSON",
+        "text": "2023/1114",
+        "count": 7
+      },
+      {
+        "entity": "PERSON",
+        "text": "TFEU",
+        "count": 6
+      },
+      {
+        "entity": "PERSON",
+        "text": "| Non",
+        "count": 5
+      },
+      {
+        "entity": "PERSON",
+        "text": "nominee shareholders",
+        "count": 5
+      },
+      {
+        "entity": "PERSON",
+        "text": "ELI",
+        "count": 4
+      },
+      {
+        "entity": "PERSON",
+        "text": "Contenu",
+        "count": 3
+      },
+      {
+        "entity": "PERSON",
+        "text": "lex specialis",
+        "count": 2
+      },
+      {
+        "entity": "PERSON",
+        "text": "| Oui |",
+        "count": 2
+      },
+      {
+        "entity": "PERSON",
+        "text": "2018/1860",
+        "count": 2
+      },
+      {
+        "entity": "PERSON",
+        "text": "June 2023",
+        "count": 2
+      },
+      {
+        "entity": "PERSON",
+        "text": "2022/2557",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Exigences",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "2016/1148",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique\n",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "| Alphanumérique",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Booléen",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique\nContenu",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Harmonised",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "2018/1726",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "specialis",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Structures",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Titles III",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "AEMF",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Fourniture",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Anonymous crypto-asset",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "2017/1939",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Euratom",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Ruby",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Treuhand",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "vii",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Succursales",
+        "count": 1
+      }
+    ]
+  },
+  "timing_s": {
+    "analyzer_load": 4.3,
+    "synthetic_parse_and_mask": 51.6,
+    "regulations_scan": 275.9
+  }
+}

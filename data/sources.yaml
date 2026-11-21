@@ -7,6 +7,7 @@
 regulations:   # Lois européennes — source unique : EUR-Lex (base officielle du droit de l'UE)
   - id: dora
     title: "DORA — Règlement (UE) 2022/2554 sur la résilience opérationnelle numérique"
+    short_name: "DORA"
     what: "Règles de sécurité informatique pour le secteur financier : gestion des risques IT, déclaration des incidents, tests, prestataires IT."
     format: html
     mode: auto
@@ -16,6 +17,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: dora_rts_incident_classification
     title: "Règlement délégué (UE) 2024/1772 — classification des incidents"
+    short_name: "RTS 2024/1772"
     what: "Complète DORA : critères et seuils pour décider si un incident informatique est « majeur »."
     format: html
     mode: auto
@@ -25,6 +27,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: dora_rts_incident_reporting
     title: "Règlement délégué (UE) 2025/301 — contenu et délais des déclarations d'incidents"
+    short_name: "RTS 2025/301"
     what: "Complète DORA : quoi déclarer et dans quel délai (notification initiale, rapport intermédiaire, rapport final)."
     format: html
     mode: auto
@@ -34,6 +37,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: dora_its_incident_templates
     title: "Règlement d'exécution (UE) 2025/302 — formulaires de déclaration d'incidents"
+    short_name: "ITS 2025/302"
     what: "Complète DORA : les formulaires et modèles standard à utiliser pour déclarer un incident."
     format: html
     mode: auto
@@ -43,6 +47,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: ai_act
     title: "AI Act — Règlement (UE) 2024/1689 sur l'intelligence artificielle"
+    short_name: "AI Act"
     what: "Règles sur les systèmes d'IA selon leur niveau de risque (ex. le scoring de crédit est « à haut risque »)."
     format: html
     mode: auto
@@ -52,6 +57,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: mica
     title: "MiCA — Règlement (UE) 2023/1114 sur les marchés de crypto-actifs"
+    short_name: "MiCA"
     what: "Règles pour les émetteurs et prestataires de crypto-actifs : agrément, livre blanc, protection des clients."
     format: html
     mode: auto
@@ -61,6 +67,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: gdpr
     title: "RGPD — Règlement (UE) 2016/679 sur la protection des données"
+    short_name: "GDPR"
     what: "Règles sur les données personnelles : base légale, droits des personnes, notification des fuites de données."
     format: html
     mode: auto
@@ -70,6 +77,7 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
 
   - id: amlr
     title: "AMLR — Règlement (UE) 2024/1624 sur la lutte contre le blanchiment"
+    short_name: "AMLR"
     what: "Règles anti-blanchiment : vérification des clients (KYC), surveillance, déclaration des opérations suspectes."
     format: html
     mode: auto
@@ -134,6 +142,6 @@ policies:   # Documents internes d'une fintech fictive — générés, jamais t�
 
 logs:   # Journal des incidents IT de la fintech fictive — généré
   - id: synthetic_incident_logs
-    what: "~50 000 lignes JSON pour ~200 incidents (incident_id, timestamp, severity, system, status, detected_at, reported_at). Certains incidents sont volontairement déclarés en retard."
-    format: json
+    what: "~50 000 lignes JSON (JSONL, un événement par ligne) pour ~200 incidents (incident_id, timestamp, severity, system, owning_unit, status, detected_at, reported_at). Certains incidents sont volontairement déclarés en retard."
+    format: jsonl
     mode: generated

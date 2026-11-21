@@ -1,0 +1,709 @@
+{
+  "name": "table_cells",
+  "date": "2026-11-20",
+  "method": "every non-empty extracted cell must appear in the pypdfium2 text layer inside the table bbox (whitespace-insensitive); values only, not positions",
+  "config": {
+    "do_cell_matching": true
+  },
+  "seed": 42,
+  "documents_in_cache": [
+    "bnpp_fortis_pillar3_2025",
+    "bnpp_fortis_pillar3_2025_tables",
+    "ing_group_pillar3_2025",
+    "socgen_pillar3_2025_en",
+    "socgen_pillar3_2025_fr",
+    "socgen_pillar3_2025_h1_en"
+  ],
+  "tables": [
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-10",
+      "pages": [
+        22
+      ],
+      "shape": [
+        5,
+        9
+      ],
+      "cells": 38,
+      "found": 36,
+      "missing_by_kind": {
+        "header": 2
+      },
+      "flagged": 0,
+      "header_rows": 2,
+      "spanning_headers": "2/2 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": true,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          8
+        ]
+      ]
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025_tables#tbl-28",
+      "pages": [
+        31
+      ],
+      "shape": [
+        8,
+        9
+      ],
+      "cells": 71,
+      "found": 71,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-45",
+      "pages": [
+        31
+      ],
+      "shape": [
+        26,
+        8
+      ],
+      "cells": 128,
+      "found": 120,
+      "missing_by_kind": {
+        "header": 4,
+        "label": 4
+      },
+      "flagged": 0,
+      "header_rows": 3,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          0,
+          0
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          16,
+          2
+        ],
+        [
+          16,
+          5
+        ],
+        [
+          16,
+          6
+        ]
+      ]
+    },
+    {
+      "table": "socgen_pillar3_2025_en#tbl-29",
+      "pages": [
+        69
+      ],
+      "shape": [
+        3,
+        3
+      ],
+      "cells": 7,
+      "found": 7,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-23",
+      "pages": [
+        65
+      ],
+      "shape": [
+        6,
+        6
+      ],
+      "cells": 36,
+      "found": 36,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-169",
+      "pages": [
+        155
+      ],
+      "shape": [
+        19,
+        9
+      ],
+      "cells": 138,
+      "found": 132,
+      "missing_by_kind": {
+        "header": 2,
+        "label": 4
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          3,
+          8
+        ]
+      ]
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-4",
+      "pages": [
+        14
+      ],
+      "shape": [
+        15,
+        4
+      ],
+      "cells": 43,
+      "found": 43,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025_tables#tbl-20",
+      "pages": [
+        24
+      ],
+      "shape": [
+        26,
+        13
+      ],
+      "cells": 251,
+      "found": 248,
+      "missing_by_kind": {
+        "header": 3
+      },
+      "flagged": 0,
+      "header_rows": 2,
+      "spanning_headers": "2/2 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          7
+        ],
+        [
+          2,
+          8
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-6",
+      "pages": [
+        6
+      ],
+      "shape": [
+        27,
+        4
+      ],
+      "cells": 87,
+      "found": 87,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "socgen_pillar3_2025_en#tbl-116",
+      "pages": [
+        155
+      ],
+      "shape": [
+        16,
+        8
+      ],
+      "cells": 92,
+      "found": 91,
+      "missing_by_kind": {
+        "header": 1
+      },
+      "flagged": 0,
+      "header_rows": 7,
+      "spanning_headers": "3/3 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": false,
+      "coverage": 0.9934,
+      "missing_positions": [
+        [
+          5,
+          3
+        ]
+      ]
+    },
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-226",
+      "pages": [
+        306
+      ],
+      "shape": [
+        29,
+        4
+      ],
+      "cells": 105,
+      "found": 105,
+      "missing_by_kind": {},
+      "flagged": 11,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-167",
+      "pages": [
+        153
+      ],
+      "shape": [
+        18,
+        9
+      ],
+      "cells": 138,
+      "found": 132,
+      "missing_by_kind": {
+        "header": 2,
+        "label": 4
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          3,
+          8
+        ]
+      ]
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-11",
+      "pages": [
+        23
+      ],
+      "shape": [
+        25,
+        6
+      ],
+      "cells": 129,
+      "found": 128,
+      "missing_by_kind": {
+        "header": 1
+      },
+      "flagged": 0,
+      "header_rows": 5,
+      "spanning_headers": "2/2 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9856,
+      "missing_positions": [
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025_tables#tbl-6",
+      "pages": [
+        7
+      ],
+      "shape": [
+        44,
+        6
+      ],
+      "cells": 222,
+      "found": 221,
+      "missing_by_kind": {
+        "label": 1
+      },
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.959,
+      "missing_positions": [
+        [
+          15,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-53",
+      "pages": [
+        41
+      ],
+      "shape": [
+        14,
+        9
+      ],
+      "cells": 83,
+      "found": 79,
+      "missing_by_kind": {
+        "header": 4
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9935,
+      "missing_positions": [
+        [
+          0,
+          7
+        ],
+        [
+          1,
+          8
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          7
+        ]
+      ]
+    },
+    {
+      "table": "socgen_pillar3_2025_en#tbl-174",
+      "pages": [
+        213
+      ],
+      "shape": [
+        13,
+        8
+      ],
+      "cells": 67,
+      "found": 66,
+      "missing_by_kind": {
+        "label": 1
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9914,
+      "missing_positions": [
+        [
+          3,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-5",
+      "pages": [
+        15
+      ],
+      "shape": [
+        9,
+        4
+      ],
+      "cells": 25,
+      "found": 25,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-116",
+      "pages": [
+        105
+      ],
+      "shape": [
+        15,
+        13
+      ],
+      "cells": 183,
+      "found": 172,
+      "missing_by_kind": {
+        "header": 9,
+        "label": 2
+      },
+      "flagged": 0,
+      "header_rows": 2,
+      "spanning_headers": "3/3 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": false,
+      "coverage": 0.9312,
+      "missing_positions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          1,
+          8
+        ],
+        [
+          1,
+          10
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          14,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-40",
+      "pages": [
+        72
+      ],
+      "shape": [
+        11,
+        2
+      ],
+      "cells": 22,
+      "found": 22,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025_tables#tbl-24",
+      "pages": [
+        28
+      ],
+      "shape": [
+        4,
+        3
+      ],
+      "cells": 12,
+      "found": 12,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    }
+  ],
+  "total": {
+    "tables": 20,
+    "tables_with_a_miss": 11,
+    "cells": 1877,
+    "found": 1833,
+    "rate": 0.9766,
+    "by_kind": {
+      "header": {
+        "cells": 196,
+        "missing": 28
+      },
+      "label": {
+        "cells": 371,
+        "missing": 16
+      },
+      "number": {
+        "cells": 1310,
+        "missing": 0
+      }
+    },
+    "coverage": 0.9888,
+    "flagged_low_confidence": 11,
+    "tables_with_fused_rows": 1,
+    "spanning_headers": 15,
+    "spanning_headers_repeated": 15,
+    "header_uncertain (same_label_cells, stored)": 3,
+    "header_rule_same_label_slots (measured only)": 8,
+    "header_rule_label_repeated_under_span (measured only)": 1,
+    "missing_caught_by_flag": "0/44"
+  },
+  "manual_review": [
+    "bnpp_fortis_pillar3_2025#tbl-10",
+    "bnpp_fortis_pillar3_2025_tables#tbl-28",
+    "ing_group_pillar3_2025#tbl-45",
+    "socgen_pillar3_2025_en#tbl-29",
+    "socgen_pillar3_2025_fr#tbl-23"
+  ]
+}

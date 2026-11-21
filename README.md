@@ -3,9 +3,7 @@
 **Cited answers on EU financial regulation, in under a minute.**
 
 ## The problem and the user
-
-Compliance officers at mid-size European fintechs must apply the same EU rules as large banks (DORA, AI Act, MiCA, GDPR, AMLR) with a legal team of 2–5 people. Answering one question, such as *"What is the deadline to report a major ICT incident, and is our internal policy compliant?"*, means reading regulations, following cross-references between articles, extracting figures from 300-page PDF reports and comparing them with internal policies. That takes hours.
-
+  
 RegLens is a retrieval-augmented question-answering system that answers such questions, **cites the exact source of every claim** (document, article, page, table) and **refuses** when the corpus does not support a conclusion. It cites and summarizes; humans decide.
 
 ## Architecture overview
@@ -57,13 +55,18 @@ RegLens/
 ├── data/
 │   ├── sources.yaml        # list of corpus documents (committed)
 │   ├── raw/                # downloaded + generated files (not committed) — the only folder ingested
+│   ├── cache/              # raw parser output, e.g. Docling JSON (not committed, never ingested)
+│   ├── processed/          # parsed documents and chunks, always PII-masked (not committed)
 │   ├── ground_truth/       # what the synthetic generator planted (not committed, never ingested)
 │   └── golden_set/         # evaluation questions
 ├── docs/                   # project scoping and backlog
-├── scripts/                # corpus download, synthetic data, evaluation
+├── results/                # experiment results (committed) + EXPERIMENTS.md
+├── scripts/                # corpus download, synthetic data, parsing, measurements
 ├── src/reglens/
 │   ├── config.py           # settings from environment variables
-│   ├── ingestion/          # parsing, PII masking, chunking, embedding, indexing
+│   ├── corpus/             # source list, downloader, synthetic data generator
+│   ├── ingestion/          # parsing, PII masking, table store, chunking, embedding, indexing
+│   ├── evaluation/         # PII leak checks, retrieval metrics
 │   ├── retrieval/          # hybrid search, reranking
 │   ├── generation/         # LLM client, prompts, guards
 │   ├── api/                # FastAPI app and schemas
@@ -90,13 +93,16 @@ docker compose ps            # all services should be "healthy"
 # 3. Python environment
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
+pip install -e ".[dev,models]"   # "models" = spaCy NER models for PII masking (EN + FR)
 
 # 4. Checks
 ruff check .
 mypy
-pytest
+pytest -m "not integration"      # unit tests (what CI runs)
+pytest                           # + integration tests (need the models, corpus, PostgreSQL)
 ```
+
+The spaCy models are not published on PyPI: spaCy distributes them as wheel files on GitHub. Their exact URLs and versions are pinned in `pyproject.toml` (the `models` extra), so the install is reproducible. Docling downloads its own layout and table models from Hugging Face on first use.
 
 Stop the infrastructure with `docker compose down` (data is kept in Docker volumes; add `-v` to delete it).
 
@@ -115,6 +121,19 @@ python scripts/download_corpus.py      # regulations + reports (skips files alre
 python scripts/generate_synthetic.py   # 50 policies + ~50 000 log lines, reproducible (seed 42)
 ```
 
+Then parse and mask them into `data/processed/parsed/` (report tables also go to PostgreSQL):
+
+```powershell
+python scripts/parse_corpus.py --only regulations policies logs
+python scripts/run_docling.py                  # PDF reports -> data/cache/docling/ (hours on CPU, resumable)
+python scripts/parse_corpus.py --only reports  # reads the cache, masks, writes, stores the tables
+python scripts/check_tables.py                 # extracted cells vs the PDF text layer + review page
+```
+
+PDF parsing takes hours on a CPU, so its raw output is cached in `data/cache/docling/` (not committed, never ingested); an interrupted run resumes where it stopped.
+
+Every derived file is masked before it is written: names, e-mail addresses, IBANs, phone numbers and API keys become placeholders such as `<PERSON>`.
+
 Every download is checked (content type, file signature, size) before it is kept; failures are listed at the end and the script exits with code 1. Regulations are fetched through the EU Publications Office repository (CELLAR), which serves the same documents as the EUR-Lex links in `sources.yaml` in a machine-readable form.
 
 The synthetic documents are linked the way real ones would be. Every log line names the business unit that owns the failing system, e.g. `"owning_unit": "Payments (BU-PAY)"`. Each unit has exactly one ICT incident policy, whose header carries the same unit code. That policy sets the unit's own reporting deadline, which may be stricter or more lenient than DORA's.
@@ -125,7 +144,7 @@ The generator also writes `data/ground_truth/` (not committed): every planted fa
 
 | Phase | Status |
 | :--- | :--- |
-| 0. Setup (repository, tooling, Docker infrastructure, CI) | ✅ done |
-| 1. Corpus download and synthetic data | ✅ done |
-| 2. Parsing and PII masking | ⏳ next |
+| 0. Setup (repository, tooling, Docker infrastructure, CI) | done |
+| 1. Corpus download and synthetic data | done |
+| 2. Parsing and PII masking | done; table-cell criterion not met (see `results/`) |
 | 3–11. Chunking, evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |
