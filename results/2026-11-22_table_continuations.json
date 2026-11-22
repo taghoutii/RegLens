@@ -1,0 +1,679 @@
+{
+  "name": "table_continuations",
+  "date": "2026-11-22",
+  "phase": 3,
+  "method": "candidate = table B is the next content item after table A (only page header/footer, footnote or caption between), on the next page, same column count, B without a caption or with a 'continued' caption (Docling reading order)",
+  "seed": 42,
+  "per_report": {
+    "bnpp_fortis_pillar3_2025": {
+      "tables": 43,
+      "adjacent_pairs_on_next_page": 6,
+      "same_columns": 2,
+      "columns_within_one": 3,
+      "caption_absent_or_continued": 5,
+      "candidates": 2,
+      "candidate_caption_says_continued": 0
+    },
+    "bnpp_fortis_pillar3_2025_tables": {
+      "tables": 32,
+      "adjacent_pairs_on_next_page": 8,
+      "same_columns": 7,
+      "columns_within_one": 7,
+      "caption_absent_or_continued": 7,
+      "candidates": 7,
+      "candidate_caption_says_continued": 0
+    },
+    "ing_group_pillar3_2025": {
+      "tables": 216,
+      "adjacent_pairs_on_next_page": 81,
+      "same_columns": 36,
+      "columns_within_one": 57,
+      "caption_absent_or_continued": 78,
+      "candidates": 35,
+      "candidate_caption_says_continued": 0
+    },
+    "socgen_pillar3_2025_en": {
+      "tables": 232,
+      "adjacent_pairs_on_next_page": 11,
+      "same_columns": 8,
+      "columns_within_one": 9,
+      "caption_absent_or_continued": 5,
+      "candidates": 3,
+      "candidate_caption_says_continued": 0
+    },
+    "socgen_pillar3_2025_fr": {
+      "tables": 231,
+      "adjacent_pairs_on_next_page": 9,
+      "same_columns": 6,
+      "columns_within_one": 8,
+      "caption_absent_or_continued": 5,
+      "candidates": 3,
+      "candidate_caption_says_continued": 0
+    },
+    "socgen_pillar3_2025_h1_en": {
+      "tables": 175,
+      "adjacent_pairs_on_next_page": 22,
+      "same_columns": 9,
+      "columns_within_one": 17,
+      "caption_absent_or_continued": 12,
+      "candidates": 1,
+      "candidate_caption_says_continued": 0
+    }
+  },
+  "total": {
+    "tables": 929,
+    "adjacent_pairs_on_next_page": 137,
+    "same_columns": 68,
+    "columns_within_one": 101,
+    "caption_absent_or_continued": 112,
+    "candidates": 51,
+    "candidate_caption_says_continued": 0,
+    "tables_involved": 97
+  },
+  "candidates": [
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025",
+      "first": 13,
+      "second": 14,
+      "page": 25,
+      "n_cols": 11,
+      "caption_says_continued": false,
+      "gap_below_first": 0.304,
+      "gap_above_second": 0.044
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025",
+      "first": 21,
+      "second": 22,
+      "page": 35,
+      "n_cols": 5,
+      "caption_says_continued": false,
+      "gap_below_first": 0.072,
+      "gap_above_second": 0.044
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 2,
+      "second": 3,
+      "page": 3,
+      "n_cols": 3,
+      "caption_says_continued": false,
+      "gap_below_first": 0.076,
+      "gap_above_second": 0.045
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 4,
+      "second": 5,
+      "page": 5,
+      "n_cols": 5,
+      "caption_says_continued": false,
+      "gap_below_first": 0.087,
+      "gap_above_second": 0.045
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 6,
+      "second": 7,
+      "page": 7,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.08,
+      "gap_above_second": 0.072
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 11,
+      "second": 12,
+      "page": 13,
+      "n_cols": 15,
+      "caption_says_continued": false,
+      "gap_below_first": 0.081,
+      "gap_above_second": 0.088
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 17,
+      "second": 18,
+      "page": 21,
+      "n_cols": 16,
+      "caption_says_continued": false,
+      "gap_below_first": 0.447,
+      "gap_above_second": 0.11
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 20,
+      "second": 21,
+      "page": 24,
+      "n_cols": 13,
+      "caption_says_continued": false,
+      "gap_below_first": 0.46,
+      "gap_above_second": 0.071
+    },
+    {
+      "doc_id": "bnpp_fortis_pillar3_2025_tables",
+      "first": 30,
+      "second": 31,
+      "page": 34,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.233,
+      "gap_above_second": 0.092
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 4,
+      "second": 5,
+      "page": 4,
+      "n_cols": 4,
+      "caption_says_continued": false,
+      "gap_below_first": 0.071,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 5,
+      "second": 6,
+      "page": 5,
+      "n_cols": 4,
+      "caption_says_continued": false,
+      "gap_below_first": 0.102,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 13,
+      "second": 14,
+      "page": 12,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.091,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 15,
+      "second": 16,
+      "page": 13,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.073,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 17,
+      "second": 18,
+      "page": 15,
+      "n_cols": 7,
+      "caption_says_continued": false,
+      "gap_below_first": 0.341,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 20,
+      "second": 21,
+      "page": 17,
+      "n_cols": 14,
+      "caption_says_continued": false,
+      "gap_below_first": 0.093,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 23,
+      "second": 24,
+      "page": 19,
+      "n_cols": 13,
+      "caption_says_continued": false,
+      "gap_below_first": 0.082,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 29,
+      "second": 30,
+      "page": 22,
+      "n_cols": 5,
+      "caption_says_continued": false,
+      "gap_below_first": 0.078,
+      "gap_above_second": 0.108
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 36,
+      "second": 37,
+      "page": 25,
+      "n_cols": 4,
+      "caption_says_continued": false,
+      "gap_below_first": 0.091,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 48,
+      "second": 49,
+      "page": 38,
+      "n_cols": 14,
+      "caption_says_continued": false,
+      "gap_below_first": 0.105,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 55,
+      "second": 56,
+      "page": 43,
+      "n_cols": 13,
+      "caption_says_continued": false,
+      "gap_below_first": 0.114,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 68,
+      "second": 69,
+      "page": 51,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.092,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 71,
+      "second": 72,
+      "page": 54,
+      "n_cols": 13,
+      "caption_says_continued": false,
+      "gap_below_first": 0.282,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 73,
+      "second": 74,
+      "page": 56,
+      "n_cols": 11,
+      "caption_says_continued": false,
+      "gap_below_first": 0.275,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 74,
+      "second": 75,
+      "page": 57,
+      "n_cols": 11,
+      "caption_says_continued": false,
+      "gap_below_first": 0.275,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 79,
+      "second": 80,
+      "page": 61,
+      "n_cols": 13,
+      "caption_says_continued": false,
+      "gap_below_first": 0.282,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 106,
+      "second": 107,
+      "page": 77,
+      "n_cols": 7,
+      "caption_says_continued": false,
+      "gap_below_first": 0.148,
+      "gap_above_second": 0.13
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 129,
+      "second": 130,
+      "page": 95,
+      "n_cols": 11,
+      "caption_says_continued": false,
+      "gap_below_first": 0.223,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 139,
+      "second": 140,
+      "page": 105,
+      "n_cols": 4,
+      "caption_says_continued": false,
+      "gap_below_first": 0.127,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 142,
+      "second": 143,
+      "page": 108,
+      "n_cols": 9,
+      "caption_says_continued": false,
+      "gap_below_first": 0.375,
+      "gap_above_second": 0.107
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 144,
+      "second": 145,
+      "page": 109,
+      "n_cols": 5,
+      "caption_says_continued": false,
+      "gap_below_first": 0.365,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 147,
+      "second": 148,
+      "page": 112,
+      "n_cols": 12,
+      "caption_says_continued": false,
+      "gap_below_first": 0.088,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 155,
+      "second": 156,
+      "page": 126,
+      "n_cols": 16,
+      "caption_says_continued": false,
+      "gap_below_first": 0.084,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 156,
+      "second": 157,
+      "page": 127,
+      "n_cols": 16,
+      "caption_says_continued": false,
+      "gap_below_first": 0.072,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 161,
+      "second": 162,
+      "page": 133,
+      "n_cols": 15,
+      "caption_says_continued": false,
+      "gap_below_first": 0.07,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 163,
+      "second": 164,
+      "page": 135,
+      "n_cols": 15,
+      "caption_says_continued": false,
+      "gap_below_first": 0.107,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 165,
+      "second": 166,
+      "page": 137,
+      "n_cols": 15,
+      "caption_says_continued": false,
+      "gap_below_first": 0.1,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 183,
+      "second": 184,
+      "page": 155,
+      "n_cols": 2,
+      "caption_says_continued": false,
+      "gap_below_first": 0.099,
+      "gap_above_second": 0.113
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 187,
+      "second": 188,
+      "page": 158,
+      "n_cols": 2,
+      "caption_says_continued": false,
+      "gap_below_first": 0.11,
+      "gap_above_second": 0.115
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 199,
+      "second": 200,
+      "page": 169,
+      "n_cols": 21,
+      "caption_says_continued": false,
+      "gap_below_first": 0.233,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 201,
+      "second": 202,
+      "page": 171,
+      "n_cols": 20,
+      "caption_says_continued": false,
+      "gap_below_first": 0.162,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 202,
+      "second": 203,
+      "page": 172,
+      "n_cols": 20,
+      "caption_says_continued": false,
+      "gap_below_first": 0.292,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 203,
+      "second": 204,
+      "page": 173,
+      "n_cols": 20,
+      "caption_says_continued": false,
+      "gap_below_first": 0.185,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 208,
+      "second": 209,
+      "page": 179,
+      "n_cols": 2,
+      "caption_says_continued": false,
+      "gap_below_first": 0.074,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "ing_group_pillar3_2025",
+      "first": 214,
+      "second": 215,
+      "page": 186,
+      "n_cols": 2,
+      "caption_says_continued": false,
+      "gap_below_first": 0.087,
+      "gap_above_second": 0.106
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_en",
+      "first": 31,
+      "second": 32,
+      "page": 70,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.196,
+      "gap_above_second": 0.126
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_en",
+      "first": 40,
+      "second": 41,
+      "page": 78,
+      "n_cols": 4,
+      "caption_says_continued": false,
+      "gap_below_first": 0.139,
+      "gap_above_second": 0.13
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_en",
+      "first": 47,
+      "second": 48,
+      "page": 84,
+      "n_cols": 8,
+      "caption_says_continued": false,
+      "gap_below_first": 0.462,
+      "gap_above_second": 0.128
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_fr",
+      "first": 31,
+      "second": 32,
+      "page": 70,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.161,
+      "gap_above_second": 0.126
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_fr",
+      "first": 40,
+      "second": 41,
+      "page": 78,
+      "n_cols": 4,
+      "caption_says_continued": false,
+      "gap_below_first": 0.101,
+      "gap_above_second": 0.129
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_fr",
+      "first": 61,
+      "second": 62,
+      "page": 103,
+      "n_cols": 8,
+      "caption_says_continued": false,
+      "gap_below_first": 0.118,
+      "gap_above_second": 0.126
+    },
+    {
+      "doc_id": "socgen_pillar3_2025_h1_en",
+      "first": 23,
+      "second": 24,
+      "page": 30,
+      "n_cols": 6,
+      "caption_says_continued": false,
+      "gap_below_first": 0.161,
+      "gap_above_second": 0.112
+    }
+  ],
+  "review_sample": [
+    "bnpp_fortis_pillar3_2025#tbl-13->tbl-14",
+    "bnpp_fortis_pillar3_2025_tables#tbl-2->tbl-3",
+    "ing_group_pillar3_2025#tbl-23->tbl-24",
+    "socgen_pillar3_2025_en#tbl-40->tbl-41",
+    "socgen_pillar3_2025_fr#tbl-61->tbl-62",
+    "socgen_pillar3_2025_h1_en#tbl-23->tbl-24",
+    "bnpp_fortis_pillar3_2025#tbl-21->tbl-22",
+    "bnpp_fortis_pillar3_2025_tables#tbl-20->tbl-21",
+    "ing_group_pillar3_2025#tbl-20->tbl-21",
+    "socgen_pillar3_2025_en#tbl-47->tbl-48"
+  ],
+  "review": {
+    "method": "Visual check of the rendered end of table A (page N, down to the page bottom) and start of table B (page N+1, from the page top); data/cache/continuation_review/index.html. One reviewer, not blind to the detection rule.",
+    "pairs": [
+      {
+        "pair": "bnpp_fortis_pillar3_2025#tbl-13->tbl-14",
+        "true_continuation": false,
+        "note": "A complete (ends with its TOTAL row); B is the same template for the previous year (31 December 2024)"
+      },
+      {
+        "pair": "bnpp_fortis_pillar3_2025_tables#tbl-2->tbl-3",
+        "true_continuation": true,
+        "note": "A ends on a section heading row; B continues with its rows, no header"
+      },
+      {
+        "pair": "ing_group_pillar3_2025#tbl-23->tbl-24",
+        "true_continuation": true,
+        "note": "country list continues; the Total row is only in B; no header in B"
+      },
+      {
+        "pair": "socgen_pillar3_2025_en#tbl-40->tbl-41",
+        "true_continuation": true,
+        "note": "numbered rows continue (EU-22b -> EU-22c); B repeats the one-line header"
+      },
+      {
+        "pair": "socgen_pillar3_2025_fr#tbl-61->tbl-62",
+        "true_continuation": true,
+        "note": "exposure classes continue; B repeats the full header"
+      },
+      {
+        "pair": "socgen_pillar3_2025_h1_en#tbl-23->tbl-24",
+        "true_continuation": true,
+        "note": "numbered rows continue (45 -> 46); B repeats the header; A is itself a continuation (3-page table)"
+      },
+      {
+        "pair": "bnpp_fortis_pillar3_2025#tbl-21->tbl-22",
+        "true_continuation": true,
+        "note": "A ends on an 'of which' row; B lists its sub-items, no header"
+      },
+      {
+        "pair": "bnpp_fortis_pillar3_2025_tables#tbl-20->tbl-21",
+        "true_continuation": false,
+        "note": "A complete (TOTAL); B is the same template for 31 December 2024"
+      },
+      {
+        "pair": "ing_group_pillar3_2025#tbl-20->tbl-21",
+        "true_continuation": true,
+        "note": "country list continues; no header in B"
+      },
+      {
+        "pair": "socgen_pillar3_2025_en#tbl-47->tbl-48",
+        "true_continuation": false,
+        "note": "A complete (TOTAL LIABILITIES); B is a different table (assets, 2024)"
+      }
+    ],
+    "true_continuations": 7,
+    "reviewed": 10,
+    "precision": 0.7,
+    "precision_95ci_wilson": [
+      0.4,
+      0.89
+    ],
+    "false_positive_pattern": "all 3: A ends with a row labelled 'Total...' and B is another table with the same layout (other year or other side of the balance sheet)"
+  },
+  "diagnostic_total_row": {
+    "rule": "reject a candidate when the last non-empty row of A starts with 'total' (EN/FR)",
+    "candidates_where_A_ends_with_total": 10,
+    "candidates_left": 41,
+    "on_review_sample": "separates the 3 false positives from the 7 true ones, but the rule was found on this sample: not an independent check",
+    "per_report_A_ends_with_total": {
+      "bnpp_fortis_pillar3_2025": 1,
+      "bnpp_fortis_pillar3_2025_tables": 3,
+      "ing_group_pillar3_2025": 5,
+      "socgen_pillar3_2025_en": 1,
+      "socgen_pillar3_2025_fr": 0,
+      "socgen_pillar3_2025_h1_en": 0
+    }
+  },
+  "chains": {
+    "candidates_whose_A_is_itself_a_B": 5,
+    "note": "tables running over 3 or more pages"
+  },
+  "not_measured": "recall: continuations missed because Docling found a different column count (68 adjacent pairs have the same count, 101 within one column) or because a caption sits on B"
+}

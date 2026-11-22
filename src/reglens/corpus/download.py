@@ -54,7 +54,7 @@ RULES: dict[FileFormat, FormatRule] = {
 
 
 class InvalidContentError(Exception):
-    """The server answered, but not with the document we expected."""
+    """The server answered, but not with the expected document."""
 
 
 Status = Literal["downloaded", "skipped", "failed"]
