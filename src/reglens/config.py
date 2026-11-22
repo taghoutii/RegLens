@@ -76,6 +76,22 @@ class Settings(BaseSettings):
     # Table cell text: True = PDF text cells matched into the predicted grid (Docling default).
     docling_cell_matching: bool = True
 
+    # Embedding model: bge-m3 (FR + EN). Phase 3 uses its tokenizer (chunk sizes) and its
+    # dense vectors (semantic cuts); Phase 5 indexes with it.
+    embedding_model: str = "BAAI/bge-m3"
+    embedding_batch_size: int = 32
+
+    # Chunking (Phase 3). These values are hypotheses, tested in Phase 6 (results/EXPERIMENTS.md).
+    chunk_max_tokens: int = 512
+    chunk_min_tokens: int = 100  # a smaller piece is merged with its neighbour
+    chunk_overlap_tokens: int = 64  # only on semantic cuts (and in the recursive strategy)
+    # Semantic cut threshold. None = calibrate: the `chunk_semantic_percentile`-th
+    # percentile of consecutive-sentence similarity inside the pieces that need a cut.
+    chunk_semantic_threshold: float | None = None
+    chunk_semantic_percentile: float = 5.0
+    # Log events that are noise for a question (left out of incident chunks).
+    chunk_incident_noise_events: list[str] = ["monitoring"]
+
     # Vector database
     qdrant_url: str = "http://localhost:6333"
 

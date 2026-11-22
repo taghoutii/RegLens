@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "reglens"
 version = "0.1.0"
-description = "RAG assistant for EU regulatory compliance in mid-size fintechs, with exact citations."
+description = "Retrieval-augmented question answering on EU regulations for mid-size fintechs, with exact citations."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 # Dependencies are added phase by phase, only when a phase needs them.
@@ -24,6 +24,9 @@ dependencies = [
     "lxml==6.1.3",              # EUR-Lex XHTML parsing
     "psycopg[binary]==3.3.9",   # PostgreSQL driver (table values)
     "pypdfium2==5.15.2",        # PDF text layer + page rendering, to check Docling's tables
+    # Phase 3 — chunking
+    "transformers==5.23.0",     # bge-m3 tokenizer (chunk sizes) and sentence vectors (semantic cuts)
+    "spacy==3.8.18",            # sentence boundaries (same md models as Presidio; was indirect)
 ]
 
 [project.optional-dependencies]

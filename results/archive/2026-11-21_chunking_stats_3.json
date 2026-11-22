@@ -1,0 +1,125 @@
+{
+  "date": "2026-11-21",
+  "name": "chunking_stats",
+  "phase": 3,
+  "config": {
+    "embedding_model": "BAAI/bge-m3",
+    "max_tokens": 512,
+    "min_tokens": 100,
+    "overlap": 64,
+    "threshold": 0.364,
+    "noise_events": [
+      "monitoring"
+    ],
+    "token_counts": "bge-m3 tokenizer, without special tokens"
+  },
+  "calibration": {
+    "pieces_over_max": 198,
+    "boundaries": 4959,
+    "percentile": 5.0,
+    "threshold": 0.364,
+    "min": 0.2291,
+    "max": 1.0,
+    "deciles": [
+      0.3987,
+      0.46,
+      0.5211,
+      0.5746,
+      0.6196,
+      0.6554,
+      0.6982,
+      0.7449,
+      0.8075
+    ]
+  },
+  "documents": 73,
+  "strategies": {
+    "structure_semantic": {
+      "seconds": 106.5,
+      "embedding_seconds": 64.5,
+      "sentence_split_seconds": 16.6,
+      "new_sentences_embedded": 67,
+      "duplicate_chunk_ids": 0,
+      "semantic_cuts": 649,
+      "semantic_cuts_below_threshold": 121,
+      "tokens": {
+        "all": {
+          "chunks": 9063,
+          "min": 1,
+          "median": 197,
+          "p95": 784,
+          "max": 5100,
+          "mean": 278.2,
+          "over_512": 622,
+          "under_100": 1642,
+          "tokens_total": 2521422
+        },
+        "logs/incident": {
+          "chunks": 200,
+          "min": 179,
+          "median": 180.0,
+          "p95": 204,
+          "max": 209,
+          "mean": 184.4,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 36890
+        },
+        "policies/policy_section": {
+          "chunks": 350,
+          "min": 38,
+          "median": 76.0,
+          "p95": 105,
+          "max": 118,
+          "mean": 77.3,
+          "over_512": 0,
+          "under_100": 310,
+          "tokens_total": 27072
+        },
+        "regulations/text": {
+          "chunks": 4988,
+          "min": 1,
+          "median": 213.0,
+          "p95": 464,
+          "max": 512,
+          "mean": 235.5,
+          "over_512": 0,
+          "under_100": 393,
+          "tokens_total": 1174708
+        },
+        "reports/table": {
+          "chunks": 929,
+          "min": 51,
+          "median": 764,
+          "p95": 2337,
+          "max": 5100,
+          "mean": 940.7,
+          "over_512": 622,
+          "under_100": 14,
+          "tokens_total": 873929
+        },
+        "reports/text": {
+          "chunks": 2596,
+          "min": 1,
+          "median": 132.5,
+          "p95": 427,
+          "max": 512,
+          "mean": 157.5,
+          "over_512": 0,
+          "under_100": 925,
+          "tokens_total": 408823
+        }
+      }
+    }
+  },
+  "bge_m3_cpu": {
+    "setup_seconds": 7.6,
+    "model_load_seconds": 0.2,
+    "embedding_seconds_total": 1148.2,
+    "sentences_embedded": 4324,
+    "sentences_per_second": 3.8,
+    "parameter_mb": 2165.8,
+    "peak_process_memory_mb": 3344.0,
+    "spacy_sentence_seconds_total": 36.9
+  }
+}

@@ -5,7 +5,7 @@ table, a page header?), puts the items in reading order (so 2-column pages read
 column by column), and runs TableFormer on each table to recover rows and columns.
 Both models run on CPU here, which is why the speed is measured, not assumed.
 
-Mapping to our model:
+Mapping to the parsed-document model:
     section header      -> starts a new logical unit  "<doc_id>#sec-<n>"
     paragraph / list    -> text block in the current section, with its page number
     table               -> its own unit               "<doc_id>#tbl-<n>", cells as a grid
@@ -168,7 +168,7 @@ def from_docling(
     source: str,
     seconds: float | None = None,
 ) -> ParsedDocument:
-    """Map a DoclingDocument to our blocks (titles, text, tables with provenance)."""
+    """Map a DoclingDocument to parsed blocks (titles, text, tables with provenance)."""
     blocks: list[Block] = []
     section_n, table_n = 0, 0
     section_title: str | None = None

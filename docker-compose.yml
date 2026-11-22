@@ -12,7 +12,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      # The Qdrant image ships without curl/wget, so we open a raw TCP connection
+      # The Qdrant image ships without curl/wget, so the check opens a raw TCP connection
       # with bash and check that /readyz answers "200 OK".
       test:
         - CMD-SHELL

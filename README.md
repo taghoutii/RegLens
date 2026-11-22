@@ -134,6 +134,12 @@ PDF parsing takes hours on a CPU, so its raw output is cached in `data/cache/doc
 
 Every derived file is masked before it is written: names, e-mail addresses, IBANs, phone numbers and API keys become placeholders such as `<PERSON>`.
 
+Finally, cut the parsed documents into chunks, one folder per chunking strategy (`data/processed/chunks/<strategy>/`):
+
+```powershell
+python scripts/chunk_corpus.py   # 3 strategies; downloads BAAI/bge-m3 (~2.3 GB) on first run
+```
+
 Every download is checked (content type, file signature, size) before it is kept; failures are listed at the end and the script exits with code 1. Regulations are fetched through the EU Publications Office repository (CELLAR), which serves the same documents as the EUR-Lex links in `sources.yaml` in a machine-readable form.
 
 The synthetic documents are linked the way real ones would be. Every log line names the business unit that owns the failing system, e.g. `"owning_unit": "Payments (BU-PAY)"`. Each unit has exactly one ICT incident policy, whose header carries the same unit code. That policy sets the unit's own reporting deadline, which may be stricter or more lenient than DORA's.
@@ -147,4 +153,5 @@ The generator also writes `data/ground_truth/` (not committed): every planted fa
 | 0. Setup (repository, tooling, Docker infrastructure, CI) | done |
 | 1. Corpus download and synthetic data | done |
 | 2. Parsing and PII masking | done; table-cell criterion not met (see `results/`) |
-| 3–11. Chunking, evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |
+| 3. Chunking | done; strategy comparison in Phase 6 |
+| 4–11. Evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |

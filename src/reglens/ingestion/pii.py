@@ -7,16 +7,16 @@ Which detector finds what:
                  Spans that cannot be a name are dropped: no lowercase letter
                  (acronyms "RWEA"), digits or "|" ("2024/1620", "| Oui"), or only legal
                  structure words ("Chapter III"). NER mistakes them for names.
-  EMAIL_ADDRESS  our own regex. Presidio's built-in recognizer also checks the domain
+  EMAIL_ADDRESS  a custom regex. Presidio's built-in recognizer also checks the domain
                  against the public suffix list, which rejects internal domains
                  (".corp", ".internal") and the corpus's reserved ".example" domain.
   IBAN_CODE      regex + IBAN checksum
   PHONE_NUMBER   two detectors: (a) the `phonenumbers` library in strict "VALID" mode,
-                 (b) our own pattern for
+                 (b) a custom pattern for
                  the UK and French *formats* (leading 0 or +44/+33, 9-10 national digits)
                  The lenient "POSSIBLE" mode is not used: it flagged "2022/2554" and "2024" in the
                  regulations.
-  API_KEY        our own regex for the 3 key shapes used in the corpus
+  API_KEY        a custom regex for the 3 key shapes used in the corpus
 """
 
 import logging
@@ -150,7 +150,7 @@ STRUCTURED_LOG_FIELDS = {
 
 
 def build_analyzer(settings: Settings) -> AnalyzerEngine:
-    """Presidio analyzer for English and French with only the recognizers we need."""
+    """Presidio analyzer for English and French with only the recognizers the corpus needs."""
     languages = list(settings.pii_spacy_models)
     models = [{"lang_code": lang, "model_name": m} for lang, m in settings.pii_spacy_models.items()]
     nlp_config = {

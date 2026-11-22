@@ -8,16 +8,23 @@ import json
 from pathlib import Path
 from typing import Any
 
+ARCHIVE = "archive"  # superseded result files, kept as evidence of the progression
+UNFILED = "## Unfiled runs"
+
 
 def new_result_path(results_dir: Path, day: str, name: str) -> Path:
-    """`<day>_<name>.json`, or `<day>_<name>_<n>.json` if that file already exists."""
+    """`<day>_<name>.json`, or `<day>_<name>_<n>.json` if that name is already used, in
+    results/ or in results/archive/."""
     results_dir.mkdir(parents=True, exist_ok=True)
-    path = results_dir / f"{day}_{name}.json"
-    n = 2
-    while path.exists():
-        path = results_dir / f"{day}_{name}_{n}.json"
+
+    def used(file: str) -> bool:
+        return (results_dir / file).exists() or (results_dir / ARCHIVE / file).exists()
+
+    file, n = f"{day}_{name}.json", 2
+    while used(file):
+        file = f"{day}_{name}_{n}.json"
         n += 1
-    return path
+    return results_dir / file
 
 
 def write_result(results_dir: Path, result: dict[str, Any]) -> Path:
@@ -28,6 +35,12 @@ def write_result(results_dir: Path, result: dict[str, Any]) -> Path:
 
 
 def append_row(results_dir: Path, row: str) -> None:
-    """Add one table row (a full Markdown line) to results/EXPERIMENTS.md."""
-    with (results_dir / "EXPERIMENTS.md").open("a", encoding="utf-8") as fh:
+    """Add one table row (a full Markdown line) to the "Unfiled runs" section at the end
+    of results/EXPERIMENTS.md; it is moved by hand into its phase section afterwards."""
+    path = results_dir / "EXPERIMENTS.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else "# Experiments\n"
+    with path.open("a", encoding="utf-8") as fh:
+        if UNFILED not in text:
+            fh.write(f"\n{UNFILED}\n\n| Date | Name | Phase | What was measured | Key result | "
+                     "File |\n| :--- | :--- | :---: | :--- | :--- | :--- |\n")  # fmt: skip
         fh.write(row if row.endswith("\n") else row + "\n")
