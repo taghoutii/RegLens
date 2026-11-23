@@ -1,9 +1,9 @@
 """Measure the two table improvements on the parsed reports (nothing is rewritten).
 
 Usage (repository root, virtual environment active, after scripts/parse_corpus.py):
-    python scripts/measure_table_rows.py
+    python scripts/measure/measure_table_rows.py
 
-1. Total check (reglens/ingestion/table_rows.py): per report, tables with a "Total" row,
+1. Total check (reglens/evaluation/table_totals.py): per report, tables with a "Total" row,
    tables whose total could be checked, tables where a checked total does not add up;
    and the same on the 10 visually labelled tables of results/..._table_header_flags.json.
 2. Row serialization: tokens (bge-m3 tokenizer) of the self-describing row lines vs the
@@ -13,35 +13,25 @@ content).
 """
 
 import json
-import statistics
 import sys
 from collections import defaultdict
-from collections.abc import Sequence
 from datetime import date
 from typing import Any
 
 from reglens.config import get_settings
+from reglens.evaluation.chunk_stats import distribution
+from reglens.evaluation.report_tables import report_tables
 from reglens.evaluation.results import write_result
+from reglens.evaluation.table_totals import check_totals
 from reglens.ingestion.encoders import Bgem3
-from reglens.ingestion.models import ParsedDocument, TableData
-from reglens.ingestion.table_rows import check_totals, row_lines
+from reglens.ingestion.table_rows import row_lines
 
 LABELS = "2026-11-20_table_header_flags.json"
 
 
-def _stats(values: Sequence[float]) -> dict[str, float]:
-    s = sorted(values)
-    return {"median": statistics.median(s), "p95": s[int(0.95 * (len(s) - 1))], "max": s[-1]}
-
-
 def main() -> int:
     settings = get_settings()
-    tables: list[tuple[TableData, str, int | None]] = []
-    for path in sorted((settings.processed_dir / "parsed").glob("*.json")):
-        doc = ParsedDocument.model_validate_json(path.read_text(encoding="utf-8"))
-        if doc.type_doc == "reports":
-            tables += [(b.table, doc.langue, b.page_number) for b in doc.blocks
-                       if b.table is not None and b.table.cells]  # fmt: skip
+    tables = [(t.table, t.langue, t.page_number) for t in report_tables(settings.processed_dir)]
     if not tables:
         print("no parsed report yet: run scripts/parse_corpus.py")
         return 1
@@ -88,10 +78,10 @@ def main() -> int:
         if md:
             growth.append(rows / md)
     serialization = {
-        "markdown_tokens": {**_stats(md_tokens), "total": sum(md_tokens)},
-        "row_line_tokens": {**_stats(line_tokens), "total": sum(line_tokens)},
-        "ratio_lines_to_markdown": {k: round(v, 2) for k, v in _stats(growth).items()},
-        "longest_single_row_line": _stats(longest_line),
+        "markdown_tokens": distribution(md_tokens),
+        "row_line_tokens": distribution(line_tokens),
+        "ratio_lines_to_markdown": {k: round(v, 2) for k, v in distribution(growth).items()},
+        "longest_single_row_line": distribution(longest_line),
         "tables_with_a_row_line_over_512_tokens": sum(x > 512 for x in longest_line),
     }
     print(f"serialization: {serialization}")
@@ -100,7 +90,8 @@ def main() -> int:
         "name": "table_rows",
         "date": date.today().isoformat(),
         "phase": 3,
-        "method": "total check and row serialization of reglens/ingestion/table_rows.py on "
+        "method": "total check (reglens/evaluation/table_totals.py) and row serialization "
+        "(reglens/ingestion/table_rows.py) on "
         "every parsed report table; tokens with the bge-m3 tokenizer",
         "total_check": {
             "per_report": {k: dict(v) for k, v in sorted(per_report.items())},

@@ -1,8 +1,8 @@
 """Measure Docling speed on CPU and the effect of its settings on table cells.
 
 Usage (repository root, virtual environment active):
-    python scripts/measure_docling.py                       # default sample: 5 table pages
-    python scripts/measure_docling.py --pdf <path> --pages 5 9
+    python scripts/measure/measure_docling.py                       # default sample: 5 table pages
+    python scripts/measure/measure_docling.py --pdf <path> --pages 5 9
 
 Runs each variant (TableFormer mode x threads, OCR off) on the same pages, times model
 loading and conversion separately, and compares every table cell with the first variant
@@ -53,7 +53,8 @@ def main() -> int:
         converter = make_converter(do_ocr=ocr, table_mode=mode, num_threads=threads)
         init_s = time.perf_counter() - t0
         doc = parse_pdf(args.pdf, converter, doc_id="sample", langue="en",
-                        source=args.pdf.as_posix(), page_range=(first, last))  # fmt: skip
+                        source=args.pdf.as_posix(), page_range=(first, last),
+                        max_header_rows=settings.table_max_inferred_header_rows)  # fmt: skip
         tables = [b.table.cells for b in doc.blocks if b.table is not None]
         reference = reference or tables
         total = sum(len(row) for t in reference for row in t)

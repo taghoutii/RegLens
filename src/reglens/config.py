@@ -91,6 +91,21 @@ class Settings(BaseSettings):
     chunk_semantic_percentile: float = 5.0
     # Log events that are noise for a question (left out of incident chunks).
     chunk_incident_noise_events: list[str] = ["monitoring"]
+    # A table row group's context (summary + header rows) is shortened beyond this many
+    # tokens, so the rows keep room: first without the summary's column list, then the
+    # caption and source only (the row lines carry the column headers anyway).
+    chunk_table_context_max_tokens: int = 256
+
+    # Report tables (decided before Phase 5, results/EXPERIMENTS.md).
+    # A table without a Docling header takes its leading rows without numbers as header,
+    # at most this many (9 / 10 right on a visual sample; 8 tables have a 5th row).
+    table_max_inferred_header_rows: int = 4
+    # Spreadsheet appendix -> extracted table: certain when the table has at least
+    # `min_numbers` informative values, at least `min_share` of them in the best block and
+    # the runner-up block at least `margin` lower; then every row must align in order.
+    spreadsheet_min_numbers: int = 5
+    spreadsheet_min_share: float = 0.95
+    spreadsheet_margin: float = 0.2
 
     # Vector database
     qdrant_url: str = "http://localhost:6333"

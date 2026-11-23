@@ -3,13 +3,21 @@
 Three strategies, to compare (structure_semantic, recursive, semantic). They differ only
 on running text; tables, policy sections and incidents are chunked the same way in all three
 
-Other types (all strategies): 1 table = 1 chunk (template summary + Markdown + quality
-flags) - 1 policy section = 1 chunk - 1 incident = 1 chunk (timeline, no monitoring noise).
+Other types (all strategies): 1 policy section = 1 chunk - 1 incident = 1 chunk (timeline,
+no monitoring noise) - tables:
+    a table that fits (summary + its row lines <= max_tokens) is 1 chunk;
+    a larger table is cut into row groups (whole rows, each group <= max_tokens);
+    a row wider than that alone is cut into column groups.
+    text = the Markdown rows (display, citations); context = the template summary, plus the
+    header rows for a row group; row_lines = one self-describing line per row
+    ("label — header path = value; ..."), which the embedding reads instead of the Markdown.
 
-`context` is a short line saying where a chunk comes from. It is kept apart from `text`, so `text`
-stays an exact slice of the parsed unit; the embedding reads context + newline + text
+`context` says where a chunk comes from. It is kept apart from `text`, so `text` stays an
+exact slice of the parsed unit (column groups excepted); the embedding reads context +
+newline + text (+ row lines instead of text for tables). 
 """
 
+import re
 import uuid
 from collections import defaultdict
 from collections.abc import Callable
@@ -21,6 +29,13 @@ from pydantic import BaseModel, ConfigDict
 from reglens.corpus.sources import DocType, Language
 from reglens.ingestion.models import Block, ParsedDocument, TableData
 from reglens.ingestion.references import find_references, most_cited, ref_key
+from reglens.ingestion.table_rows import (
+    Row,
+    data_rows,
+    header_paths,
+    label_columns,
+    row_cells,
+)
 from reglens.ingestion.text_split import (
     SentenceFinder,
     Similarities,
@@ -59,17 +74,20 @@ class Chunk(BaseModel):
     article: str | None
     langue: Language
     references: list[str]
-    context: str | None = None  # embedded in front of the text; regulation articles, policies
+    context: str | None = None  # embedded in front of the text (see the module docstring)
     # Table chunks only (None for every other kind).
+    row_lines: str | None = None  # self-describing rows: embedded instead of the Markdown
+    table_source: Literal["pdf", "spreadsheet"] | None = None  # where the values come from
     header_uncertain: bool | None = None
     header_issues: list[str] | None = None
     has_fused_rows: bool | None = None
 
     def embedding_text(self, *, with_context: bool = True) -> str:
-        """What the embedding model reads for this chunk."""
+        """What the embedding model reads for this chunk (row lines for a table)."""
+        body = self.row_lines if self.row_lines is not None else self.text
         if with_context and self.context:
-            return self.context + "\n" + self.text
-        return self.text
+            return self.context + "\n" + body
+        return body
 
 
 def chunk_id(doc_id: str, langue: str, parent_id: str, position: int, strategy: str) -> str:
@@ -86,6 +104,7 @@ class ChunkParams:
     overlap: int = 64
     threshold: float = 0.5  # semantic cut below this similarity (calibrated by the script)
     noise_events: tuple[str, ...] = ("monitoring",)
+    table_context_max_tokens: int = 256  # a row group's context is shortened beyond this
 
 
 @dataclass
@@ -136,7 +155,7 @@ class Chunker:
         else:
             chunks = self._stream_chunks(doc, text_blocks, strategy)
         if doc.type_doc == "regulations":
-            contexts = article_contexts(doc)
+            contexts = unit_contexts(doc)
             for c in chunks:
                 c.context = contexts.get(c.parent_id)
         return chunks + self._table_chunks(doc, strategy)
@@ -246,12 +265,19 @@ class Chunker:
             t = b.table
             summary = table_summary(t, b.section, b.page_number,
                                     self.titles.get(doc.doc_id, doc.doc_id))  # fmt: skip
-            chunk = self._make(doc, strategy, "table", summary + "\n\n" + t.to_markdown(),
-                               t.table_id, 0, b.page_number, None)  # fmt: skip
-            chunk.header_uncertain = t.header_uncertain
-            chunk.header_issues = list(t.header_issues)
-            chunk.has_fused_rows = bool(t.low_confidence)
-            chunks.append(chunk)
+            groups = table_groups(t, doc.langue, summary, self.tools.tokens,
+                                  self.params.max_tokens,
+                                  self.params.table_context_max_tokens)  # fmt: skip
+            for position, g in enumerate(groups):
+                chunk = self._make(doc, strategy, "table", g.text, t.table_id, position,
+                                   b.page_number, None)  # fmt: skip
+                chunk.context = g.context
+                chunk.row_lines = g.lines
+                chunk.table_source = t.content_source
+                chunk.header_uncertain = t.header_uncertain
+                chunk.header_issues = list(t.header_issues)
+                chunk.has_fused_rows = bool(t.low_confidence)
+                chunks.append(chunk)
         return chunks
 
     def _policy_chunks(self, doc: ParsedDocument, strategy: Strategy) -> list[Chunk]:
@@ -319,38 +345,132 @@ class Chunker:
         )
 
 
-def article_contexts(doc: ParsedDocument) -> dict[str, str]:
-    """parent_id -> "DORA — Article 19 — Reporting of ...", for every article of a
-    regulation (its heading block already reads "Article 19 — <title>"). Recitals and
-    annexes get no context line."""
+_ANNEX_HEADING = re.compile(r"^(ANNEXE?)\s+([IVXLC\d]+[A-Z]?)$", re.IGNORECASE)
+ANNEX_TITLE_MAX_CHARS = 200  # a longer second line is body text, not the annex title
+
+
+def unit_contexts(doc: ParsedDocument) -> dict[str, str]:
+    """parent_id -> context line, for every article and annex of a regulation:
+    "DORA — Article 19 — Reporting of ..." (the article's heading block already reads
+    "Article 19 — <title>") and "AI Act — Annex III — High-risk AI systems ..." (an annex
+    starts with an "ANNEX III" line, then its title). Recitals get no context line."""
     out: dict[str, str] = {}
+    annexes: dict[str, list[Block]] = defaultdict(list)
     for b in doc.blocks:
+        if "#anx-" in b.parent_id:
+            annexes[b.parent_id].append(b)
         if b.article is None or "#art-" not in b.parent_id or b.parent_id in out:
             continue
         heading = b.text.strip() if b.kind == "title" else f"Article {b.article}"
         out[b.parent_id] = f"{doc.reglement} — {heading}" if doc.reglement else heading
+    for parent_id, blocks in annexes.items():
+        m = _ANNEX_HEADING.match(blocks[0].text.strip())
+        number = parent_id.split("#anx-", 1)[1]
+        heading = f"{m.group(1).capitalize()} {m.group(2)}" if m else f"Annex {number}"
+        parts = [doc.reglement, heading] if doc.reglement else [heading]
+        if m and len(blocks) > 1:
+            title = blocks[1].text.strip()
+            if title and "\n" not in title and len(title) <= ANNEX_TITLE_MAX_CHARS:
+                parts.append(title)
+        out[parent_id] = " — ".join(parts)
     return out
 
 
-def column_labels(table: TableData) -> list[str]:
-    """One label per column from the header rows: '2025 > Total' (spans already repeat)."""
-    labels = []
-    for c in range(table.n_cols):
-        parts: list[str] = []
-        for r in range(min(table.header_rows, len(table.cells))):
-            v = " ".join(table.cells[r][c].split()) if c < len(table.cells[r]) else ""
-            if v and (not parts or parts[-1] != v):
-                parts.append(v)
-        if parts:
-            labels.append(" > ".join(parts))
-    return list(dict.fromkeys(labels))
+@dataclass(frozen=True)
+class TableGroup:
+    text: str  # Markdown rows
+    context: str  # summary (+ header rows for a row group)
+    lines: str  # self-describing row lines, embedded
+
+
+def table_groups(
+    table: TableData,
+    langue: Language,
+    summary: str,
+    tokens: Tokens,
+    max_tokens: int,
+    context_max_tokens: int,
+) -> list[TableGroup]:
+    """Cut a table into chunks of whole rows (see the module docstring). Token sizes of
+    a group are the sum of its lines' sizes plus one per line break (an upper bound)."""
+    rows = data_rows(table, langue)
+    paths = header_paths(table)
+    lines = [f"{r.label} — " + "; ".join(row_cells(r, paths)) for r in rows]
+    markdown = table.to_markdown().split("\n")
+    sep = max(table.header_rows, 1)  # to_markdown puts its separator after this many rows
+
+    def md_line(r: int) -> str:
+        return markdown[r + 1] if r >= sep else markdown[r]
+
+    def size(texts: list[str]) -> int:
+        return sum(tokens.count(x) for x in texts) + max(len(texts) - 1, 0)
+
+    whole = "\n".join(markdown)
+    if not rows or (size([summary, *lines]) <= max_tokens and tokens.count(whole) <= max_tokens):
+        return [TableGroup(whole, summary, "\n".join(lines))]
+
+    header = "\n".join(markdown[: sep + 1]) if table.header_rows else ""
+    title = "\n".join(summary.split("\n")[:2])  # "Table: ..." and "Source: ..."
+    options = [x for x in (summary + "\n" + header if header else summary,
+                           title + "\n" + header if header else None, title) if x]  # fmt: skip
+    context = next((c for c in options if tokens.count(c) <= context_max_tokens), title)
+    budget = max_tokens - tokens.count(context) - 1
+    k = label_columns(table, langue)
+
+    groups: list[TableGroup] = []
+    current: list[tuple[Row, str]] = []
+
+    def flush() -> None:
+        if current:
+            first, last = current[0][0].index, current[-1][0].index
+            text = "\n".join(md_line(r) for r in range(first, last + 1))
+            groups.append(TableGroup(text, context, "\n".join(x for _, x in current)))
+            current.clear()
+
+    for row, line in zip(rows, lines, strict=True):
+        if tokens.count(line) > budget:  # too wide: one chunk per column group
+            flush()
+            groups.extend(_column_groups(table, row, paths, k, context, budget, tokens))
+            continue
+        candidate = [x for _, x in current] + [line]
+        md = [md_line(r) for r in range(current[0][0].index if current else row.index,
+                                        row.index + 1)]  # fmt: skip
+        if current and (size(candidate) > budget or size(md) > max_tokens):
+            flush()
+        current.append((row, line))
+    flush()
+    return groups
+
+
+def _column_groups(
+    table: TableData, row: Row, paths: list[str], k: int, context: str, budget: int,
+    tokens: Tokens,
+) -> list[TableGroup]:  # fmt: skip
+    """A row too wide for one chunk, cut into consecutive groups of columns. Its text is
+    the Markdown of the label cells and that group's cells (not an exact slice)."""
+    prefix = f"{row.label} — "
+    cells = row_cells(row, paths)
+    columns = sorted(row.values)
+    groups, start = [], 0
+    while start < len(cells):
+        end = start + 1
+        while (
+            end < len(cells) and tokens.count(prefix + "; ".join(cells[start : end + 1])) <= budget
+        ):
+            end += 1
+        keep = list(range(k)) + columns[start:end]
+        text = "| " + " | ".join(table.cells[row.index][c] for c in keep) + " |"
+        groups.append(TableGroup(text, context, prefix + "; ".join(cells[start:end])))
+        start = end
+    return groups
 
 
 def table_summary(table: TableData, section: str | None, page: int | None, title: str) -> str:
-    """Template summary (no LLM): caption, where the table is, and its column headers."""
+    """Template summary (no LLM): caption, where the table is, and its column headers
+    (each distinct header path once)."""
     where = f"Source: {title}" + (f", page {page}" if page else "")
     where += f", section {section}" if section else ""
-    labels = column_labels(table)
+    labels = list(dict.fromkeys(p for p in header_paths(table) if p))
     return "\n".join([
         f"Table: {table.caption or '(no caption)'}",
         where,

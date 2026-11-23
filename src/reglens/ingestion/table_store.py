@@ -1,4 +1,4 @@
-"""Store exact table values in PostgreSQL.
+"""Store exact final table values in PostgreSQL.
 
 Two tables: one row per table (where it comes from) and one row per cell
 (row index, column index, value). Exact numbers are later read from here, never
@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS report_tables (
     n_cols       INTEGER NOT NULL,
     header_rows  INTEGER NOT NULL,
     header_uncertain BOOLEAN NOT NULL DEFAULT FALSE,  -- see ingestion/table_quality.py
-    header_issues    TEXT[] NOT NULL DEFAULT '{}'
+    header_issues    TEXT[] NOT NULL DEFAULT '{}',
+    header_inferred  BOOLEAN NOT NULL DEFAULT FALSE,  -- header rows inferred, not marked
+    content_source   TEXT NOT NULL DEFAULT 'pdf'      -- 'pdf' or 'spreadsheet'
 );
 CREATE INDEX IF NOT EXISTS report_tables_doc ON report_tables (doc_id);
 CREATE TABLE IF NOT EXISTS report_table_cells (
@@ -49,6 +51,9 @@ ALTER TABLE report_table_cells
 ALTER TABLE report_tables
     ADD COLUMN IF NOT EXISTS header_uncertain BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE report_tables ADD COLUMN IF NOT EXISTS header_issues TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE report_tables
+    ADD COLUMN IF NOT EXISTS header_inferred BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE report_tables ADD COLUMN IF NOT EXISTS content_source TEXT NOT NULL DEFAULT 'pdf';
 """
 
 
@@ -81,11 +86,12 @@ def store_tables(conn: psycopg.Connection, doc: ParsedDocument) -> int:
                 continue
             conn.execute(
                 "INSERT INTO report_tables (table_id, doc_id, langue, source, page_number, "
-                "section, caption, n_rows, n_cols, header_rows, header_uncertain, header_issues) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "section, caption, n_rows, n_cols, header_rows, header_uncertain, header_issues, "
+                "header_inferred, content_source) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (t.table_id, doc.doc_id, doc.langue, doc.source, block.page_number,
                  block.section, t.caption, t.n_rows, t.n_cols, t.header_rows,
-                 t.header_uncertain, t.header_issues),
+                 t.header_uncertain, t.header_issues, t.header_inferred, t.content_source),
             )  # fmt: skip
             flagged = set(t.low_confidence)
             rows = [

@@ -1,7 +1,7 @@
 """Compare Docling's two ways of filling table cells, on the same 20 tables.
 
 Usage (repository root, virtual environment active, after scripts/run_docling.py):
-    python scripts/compare_cell_matching.py               # 20 tables over the cached reports
+    python scripts/measure/compare_cell_matching.py   # 20 tables over the cached reports
 
 Variants:
     cell_matching=True   (default) the PDF's own text cells are placed into the grid that
@@ -24,11 +24,8 @@ import warnings
 from datetime import date
 from typing import Any
 
-import pypdfium2 as pdfium
-from docling_core.types.doc.document import DoclingDocument
-
 from reglens.config import get_settings
-from reglens.corpus.sources import load_corpus
+from reglens.evaluation.report_tables import cached_reports
 from reglens.evaluation.results import append_row, write_result
 from reglens.evaluation.table_check import (
     TableCheck,
@@ -38,7 +35,7 @@ from reglens.evaluation.table_check import (
     summarize,
     table_row,
 )
-from reglens.ingestion.parse_pdf import cache_paths, convert_pdf, make_converter
+from reglens.ingestion.parse_pdf import convert_pdf, make_converter
 
 
 def main() -> int:
@@ -51,16 +48,10 @@ def main() -> int:
     warnings.filterwarnings("ignore")
     logging.basicConfig(level=logging.ERROR)
 
-    reports = load_corpus(settings.sources_file).reports
-    cached: dict[str, DoclingDocument] = {}
-    pdfs: dict[str, pdfium.PdfDocument] = {}
-    paths = {}
-    for src in reports:
-        doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
-        if doc_file.exists():
-            cached[src.id] = DoclingDocument.load_from_json(doc_file)
-            paths[src.id] = settings.raw_dir / "reports" / f"{src.id}.pdf"
-            pdfs[src.id] = pdfium.PdfDocument(paths[src.id])
+    loaded = cached_reports(settings)
+    cached = {doc_id: docling for doc_id, (docling, _) in loaded.items()}
+    pdfs = {doc_id: pdf for doc_id, (_, pdf) in loaded.items()}
+    paths = {doc_id: settings.raw_dir / "reports" / f"{doc_id}.pdf" for doc_id in loaded}
     sample = pick_tables(cached, args.n, args.seed)
     print(f"{len(sample)} tables from {len(cached)} cached reports")
 

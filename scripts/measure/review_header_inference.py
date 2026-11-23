@@ -1,7 +1,7 @@
 """Visual check of header-row inference on tables where Docling detected no header.
 
 Usage (repository root, virtual environment active, after scripts/parse_corpus.py):
-    python scripts/review_header_inference.py --n 10 --seed 42
+    python scripts/measure/review_header_inference.py --n 10 --seed 42
 
 Counts, over every report table with 0 detected header rows, how many header rows the
 rule of reglens/ingestion/table_rows.infer_header_rows gives; then draws a reproducible
@@ -17,14 +17,12 @@ import sys
 from collections import Counter
 from datetime import date
 
-import pypdfium2 as pdfium
-from docling_core.types.doc.document import DoclingDocument
-
 from reglens.config import get_settings
+from reglens.corpus.sources import Language
+from reglens.evaluation.report_tables import cached_reports, report_tables
 from reglens.evaluation.results import write_result
 from reglens.evaluation.table_check import render_region, tables_of
-from reglens.ingestion.models import ParsedDocument, TableData
-from reglens.ingestion.parse_pdf import cache_paths
+from reglens.ingestion.models import TableData
 from reglens.ingestion.table_rows import header_paths, infer_header_rows, with_header
 
 
@@ -44,20 +42,20 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    candidates: list[tuple[TableData, str, int]] = []
+    max_rows = settings.table_max_inferred_header_rows
+    candidates: list[tuple[TableData, Language, int]] = []
     counts: Counter[int] = Counter()
-    for path in sorted((settings.processed_dir / "parsed").glob("*.json")):
-        doc = ParsedDocument.model_validate_json(path.read_text(encoding="utf-8"))
-        if doc.type_doc != "reports":
+    for rt in report_tables(settings.processed_dir):
+        t = rt.table
+        if t.header_inferred:  # parsed with inference: the header rows are the inferred ones
+            n = t.header_rows
+        elif t.header_rows == 0:  # parsed before inference was part of the pipeline
+            n = infer_header_rows(t, rt.langue, max_rows)
+        else:
             continue
-        for block in doc.blocks:
-            t = block.table
-            if t is None or not t.cells or t.header_rows:
-                continue
-            n = infer_header_rows(t, doc.langue)
-            counts[n] += 1
-            if n:
-                candidates.append((t, doc.langue, n))
+        counts[n] += 1
+        if n:
+            candidates.append((t.model_copy(update={"header_rows": 0}), rt.langue, n))
     if not candidates:
         print("no table without a header: run scripts/parse_corpus.py")
         return 1
@@ -65,19 +63,15 @@ def main() -> int:
 
     out_dir = settings.docling_cache_dir.parent / "header_inference_review"
     out_dir.mkdir(parents=True, exist_ok=True)
-    docs: dict[str, DoclingDocument] = {}
+    cached = cached_reports(settings, {t.table_id.split("#")[0] for t, _, _ in sample})
     sections = []
     for table, langue, n in sample:
         doc_id, index = table.table_id.split("#tbl-")
-        if doc_id not in docs:
-            docs[doc_id] = DoclingDocument.load_from_json(
-                cache_paths(settings.docling_cache_dir, doc_id)[0]
-            )
-        item = tables_of(docs[doc_id])[int(index) - 1]
-        pdf = pdfium.PdfDocument(settings.raw_dir / "reports" / f"{doc_id}.pdf")
+        docling, pdf = cached[doc_id]
+        item = tables_of(docling)[int(index) - 1]
         png = f"{doc_id}_tbl-{index}.png"
-        render_region(pdf, docs[doc_id], item, out_dir / png)
-        paths = header_paths(with_header(table, langue))
+        render_region(pdf, docling, item, out_dir / png)
+        paths = header_paths(with_header(table, langue, max_rows))
         sections.append(
             f"<section><h2>{html.escape(table.table_id)}: {n} inferred header row(s)</h2>"
             f"<div class=pair><div><img src='{png}'></div><div>{grid_html(table, n)}"

@@ -152,5 +152,13 @@
     "no_drop_in_coverage": false,
     "adopted": false
   },
-  "status": "invalid run: character-handling bug (tight glyph boxes split words and lines, e.g. '3 1 Dece m be r'). Fixed by using pdfium's loose character boxes and the PDF's own space characters; no decision parameter changed. See the _2 run."
+  "status": "invalid run: character-handling bug (tight glyph boxes split words and lines, e.g. '3 1 Dece m be r'). Fixed by using pdfium's loose character boxes and the PDF's own space characters; no decision parameter changed. See the _2 run.",
+  "code_commit": "de079ac",
+  "code_files": [
+    "src/reglens/ingestion/header_geometry.py",
+    "scripts/measure_header_geometry.py",
+    "scripts/review_header_geometry.py",
+    "tests/test_header_geometry.py"
+  ],
+  "code_status": "deleted after the decision (not adopted); restore with: git checkout de079ac -- src/reglens/ingestion/header_geometry.py scripts/measure_header_geometry.py scripts/review_header_geometry.py tests/test_header_geometry.py"
 }

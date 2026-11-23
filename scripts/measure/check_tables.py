@@ -1,8 +1,8 @@
 """Check Docling's tables against the PDFs: 20 tables automatically, 5 for manual review.
 
 Usage (repository root, virtual environment active, after scripts/run_docling.py):
-    python scripts/check_tables.py              # uses every report already in the cache
-    python scripts/check_tables.py --n 20 --review 5 --seed 42
+    python scripts/measure/check_tables.py              # uses every report already in the cache
+    python scripts/measure/check_tables.py --n 20 --review 5 --seed 42
 
 1. Values: for 20 tables chosen at random (fixed seed) and spread over the reports, every
    non-empty cell must appear in the PDF text layer inside the table's box. Writes
@@ -18,11 +18,8 @@ import html
 import sys
 from datetime import date
 
-import pypdfium2 as pdfium
-from docling_core.types.doc.document import DoclingDocument
-
 from reglens.config import get_settings
-from reglens.corpus.sources import load_corpus
+from reglens.evaluation.report_tables import cached_reports
 from reglens.evaluation.results import append_row, write_result
 from reglens.evaluation.table_check import (
     check_table,
@@ -32,7 +29,6 @@ from reglens.evaluation.table_check import (
     summarize,
     table_row,
 )
-from reglens.ingestion.parse_pdf import cache_paths
 
 PAGE_STYLE = """
 body { font: 14px system-ui, sans-serif; margin: 16px; background: #fff; color: #111; }
@@ -55,13 +51,9 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    docs: dict[str, DoclingDocument] = {}
-    pdfs: dict[str, pdfium.PdfDocument] = {}
-    for src in load_corpus(settings.sources_file).reports:
-        doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
-        if doc_file.exists():
-            docs[src.id] = DoclingDocument.load_from_json(doc_file)
-            pdfs[src.id] = pdfium.PdfDocument(settings.raw_dir / "reports" / f"{src.id}.pdf")
+    cached = cached_reports(settings)
+    docs = {doc_id: docling for doc_id, (docling, _) in cached.items()}
+    pdfs = {doc_id: pdf for doc_id, (_, pdf) in cached.items()}
     if not docs:
         print("no report in the Docling cache yet: run scripts/run_docling.py")
         return 1

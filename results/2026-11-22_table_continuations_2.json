@@ -727,5 +727,12 @@
       "a Total row whose label is not in the first non-empty cell (row number first)"
     ],
     "decision": "8/10 < 9/10: continued tables are not linked. Known limitation: about 41 x 0.8 = 33 pairs (interval 20-39 from the 95 % bounds), i.e. the second part of roughly 3-4 % of the 929 tables is chunked without the first part's title and, when it has none of its own, without a header."
-  }
+  },
+  "code_commit": "aa3067b",
+  "code_files": [
+    "src/reglens/evaluation/table_continuations.py",
+    "scripts/measure_table_continuations.py",
+    "tests/test_table_continuations.py"
+  ],
+  "code_status": "deleted after the decision (not adopted); restore with: git checkout aa3067b -- src/reglens/evaluation/table_continuations.py scripts/measure_table_continuations.py tests/test_table_continuations.py"
 }

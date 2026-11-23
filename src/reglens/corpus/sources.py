@@ -9,7 +9,19 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 DocType = Literal["regulations", "reports", "policies", "logs"]
 Language = Literal["en", "fr"]
-FileFormat = Literal["html", "pdf", "md", "jsonl"]
+FileFormat = Literal["html", "pdf", "md", "jsonl", "xlsx"]
+
+
+class Appendix(BaseModel):
+    """A structured companion of a report (e.g. its tables as a spreadsheet). It is
+    downloaded next to the report as data/raw/<type>/<id>.<format>; it adds no document:
+    it replaces the content of the report's tables it matches with certainty."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    format: Literal["xlsx"]
+    url: HttpUrl
+    what: str | None = None
 
 
 class Source(BaseModel):
@@ -27,6 +39,7 @@ class Source(BaseModel):
     urls: dict[Language, HttpUrl] | None = None
     url: HttpUrl | None = None
     language: Language | None = None
+    appendix: Appendix | None = None
 
     @model_validator(mode="after")
     def _check_urls(self) -> "Source":
@@ -96,5 +109,11 @@ def download_targets(corpus: Corpus, raw_dir: Path) -> list[DownloadTarget]:
                 path = raw_dir / doc_type / f"{src.id}.{src.format}"
                 targets.append(
                     DownloadTarget(src.id, doc_type, src.format, str(src.url), path, src.language)
+                )
+            if src.appendix is not None:
+                fmt = src.appendix.format
+                path = raw_dir / doc_type / f"{src.id}.{fmt}"
+                targets.append(
+                    DownloadTarget(src.id, doc_type, fmt, str(src.appendix.url), path, src.language)
                 )
     return targets

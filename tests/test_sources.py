@@ -19,11 +19,13 @@ def test_real_sources_file_is_valid() -> None:
 def test_targets_one_file_per_language(tmp_path: Path) -> None:
     corpus = load_corpus(REPO_ROOT / "data" / "sources.yaml")
     targets = download_targets(corpus, tmp_path)
-    # 8 regulations x 2 languages + 6 reports; generated sources are not downloaded
-    assert len(targets) == 8 * 2 + 6
+    # 8 regulations x 2 languages + 6 reports + 1 spreadsheet appendix (ING); generated
+    # sources are not downloaded
+    assert len(targets) == 8 * 2 + 6 + 1
     paths = {t.path.relative_to(tmp_path).as_posix() for t in targets}
     assert "regulations/dora_fr.html" in paths
     assert "reports/ing_group_pillar3_2025.pdf" in paths
+    assert "reports/ing_group_pillar3_2025.xlsx" in paths
     assert len(paths) == len(targets)  # no two targets write the same file
 
 

@@ -50,6 +50,17 @@ RULES: dict[FileFormat, FormatRule] = {
         min_bytes=100_000,
         max_bytes=200_000_000,
     ),
+    # An .xlsx file is a zip archive: it starts with the zip signature "PK\x03\x04".
+    "xlsx": FormatRule(
+        content_types=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/octet-stream",
+        ),
+        magic=b"PK\x03\x04",
+        min_bytes=10_000,
+        max_bytes=50_000_000,
+        must_contain=b"xl/workbook.xml",
+    ),
 }
 
 
