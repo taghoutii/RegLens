@@ -8,8 +8,8 @@
    name its columns. Each data row is therefore also written as one line that carries
    its own labels:
        "<section> > <row label> — <column header path> = <value>; ..."
-       
-   The header path of a column joins its labels from every header row, top to bottom. 
+
+   The header path of a column joins its labels from every header row, top to bottom.
     A row with a label and no value is a section: it prefixes the labels of the rows under it.
     The Markdown grid is kept for display; these lines are for embedding and the LLM.
 """

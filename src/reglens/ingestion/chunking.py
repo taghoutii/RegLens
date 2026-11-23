@@ -14,7 +14,7 @@ no monitoring noise) - tables:
 
 `context` says where a chunk comes from. It is kept apart from `text`, so `text` stays an
 exact slice of the parsed unit (column groups excepted); the embedding reads context +
-newline + text (+ row lines instead of text for tables). 
+newline + text (+ row lines instead of text for tables).
 """
 
 import re
