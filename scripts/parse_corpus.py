@@ -9,7 +9,9 @@ Usage (repository root, virtual environment active, `docker compose up -d` for t
 
 Order per document: parse -> mask -> write. Nothing unmasked is ever written to
 data/processed/ or PostgreSQL. Full reports are read from the Docling cache, which
-scripts/run_docling.py fills (hours on CPU).
+scripts/run_docling.py fills (hours on CPU). A report with a spreadsheet appendix
+(sources.yaml `appendix`) has the tables it matches with certainty replaced by their
+spreadsheet version before masking (reglens/ingestion/structured_tables.py).
 """
 
 import argparse
@@ -35,6 +37,7 @@ from reglens.ingestion.parse_pdf import (
 )
 from reglens.ingestion.parse_synthetic import parse_incident_log, parse_policy
 from reglens.ingestion.pii import PiiMasker
+from reglens.ingestion.structured_tables import apply_spreadsheet, summary
 from reglens.ingestion.table_store import conninfo, ensure_schema, store_tables
 
 TYPES = ["regulations", "reports", "policies", "logs"]
@@ -60,6 +63,7 @@ def main() -> int:
     logging.basicConfig(level=settings.log_level, format="%(levelname)-7s %(message)s")
 
     raw, out_dir = settings.raw_dir, settings.processed_dir / "parsed"
+    max_header = settings.table_max_inferred_header_rows
     corpus = load_corpus(settings.sources_file)
     masker = PiiMasker(settings)
     conn = None if args.no_db or "reports" not in args.only else psycopg.connect(conninfo(settings))
@@ -103,7 +107,8 @@ def main() -> int:
                     )
                     pages = (1, args.max_pages)
                     doc = parse_pdf(path, converter, doc_id=src.id, langue=lang,
-                                    source=path.as_posix(), page_range=pages)  # fmt: skip
+                                    source=path.as_posix(), page_range=pages,
+                                    max_header_rows=max_header)  # fmt: skip
                 else:
                     doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
                     cache_ok = is_cached(settings.docling_cache_dir, src.id,
@@ -114,7 +119,17 @@ def main() -> int:
                         continue
                     docling_doc = DoclingDocument.load_from_json(doc_file)
                     doc = from_docling(docling_doc, doc_id=src.id, langue=lang,
-                                       source=path.as_posix())  # fmt: skip
+                                       source=path.as_posix(),
+                                       max_header_rows=max_header)  # fmt: skip
+                appendix = (
+                    raw / "reports" / f"{src.id}.{src.appendix.format}" if src.appendix else None
+                )
+                if appendix is not None and appendix.exists():
+                    replaced = apply_spreadsheet(doc, appendix,
+                                                 min_numbers=settings.spreadsheet_min_numbers,
+                                                 min_share=settings.spreadsheet_min_share,
+                                                 margin=settings.spreadsheet_margin)  # fmt: skip
+                    logger.info("%s: spreadsheet appendix %s", src.id, summary(replaced))
                 done(doc, t0)
         if "policies" in args.only:
             for path in sorted((raw / "policies").glob("POL-*.md")):

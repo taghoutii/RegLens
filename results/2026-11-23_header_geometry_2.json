@@ -1,0 +1,181 @@
+{
+  "name": "header_geometry",
+  "date": "2026-11-23",
+  "phase": 3,
+  "method": "baseline = stored table + header-row inference; geometry = header rows rebuilt from pypdfium2 characters, filled boxes and rules, columns from Docling's body cell boxes (reglens/ingestion/header_geometry.py). Accuracy: value columns whose full header path equals the gold path (whitespace-insensitive).",
+  "adoption_rule": "accuracy >= baseline + 10 points; 0 columns correct under the baseline become wrong on the tables labelled correct; on the 20 test tables no drop in cells found, number cells found or word coverage",
+  "labelled_tables": {
+    "gold": "data/cache/table_review/header_gold.json (not committed)",
+    "value_columns": 66,
+    "baseline_accuracy": 0.364,
+    "geometry_accuracy": 0.561,
+    "tables": [
+      {
+        "table": "bnpp_fortis_pillar3_2025#tbl-10",
+        "header_error_label": true,
+        "value_columns": 8,
+        "geometry_applied": true,
+        "baseline_correct": 3,
+        "geometry_correct": 8,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "bnpp_fortis_pillar3_2025#tbl-11",
+        "header_error_label": true,
+        "value_columns": 5,
+        "geometry_applied": true,
+        "baseline_correct": 3,
+        "geometry_correct": 4,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "bnpp_fortis_pillar3_2025_tables#tbl-20",
+        "header_error_label": true,
+        "value_columns": 12,
+        "geometry_applied": true,
+        "baseline_correct": 0,
+        "geometry_correct": 4,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "bnpp_fortis_pillar3_2025_tables#tbl-28",
+        "header_error_label": false,
+        "value_columns": 8,
+        "geometry_applied": true,
+        "baseline_correct": 8,
+        "geometry_correct": 8,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "ing_group_pillar3_2025#tbl-45",
+        "header_error_label": true,
+        "value_columns": 6,
+        "geometry_applied": true,
+        "baseline_correct": 0,
+        "geometry_correct": 0,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "socgen_pillar3_2025_en#tbl-29",
+        "header_error_label": false,
+        "value_columns": 2,
+        "geometry_applied": true,
+        "baseline_correct": 0,
+        "geometry_correct": 2,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "socgen_pillar3_2025_en#tbl-116",
+        "header_error_label": true,
+        "value_columns": 6,
+        "geometry_applied": true,
+        "baseline_correct": 5,
+        "geometry_correct": 6,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "socgen_pillar3_2025_fr#tbl-5",
+        "header_error_label": false,
+        "value_columns": 2,
+        "geometry_applied": true,
+        "baseline_correct": 0,
+        "geometry_correct": 0,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "socgen_pillar3_2025_fr#tbl-23",
+        "header_error_label": false,
+        "value_columns": 5,
+        "geometry_applied": true,
+        "baseline_correct": 5,
+        "geometry_correct": 5,
+        "correct_became_wrong": []
+      },
+      {
+        "table": "socgen_pillar3_2025_h1_en#tbl-116",
+        "header_error_label": true,
+        "value_columns": 12,
+        "geometry_applied": true,
+        "baseline_correct": 0,
+        "geometry_correct": 0,
+        "correct_became_wrong": []
+      }
+    ]
+  },
+  "test_tables": {
+    "geometry_applied": "18/20",
+    "baseline": {
+      "cells": 1567,
+      "found": 1522,
+      "number_cells": 1003,
+      "number_found": 1003,
+      "words": 3830,
+      "covered": 3786,
+      "found_rate": 0.9713,
+      "coverage": 0.9885
+    },
+    "geometry": {
+      "cells": 1566,
+      "found": 1550,
+      "number_cells": 1008,
+      "number_found": 1008,
+      "words": 3830,
+      "covered": 3795,
+      "found_rate": 0.9898,
+      "coverage": 0.9909
+    }
+  },
+  "all_tables": {
+    "tables": 929,
+    "geometry_applied": 700,
+    "header_paths_changed": 645
+  },
+  "adoption": {
+    "accuracy_gain_at_least_10_points": true,
+    "no_regression_on_correct_tables": true,
+    "no_drop_in_cells_found": true,
+    "no_drop_in_number_cells_found": true,
+    "no_drop_in_coverage": true,
+    "adopted": true,
+    "decision": "NOT adopted yet: the fixed rule passed on the labelled tables, but the out-of-sample spot check is 4 better / 3 worse / 3 mixed. Proposed fixes and a stricter rule (adding a fresh spot check) await approval."
+  },
+  "note": "second run, after the character-box bug fix of the first run (same method and parameters otherwise). The labelled tables were seen in the first run's output.",
+  "remaining_failures_on_labelled_tables": {
+    "bnpp_fortis_pillar3_2025_tables#tbl-20": "leaf labels of adjacent right-aligned columns merged into one phrase (gap below the phrase threshold)",
+    "socgen_pillar3_2025_h1_en#tbl-116": "date header '31.12.2024 (R)' above the table box; adjacent leaf labels merged ('1,250%/ deductions SEC-IRBA')",
+    "ing_group_pillar3_2025#tbl-45": "Docling grid lacks the ranking-10 column; 'Other liabilities' falls back to text overlap and lands in two columns; the title band is outside the header region",
+    "socgen_pillar3_2025_fr#tbl-5": "the section row 'Scenarios de chocs prudentiels' (no value) lies above the first value row, so it is read as a header line of every column",
+    "bnpp_fortis_pillar3_2025#tbl-11": "'Gross carrying amount' box also covers the 'of which non-performing' sub-box, column 2 path misses its leaf"
+  },
+  "spot_check_outside_labelled_set": {
+    "method": "scripts/review_header_geometry.py --n 10 --seed 42 (labelled tables excluded): random tables whose header paths change; PDF region vs baseline and geometric paths, judged by eye",
+    "tables_changed": 637,
+    "verdicts": {
+      "ing_group_pillar3_2025#tbl-145": "better (baseline had no header)",
+      "socgen_pillar3_2025_en#tbl-147": "better (leaf headers added)",
+      "socgen_pillar3_2025_h1_en#tbl-91": "better (IRB / Standard / Total levels added)",
+      "ing_group_pillar3_2025#tbl-94": "better",
+      "bnpp_fortis_pillar3_2025#tbl-38": "worse (two adjacent column headers merged)",
+      "socgen_pillar3_2025_en#tbl-124": "worse (adjacent column headers merged)",
+      "socgen_pillar3_2025_en#tbl-21": "worse (spanning header lost on one column, date of another column added)",
+      "socgen_pillar3_2025_en#tbl-190": "mixed (levels added, section row appended to every column)",
+      "ing_group_pillar3_2025#tbl-119": "mixed",
+      "socgen_pillar3_2025_h1_en#tbl-140": "mixed (date added, maturity buckets merged)"
+    },
+    "better": 4,
+    "worse": 3,
+    "mixed": 3,
+    "causes": [
+      "phrase split: right-aligned headers of adjacent columns closer than the phrase gap are read as one label",
+      "section rows between the header and the first value row are read as header lines"
+    ]
+  },
+  "code_commit": "de079ac",
+  "code_files": [
+    "src/reglens/ingestion/header_geometry.py",
+    "scripts/measure_header_geometry.py",
+    "scripts/review_header_geometry.py",
+    "tests/test_header_geometry.py"
+  ],
+  "code_status": "deleted after the decision (not adopted); restore with: git checkout de079ac -- src/reglens/ingestion/header_geometry.py scripts/measure_header_geometry.py scripts/review_header_geometry.py tests/test_header_geometry.py"
+}

@@ -109,6 +109,10 @@ reports:   # Rapports Pillar 3 — publiés par chaque banque sur son site inves
     mode: auto
     language: en
     url: https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-additional-pillar-iii-report.pdf
+    appendix:   # mêmes tableaux EBA en tableur : valeurs exactes, remplacent les tableaux reconnus avec certitude
+      format: xlsx
+      url: https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-appendices-additional-pillar-iii-disclosures.xlsx
+      what: "Appendices Pillar III d'ING au format tableur (un onglet par modèle EBA)."
 
   - id: socgen_pillar3_2025_en
     title: "Société Générale — Pillar 3 au 31/12/2025 (anglais)"

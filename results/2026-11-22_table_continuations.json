@@ -675,5 +675,12 @@
     "candidates_whose_A_is_itself_a_B": 5,
     "note": "tables running over 3 or more pages"
   },
-  "not_measured": "recall: continuations missed because Docling found a different column count (68 adjacent pairs have the same count, 101 within one column) or because a caption sits on B"
+  "not_measured": "recall: continuations missed because Docling found a different column count (68 adjacent pairs have the same count, 101 within one column) or because a caption sits on B",
+  "code_commit": "aa3067b",
+  "code_files": [
+    "src/reglens/evaluation/table_continuations.py",
+    "scripts/measure_table_continuations.py",
+    "tests/test_table_continuations.py"
+  ],
+  "code_status": "deleted after the decision (not adopted); restore with: git checkout aa3067b -- src/reglens/evaluation/table_continuations.py scripts/measure_table_continuations.py tests/test_table_continuations.py"
 }

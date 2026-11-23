@@ -13,8 +13,6 @@ uses it too, but the check reads it back through a different library (pypdfium2)
 
 import html
 import random
-import re
-import unicodedata
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -23,7 +21,7 @@ import pypdfium2 as pdfium
 from docling_core.types.doc.document import DoclingDocument
 from docling_core.types.doc.items.table.table import TableItem
 
-from reglens.ingestion.models import has_several_numbers
+from reglens.ingestion.numbers import has_several_numbers, is_one_number
 from reglens.ingestion.parse_pdf import table_data
 from reglens.ingestion.table_quality import (
     header_rows,
@@ -31,19 +29,7 @@ from reglens.ingestion.table_quality import (
     same_label_cells,
     same_label_slots,
 )
-
-# Characters that the text layer and Docling may write differently.
-# \x02 and \u00ad are soft hyphens in the PDF text layer ("off\x02balance" = "off-balance").
-_EQUIVALENT = str.maketrans({
-    "\u2212": "-", "\u2013": "-", "\u2014": "-", "\u2019": "'",
-    "\u00a0": " ", "\x02": "-", "\u00ad": "-",
-})  # fmt: skip
-_NUMBER = re.compile(r"[-+()\d.,%\s]+")
-
-
-def normalize(text: str) -> str:
-    """Compare text without whitespace (line breaks inside a cell differ between tools)."""
-    return re.sub(r"\s+", "", unicodedata.normalize("NFKC", text).translate(_EQUIVALENT))
+from reglens.ingestion.text_norm import compact
 
 
 @dataclass
@@ -77,7 +63,7 @@ def cell_kind(text: str, column_header: bool) -> str:
     """header (column header), number (only digits and signs) or label (other text)."""
     if column_header:
         return "header"
-    return "number" if _NUMBER.fullmatch(text) else "label"
+    return "number" if is_one_number(text) or has_several_numbers(text) else "label"
 
 
 def tables_of(doc: DoclingDocument) -> list[TableItem]:
@@ -100,13 +86,13 @@ def check_table(
     pdf: pdfium.PdfDocument, doc: DoclingDocument, table: TableItem, doc_id: str, index: int
 ) -> TableCheck:
     region = region_text(pdf, doc, table)
-    reference = normalize(region)
+    reference = compact(region)
     result = TableCheck(doc_id, index, sorted({p.page_no for p in table.prov}),
                         table.data.num_rows, table.data.num_cols)  # fmt: skip
     seen: set[int] = set()  # a merged cell appears in every slot it covers: check it once
     for r, row in enumerate(table.data.grid):
         for c, cell in enumerate(row):
-            text = normalize(cell.text)
+            text = compact(cell.text)
             if not text or id(cell) in seen:
                 continue
             seen.add(id(cell))
@@ -121,8 +107,8 @@ def check_table(
                 result.missing.append((r, c))
                 result.missing_by_kind[kind] += 1
                 result.missing_flagged += flag
-    extracted = normalize("".join(cell.text for cell in table.data.table_cells))
-    words = [w for w in (normalize(w) for w in region.split()) if w]
+    extracted = compact("".join(cell.text for cell in table.data.table_cells))
+    words = [w for w in (compact(w) for w in region.split()) if w]
     result.region_words = len(words)
     result.covered_words = sum(1 for w in words if w in extracted)
 

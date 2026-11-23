@@ -27,6 +27,7 @@ dependencies = [
     # Phase 3 — chunking
     "transformers==5.23.0",     # bge-m3 tokenizer (chunk sizes) and sentence vectors (semantic cuts)
     "spacy==3.8.18",            # sentence boundaries (same md models as Presidio; was indirect)
+    "openpyxl==3.1.5",          # reads the spreadsheet appendix of a report (exact table values)
 ]
 
 [project.optional-dependencies]
@@ -73,7 +74,7 @@ plugins = ["pydantic.mypy"]
 
 # Libraries without type information (per-library exceptions; the global rules stay strict).
 [[tool.mypy.overrides]]
-module = ["presidio_analyzer.*", "presidio_anonymizer.*", "lxml.*", "pypdfium2.*"]
+module = ["presidio_analyzer.*", "presidio_anonymizer.*", "lxml.*", "pypdfium2.*", "openpyxl.*"]
 ignore_missing_imports = true
 
 # ---------- pytest ----------

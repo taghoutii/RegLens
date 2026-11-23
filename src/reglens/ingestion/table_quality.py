@@ -1,7 +1,6 @@
 """Header checks on Docling tables
 
-Docling's grid already repeats a spanning header in
-every slot it covers, so each column carries its full header path. What goes wrong is
+problem:
 the span itself (too wide, or a spanning header fused into one column's text). These
 checks flag such tables; they never change the cells.
 """

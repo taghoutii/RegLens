@@ -14,9 +14,9 @@ from reglens.ingestion.chunking import (
     Chunker,
     ChunkParams,
     chunk_id,
-    column_labels,
 )
 from reglens.ingestion.models import Block, ParsedDocument, TableData
+from reglens.ingestion.table_rows import header_paths
 from tests.chunk_stubs import stub_tools
 
 PARAMS = ChunkParams(max_tokens=60, min_tokens=10, overlap=5, threshold=0.5)
@@ -72,7 +72,8 @@ def required_fields_filled(c: Chunk) -> bool:
         common = common and c.reglement is not None and (c.article is not None) == is_article
     if c.type_doc == "reports":
         common = common and c.page_number is not None
-    tables = (c.header_uncertain, c.header_issues, c.has_fused_rows)
+    tables = (c.header_uncertain, c.header_issues, c.has_fused_rows, c.row_lines,
+              c.table_source)  # fmt: skip
     if c.kind == "table":
         return common and all(v is not None for v in tables)
     return common and all(v is None for v in tables)
@@ -174,9 +175,12 @@ def test_table_chunk_carries_summary_and_quality_flags() -> None:
     assert table.parent_id == "rep#tbl-1"  # = report_tables.table_id in PostgreSQL
     assert table.header_uncertain is True and table.header_issues == ["same_label_cells"]
     assert table.has_fused_rows is True
-    assert table.text.startswith("Table: EU CC1 - Own funds\nSource: Bank report 2025, page 4")
-    assert "Columns: EUR m; 2025 > Total; 2025 > IRB" in table.text
-    assert "| CET1 | 1 571 898 | 12 |" in table.text
+    assert table.context is not None
+    assert table.context.startswith("Table: EU CC1 - Own funds\nSource: Bank report 2025, page 4")
+    assert "Columns: EUR m; 2025 > Total; 2025 > IRB" in table.context
+    assert table.text == report().blocks[2].table.to_markdown()  # type: ignore[union-attr]
+    assert table.row_lines == "CET1 — 2025 > Total = 1 571 898; 2025 > IRB = 12"
+    assert table.table_source == "pdf"
     text = next(c for c in chunks if c.kind == "text")
     assert text.header_uncertain is None and text.has_fused_rows is None
 
@@ -193,9 +197,9 @@ def test_report_heading_without_text_is_dropped(strategy: Any) -> None:
     assert "rep#sec-1" in {c.parent_id for c in chunks}  # a heading with text is kept
 
 
-def test_column_labels_without_header() -> None:
+def test_header_paths_without_header() -> None:
     t = TableData(table_id="x#tbl-1", n_rows=1, n_cols=2, cells=[["a", "b"]])
-    assert column_labels(t) == []
+    assert header_paths(t) == ["", ""]
 
 
 def test_policy_and_incident_chunks() -> None:

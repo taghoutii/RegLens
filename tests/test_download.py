@@ -115,3 +115,18 @@ def test_404_is_not_retried(tmp_path: Path) -> None:
     result = download_one(_client(missing), _target(tmp_path), backoff_s=0)
     assert result.status == "failed"
     assert calls["n"] == 1
+
+
+XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def test_valid_spreadsheet_is_saved(tmp_path: Path) -> None:
+    body = b"PK\x03\x04" + b"0" * 20_000 + b"xl/workbook.xml"
+    result = download_one(_client(_respond(body, XLSX)), _target(tmp_path, "xlsx"))
+    assert result.status == "downloaded"
+
+
+def test_zip_that_is_not_a_workbook_is_rejected(tmp_path: Path) -> None:
+    body = b"PK\x03\x04" + b"0" * 20_000
+    result = download_one(_client(_respond(body, XLSX)), _target(tmp_path, "xlsx"))
+    assert result.status == "failed" and "xl/workbook.xml" in result.detail

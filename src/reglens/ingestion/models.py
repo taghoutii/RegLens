@@ -8,7 +8,6 @@ its logical unit (`parent_id`, e.g. "dora#art-19"), and its article / paragraph 
 page / section when they exist. Citations later point back to exactly this.
 """
 
-import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,26 +15,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from reglens.corpus.sources import DocType, Language
 
 BlockKind = Literal["title", "text", "table", "records"]
-
-
-# One number: optional sign/brackets, thousands grouped by "," or by a space (French
-# reports write "1 234 567"), optional decimals and %. E.g. "(1,043)", "12,9 %", "1 234".
-_SPACES = r"[ \u00a0\u202f]"  # space, no-break space, narrow no-break space
-_ONE_NUMBER = re.compile(
-    rf"[-+(]?\d{{1,3}}(?:(?:,\d{{3}})+|(?:{_SPACES}\d{{3}})+)?(?:[.,]\d+)?\s?%?\)?"
-    rf"|[-+(]?\d+(?:[.,]\d+)?\s?%?\)?"
-)
-_NUMBER_TOKEN = re.compile(r"\d")
-
-
-def has_several_numbers(text: str) -> bool:
-    """True for a cell with no letters that is not one number: "1,571 898 92" is three
-    values from three rows fused into one cell (a known table-structure error).
-    Limitation: "674 340" reads as one space-grouped number, so it is not flagged."""
-    text = text.strip()
-    if not text or any(ch.isalpha() for ch in text) or not _NUMBER_TOKEN.search(text):
-        return False
-    return _ONE_NUMBER.fullmatch(text) is None and len(text.split()) >= 2
 
 
 class TableData(BaseModel):
@@ -49,6 +28,9 @@ class TableData(BaseModel):
     n_cols: int
     cells: list[list[str]]  # cells[row][col]; merged cells repeat their text
     header_rows: int = 0  # how many leading rows are column headers
+    header_inferred: bool = False  # True when Docling marked none and they were inferred
+    # Where the cells come from: the PDF (Docling) or the bank's spreadsheet appendix.
+    content_source: Literal["pdf", "spreadsheet"] = "pdf"
     # (row, col) of cells that look like several values fused together: kept, but flagged
     # so an answer built on them can say the value is uncertain.
     low_confidence: list[tuple[int, int]] = Field(default_factory=list)

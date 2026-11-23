@@ -54,19 +54,20 @@ Three decoupled parts: ingestion never slows down a question.
 RegLens/
 ├── data/
 │   ├── sources.yaml        # list of corpus documents (committed)
-│   ├── raw/                # downloaded + generated files (not committed) — the only folder ingested
+│   ├── raw/                # downloaded + generated files (not committed) — the only input of the build
 │   ├── cache/              # raw parser output, e.g. Docling JSON (not committed, never ingested)
 │   ├── processed/          # parsed documents and chunks, always PII-masked (not committed)
 │   ├── ground_truth/       # what the synthetic generator planted (not committed, never ingested)
 │   └── golden_set/         # evaluation questions
 ├── docs/                   # project scoping and backlog
 ├── results/                # experiment results (committed) + EXPERIMENTS.md
-├── scripts/                # corpus download, synthetic data, parsing, measurements
+├── scripts/                # build_corpus.py and one script per build stage
+│   └── measure/            # measurements (results/), not part of the build
 ├── src/reglens/
 │   ├── config.py           # settings from environment variables
 │   ├── corpus/             # source list, downloader, synthetic data generator
 │   ├── ingestion/          # parsing, PII masking, table store, chunking, embedding, indexing
-│   ├── evaluation/         # PII leak checks, retrieval metrics
+│   ├── evaluation/         # result files, table and PII checks (retrieval metrics: Phase 4)
 │   ├── retrieval/          # hybrid search, reranking
 │   ├── generation/         # LLM client, prompts, guards
 │   ├── api/                # FastAPI app and schemas
@@ -114,31 +115,24 @@ The corpus is listed in [`data/sources.yaml`](data/sources.yaml):
 - **reports**: Pillar 3 risk reports of European banks (PDF);
 - **policies** and **logs**: internal documents and an ICT incident log of a fictional fintech, generated with fake personal data.
 
-Raw files live in `data/raw/<type>/` and are **not committed** (bank reports are copyrighted). Rebuild them with:
+Raw files live in `data/raw/<type>/` and are **not committed** (bank reports are copyrighted). One command builds the whole corpus, from download to chunks, and skips every stage that is already up to date:
 
 ```powershell
-python scripts/download_corpus.py      # regulations + reports (skips files already present)
-python scripts/generate_synthetic.py   # 50 policies + ~50 000 log lines, reproducible (seed 42)
+python scripts/build_corpus.py               # download -> generate -> Docling -> parse + mask -> chunk
+python scripts/build_corpus.py --record      # same, and record the Docling and chunking runs in results/
+python scripts/build_corpus.py --from parse  # force a stage and every stage after it
+python scripts/build_corpus.py --dry-run     # show what would run
 ```
 
-Then parse and mask them into `data/processed/parsed/` (report tables also go to PostgreSQL):
+| Stage | Script | Output |
+| :--- | :--- | :--- |
+| download | `download_corpus.py` | `data/raw/regulations/`, `data/raw/reports/` (PDF reports, and ING's spreadsheet appendix) |
+| generate | `generate_synthetic.py` | `data/raw/policies/`, `data/raw/logs/`, `data/ground_truth/` (seed 42) |
+| docling | `run_docling.py` | `data/cache/docling/` (hours on CPU, resumable; not committed, never ingested) |
+| parse | `parse_corpus.py` | `data/processed/parsed/` (masked) + report tables in PostgreSQL |
+| chunk | `chunk_corpus.py` | `data/processed/chunks/<strategy>/` (3 strategies; downloads BAAI/bge-m3, ~2.3 GB, on first run) |
 
-```powershell
-python scripts/parse_corpus.py --only regulations policies logs
-python scripts/run_docling.py                  # PDF reports -> data/cache/docling/ (hours on CPU, resumable)
-python scripts/parse_corpus.py --only reports  # reads the cache, masks, writes, stores the tables
-python scripts/check_tables.py                 # extracted cells vs the PDF text layer + review page
-```
-
-PDF parsing takes hours on a CPU, so its raw output is cached in `data/cache/docling/` (not committed, never ingested); an interrupted run resumes where it stopped.
-
-Every derived file is masked before it is written: names, e-mail addresses, IBANs, phone numbers and API keys become placeholders such as `<PERSON>`.
-
-Finally, cut the parsed documents into chunks, one folder per chunking strategy (`data/processed/chunks/<strategy>/`):
-
-```powershell
-python scripts/chunk_corpus.py   # 3 strategies; downloads BAAI/bge-m3 (~2.3 GB) on first run
-```
+Parsing masks every derived file before it is written: names, e-mail addresses, IBANs, phone numbers and API keys become placeholders such as `<PERSON>`. Report tables get inferred header rows when the PDF marks none, and ING tables that its spreadsheet appendix matches with certainty take their exact values from it. Measurements (table checks, PII recall, mapping counts) are separate scripts in `scripts/measure/`.
 
 Every download is checked (content type, file signature, size) before it is kept; failures are listed at the end and the script exits with code 1. Regulations are fetched through the EU Publications Office repository (CELLAR), which serves the same documents as the EUR-Lex links in `sources.yaml` in a machine-readable form.
 
@@ -153,5 +147,5 @@ The generator also writes `data/ground_truth/` (not committed): every planted fa
 | 0. Setup (repository, tooling, Docker infrastructure, CI) | done |
 | 1. Corpus download and synthetic data | done |
 | 2. Parsing and PII masking | done; table-cell criterion not met (see `results/`) |
-| 3. Chunking | done; strategy comparison in Phase 6 |
+| 3. Chunking | done (table work closed; see `results/EXPERIMENTS.md`); strategy comparison in Phase 6 |
 | 4–11. Evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |

@@ -1,9 +1,4 @@
-"""PDF parsing with Docling (bank Pillar 3 reports).
-
-Docling runs a layout model on each page image (what is a heading, a paragraph, a
-table, a page header?), puts the items in reading order (so 2-column pages read
-column by column), and runs TableFormer on each table to recover rows and columns.
-Both models run on CPU here, which is why the speed is measured, not assumed.
+"""PDF parsing with Docling (bank Pillar 3 reports)
 
 Mapping to the parsed-document model:
     section header      -> starts a new logical unit  "<doc_id>#sec-<n>"
@@ -34,8 +29,10 @@ from docling_core.types.doc.labels import DocItemLabel
 
 from reglens.config import Settings
 from reglens.corpus.sources import Language
-from reglens.ingestion.models import Block, ParsedDocument, TableData, has_several_numbers
+from reglens.ingestion.models import Block, ParsedDocument, TableData
+from reglens.ingestion.numbers import has_several_numbers
 from reglens.ingestion.table_quality import header_issues, header_rows
+from reglens.ingestion.table_rows import with_header
 
 SKIPPED_LABELS = {DocItemLabel.PAGE_HEADER, DocItemLabel.PAGE_FOOTER}
 TableMode = Literal["accurate", "fast"]
@@ -153,11 +150,13 @@ def parse_pdf(
     doc_id: str,
     langue: Language,
     source: str,
+    max_header_rows: int,
     page_range: tuple[int, int] | None = None,
 ) -> ParsedDocument:
     """Convert one PDF (optionally a page range, for samples and timing) and map it."""
     doc, seconds = convert_pdf(path, converter, page_range)
-    return from_docling(doc, doc_id=doc_id, langue=langue, source=source, seconds=seconds)
+    return from_docling(doc, doc_id=doc_id, langue=langue, source=source,
+                        max_header_rows=max_header_rows, seconds=seconds)  # fmt: skip
 
 
 def from_docling(
@@ -166,9 +165,12 @@ def from_docling(
     doc_id: str,
     langue: Language,
     source: str,
+    max_header_rows: int,
     seconds: float | None = None,
 ) -> ParsedDocument:
-    """Map a DoclingDocument to parsed blocks (titles, text, tables with provenance)."""
+    """Map a DoclingDocument to parsed blocks (titles, text, tables with provenance).
+    A table where Docling marked no header row gets inferred ones (at most
+    `max_header_rows`, see table_rows.infer_header_rows)."""
     blocks: list[Block] = []
     section_n, table_n = 0, 0
     section_title: str | None = None
@@ -193,7 +195,8 @@ def from_docling(
         elif isinstance(item, TableItem):
             table_n += 1
             table_id = f"{doc_id}#tbl-{table_n}"
-            table = table_data(item, table_id, item.caption_text(doc))
+            table = with_header(table_data(item, table_id, item.caption_text(doc)), langue,
+                                max_header_rows)  # fmt: skip
             blocks.append(
                 Block(
                     block_id=f"{table_id}/table",

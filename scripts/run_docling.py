@@ -3,11 +3,13 @@
 Usage (repository root, virtual environment active):
     python scripts/run_docling.py            # converts the reports not yet in the cache
     python scripts/run_docling.py --status   # what is cached, nothing converted
+    python scripts/run_docling.py --record   # also write results/ once every report is cached
 
 Resumable per document: a report whose JSON is already in data/cache/docling/ is skipped,
 so after an interruption just run the same command again. A failing report is logged and
-the others continue. Once every report is cached, writes results/<date>_docling_full_run.json
-(pages, seconds per page for each report) and one row in EXPERIMENTS.md.
+the others continue. With --record, once every report is cached, writes
+results/<date>_docling_full_run.json (pages, seconds per page for each report) and one row
+in EXPERIMENTS.md.
 
 The cache holds unmasked text (same status as data/raw/): it is never committed and never
 ingested. scripts/parse_corpus.py reads it, masks, and writes data/processed/.
@@ -40,6 +42,7 @@ def main() -> int:
     settings = get_settings()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--status", action="store_true", help="only show what is cached")
+    parser.add_argument("--record", action="store_true", help="write the run to results/")
     args = parser.parse_args()
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s %(message)s"
@@ -90,6 +93,9 @@ def main() -> int:
     if failed or len(metas) < len(reports):
         logger.warning("not complete (failed: %s): no result written; rerun to resume", failed)
         return 1
+    if not args.record:
+        logger.info("all %d reports cached", len(metas))
+        return 0
 
     for m in metas:
         m["s_per_page"] = round(m["convert_s"] / m["pages"], 1)

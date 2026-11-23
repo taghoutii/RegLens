@@ -1,7 +1,7 @@
 """Which PDF words does each table variant lose? (coverage diagnosis)
 
 Usage (repository root, virtual environment active, after scripts/run_docling.py):
-    python scripts/table_lost_words.py             # same 20 tables as check_tables.py
+    python scripts/measure/table_lost_words.py             # same 20 tables as check_tables.py
 
 For the 20 sampled tables, converts the pages again with cell matching off, then lists
 the words of the PDF table region that the extracted cells do not contain, for both
@@ -20,43 +20,42 @@ import warnings
 from collections import Counter
 from datetime import date
 
-import pypdfium2 as pdfium
 from docling_core.types.doc.document import DoclingDocument
 from docling_core.types.doc.items.table.table import TableItem
 from docling_core.types.doc.items.text import TextItem
 from docling_core.types.doc.labels import DocItemLabel
 
 from reglens.config import get_settings
-from reglens.corpus.sources import load_corpus
+from reglens.evaluation.report_tables import cached_reports
 from reglens.evaluation.results import append_row, write_result
 from reglens.evaluation.table_check import (
     cell_kind,
     matching_table,
-    normalize,
     pick_tables,
     region_text,
 )
-from reglens.ingestion.parse_pdf import cache_paths, convert_pdf, make_converter
+from reglens.ingestion.parse_pdf import convert_pdf, make_converter
+from reglens.ingestion.text_norm import compact
 
 NOTE_LABELS = {DocItemLabel.CAPTION, DocItemLabel.FOOTNOTE}
 
 
 def lost_words(region: str, table: TableItem) -> list[str]:
-    extracted = normalize("".join(c.text for c in table.data.table_cells))
-    return [w for w in region.split() if normalize(w) and normalize(w) not in extracted]
+    extracted = compact("".join(c.text for c in table.data.table_cells))
+    return [w for w in region.split() if compact(w) and compact(w) not in extracted]
 
 
 def word_type(word: str, reference: TableItem, notes: str) -> str:
     """Kind of the reference cell holding the word, else caption/footnote, else other."""
-    w = normalize(word)
+    w = compact(word)
     for cell in reference.data.table_cells:
-        if w in normalize(cell.text):
+        if w in compact(cell.text):
             return cell_kind(cell.text, cell.column_header)
     return "footnote_or_caption" if w in notes else "other"
 
 
 def page_notes(doc: DoclingDocument, page: int) -> str:
-    return normalize(" ".join(
+    return compact(" ".join(
         item.text for item, _ in doc.iterate_items()
         if isinstance(item, TextItem) and item.label in NOTE_LABELS
         and item.prov and item.prov[0].page_no == page
@@ -73,15 +72,10 @@ def main() -> int:
     warnings.filterwarnings("ignore")
     logging.basicConfig(level=logging.ERROR)
 
-    cached: dict[str, DoclingDocument] = {}
-    pdfs: dict[str, pdfium.PdfDocument] = {}
-    paths = {}
-    for src in load_corpus(settings.sources_file).reports:
-        doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
-        if doc_file.exists():
-            cached[src.id] = DoclingDocument.load_from_json(doc_file)
-            paths[src.id] = settings.raw_dir / "reports" / f"{src.id}.pdf"
-            pdfs[src.id] = pdfium.PdfDocument(paths[src.id])
+    loaded = cached_reports(settings)
+    cached = {doc_id: docling for doc_id, (docling, _) in loaded.items()}
+    pdfs = {doc_id: pdf for doc_id, (_, pdf) in loaded.items()}
+    paths = {doc_id: settings.raw_dir / "reports" / f"{doc_id}.pdf" for doc_id in loaded}
     sample = pick_tables(cached, args.n, args.seed)
     converter = make_converter(do_ocr=settings.docling_do_ocr,
                                table_mode=settings.docling_table_mode,

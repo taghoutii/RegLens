@@ -1,9 +1,9 @@
 """Name-masking ablation: spaCy model size x context recognizer, on two synthetic seeds.
 
 Usage (repository root, virtual environment active):
-    python scripts/measure_pii_names.py                  # md/lg x context off/on, seeds 42 + 43
-    python scripts/measure_pii_names.py --show-failures  # also print missed values (local only)
-    python scripts/measure_pii_names.py --variants md+context   # final configuration only
+    python scripts/measure/measure_pii_names.py   # md/lg x context off/on, seeds 42 + 43
+    python scripts/measure/measure_pii_names.py --show-failures  # also print missed values
+    python scripts/measure/measure_pii_names.py --variants md+context   # final configuration only
 
 Seed 42 is the corpus in data/raw/. Seed 43 is a *held-out* corpus: same generator, other
 names. It is generated into a temporary folder (never data/raw/, so it can never be

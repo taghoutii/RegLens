@@ -6,9 +6,9 @@ from typing import Any
 
 from docling_core.types.doc.document import DoclingDocument
 
-from reglens.evaluation.table_check import normalize
-from reglens.ingestion.models import has_several_numbers
+from reglens.ingestion.numbers import has_several_numbers
 from reglens.ingestion.parse_pdf import cache_paths, cached_conversion, from_docling, is_cached
+from reglens.ingestion.text_norm import compact
 
 CONFIG: dict[str, object] = {"do_ocr": False, "table_mode": "accurate", "do_cell_matching": True}
 
@@ -49,13 +49,15 @@ def test_other_settings_convert_again(tmp_path: Path) -> None:
 
 def test_cached_document_maps_to_blocks(tmp_path: Path) -> None:
     doc, _ = cached_conversion(tmp_path / "r.pdf", FakeConverter(), tmp_path, "rep", CONFIG)  # type: ignore[arg-type]
-    parsed = from_docling(doc, doc_id="rep", langue="en", source="data/raw/reports/r.pdf")
+    parsed = from_docling(
+        doc, doc_id="rep", langue="en", source="data/raw/reports/r.pdf", max_header_rows=4
+    )
     assert [b.text for b in parsed.blocks] == ["Own funds requirements"]
     assert parsed.blocks[0].parent_id == "rep#sec-0" and not parsed.masked
 
 
-def test_normalize_ignores_whitespace_and_dash_variants() -> None:
-    assert normalize("1 234\n567 −12") == normalize("1234567 -12") == "1234567-12"
+def test_compact_ignores_whitespace_and_dash_variants() -> None:
+    assert compact("1 234\n567 −12") == compact("1234567 -12") == "1234567-12"
 
 
 def test_fused_numbers_are_flagged() -> None:

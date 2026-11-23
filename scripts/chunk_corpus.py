@@ -3,14 +3,15 @@
 Usage (repository root, virtual environment active):
     python scripts/chunk_corpus.py                                  # all 3 strategies
     python scripts/chunk_corpus.py --strategies structure_semantic
-    python scripts/chunk_corpus.py --no-record                      # no results/ file
+    python scripts/chunk_corpus.py --record             # also write results/ + EXPERIMENTS row
 
 Steps:
   1. calibrate the semantic threshold (unless CHUNK_SEMANTIC_THRESHOLD is set): the
      CHUNK_SEMANTIC_PERCENTILE-th percentile of consecutive-sentence similarity inside the
      regulation pieces longer than CHUNK_MAX_TOKENS (the only places it is used);
   2. chunk every document with every strategy, one JSONL file per document;
-  3. record token statistics, bge-m3 CPU time and memory in results/.
+  3. with --record, record token statistics, bge-m3 CPU time and memory in results/
+     (without it, the statistics are only printed: a rebuild adds no result file).
 Every semantic cut of the main strategy goes to data/processed/chunks/semantic_cuts.jsonl
 for inspection. Input documents are masked; chunks are only slices of them.
 """
@@ -78,7 +79,7 @@ def main() -> int:
     settings = get_settings()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--strategies", nargs="+", choices=STRATEGIES, default=list(STRATEGIES))
-    parser.add_argument("--no-record", action="store_true", help="do not write to results/")
+    parser.add_argument("--record", action="store_true", help="write the run to results/")
     args = parser.parse_args()
     logging.basicConfig(level=settings.log_level, format="%(levelname)-7s %(message)s")
 
@@ -109,7 +110,9 @@ def main() -> int:
     params = ChunkParams(max_tokens=settings.chunk_max_tokens,
                          min_tokens=settings.chunk_min_tokens,
                          overlap=settings.chunk_overlap_tokens, threshold=threshold,
-                         noise_events=tuple(settings.chunk_incident_noise_events))  # fmt: skip
+                         noise_events=tuple(settings.chunk_incident_noise_events),
+                         table_context_max_tokens=settings.chunk_table_context_max_tokens,
+                         )  # fmt: skip
 
     out_root = settings.processed_dir / "chunks"
     per_strategy: dict[str, dict[str, Any]] = {}
@@ -144,6 +147,20 @@ def main() -> int:
             "tokens": stats_by_group(
                 all_chunks, max_tokens=params.max_tokens, min_tokens=params.min_tokens
             ),  # fmt: skip
+            # what the embedding reads for table chunks (context + row lines)
+            "table_embedding_tokens": stats_by_group(
+                [
+                    c.model_copy(update={"n_tokens": bge.count(c.embedding_text())})
+                    for c in all_chunks
+                    if c.kind == "table"
+                ],
+                max_tokens=params.max_tokens,
+                min_tokens=params.min_tokens,
+            ),  # fmt: skip
+            "table_sources": {
+                src: sum(1 for c in all_chunks if c.table_source == src)
+                for src in ("pdf", "spreadsheet")
+            },  # fmt: skip
             # extra tokens the embedding reads (context line + newline), per chunk with one
             "context_tokens": stats_by_group(
                 [
@@ -191,7 +208,7 @@ def main() -> int:
             "spacy_sentence_seconds_total": round(sentences.seconds, 1),
         },
     }
-    if args.no_record:
+    if not args.record:
         print(json.dumps(result, indent=2))
         return 0
     path = write_result(settings.results_dir, result)

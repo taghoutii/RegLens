@@ -1,8 +1,8 @@
 """Measure PII masking: recall on every planted value, false positives on regulations.
 
 Usage (repository root, virtual environment active):
-    python scripts/measure_pii.py                 # all policies, the log, all regulations
-    python scripts/measure_pii.py --show-failures # also print the leaked values locally
+    python scripts/measure/measure_pii.py                 # all policies, the log, all regulations
+    python scripts/measure/measure_pii.py --show-failures # also print the leaked values locally
 
 Also scans the regulations and the reports already in the Docling cache: they hold no
 planted PII, so every detection there is a candidate false positive.
@@ -130,7 +130,8 @@ def main() -> int:
         doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
         if doc_file.exists():
             doc = from_docling(DoclingDocument.load_from_json(doc_file), doc_id=src.id,
-                               langue=src.language or "en", source=src.id)  # fmt: skip
+                               langue=src.language or "en", source=src.id,
+                               max_header_rows=settings.table_max_inferred_header_rows)  # fmt: skip
             scans["reports"].add(masker, doc)
     reports_s = time.perf_counter() - t0
 
