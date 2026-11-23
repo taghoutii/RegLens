@@ -130,6 +130,8 @@ python scripts/parse_corpus.py --only reports  # reads the cache, masks, writes,
 python scripts/check_tables.py                 # extracted cells vs the PDF text layer + review page
 ```
 
+ING also publishes its Pillar 3 templates as a spreadsheet. To map it to the extracted tables (a measurement; nothing in the corpus changes), download `2025-ing-groep-nv-appendices-additional-pillar-iii-disclosures.xlsx` from ING's annual-report page to `data/raw/structured/ing_group_pillar3_2025.xlsx`, then run `python scripts/map_structured_tables.py`.
+
 PDF parsing takes hours on a CPU, so its raw output is cached in `data/cache/docling/` (not committed, never ingested); an interrupted run resumes where it stopped.
 
 Every derived file is masked before it is written: names, e-mail addresses, IBANs, phone numbers and API keys become placeholders such as `<PERSON>`.

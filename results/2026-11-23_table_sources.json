@@ -1,0 +1,93 @@
+{
+  "name": "table_sources",
+  "date": "2026-11-23",
+  "phase": 3,
+  "purpose": "Investigation only (nothing changed in the corpus): structured versions of the report tables, and the cost of re-extracting flagged tables with a vision model.",
+  "structured_sources": {
+    "checked": "2026-11-23, bank investor pages and web search",
+    "ing_group_pillar3_2025": {
+      "available": true,
+      "file": "2025 ING Groep NV appendices additional Pillar III disclosures (.xlsx, 0.97 MB)",
+      "url": "https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-appendices-additional-pillar-iii-disclosures.xlsx",
+      "sheets": 81,
+      "template_sheets": 79,
+      "mapping_estimate": {
+        "method": "EBA template code (EU XXn) found in the table caption, first two rows or section title, compared with the sheet names (read with the standard library: zip + XML)",
+        "tables": 216,
+        "own_code": 152,
+        "own_code_matches_a_sheet": 112,
+        "distinct_templates": 67,
+        "no_code_but_follows_a_mapped_table": 59,
+        "upper_bound": 171,
+        "codes_without_sheet": [
+          "CVA",
+          "LI",
+          "LIQB",
+          "PARIS"
+        ],
+        "sheets_without_table": [
+          "CCATLAC",
+          "CCYB1",
+          "CCYB2",
+          "CVA1",
+          "ESG1",
+          "ESG5(BE)",
+          "ESG5(DE)",
+          "ESG5(NL)",
+          "IRRBBA",
+          "MR4",
+          "OV1",
+          "PV1"
+        ],
+        "caveat": "template-level match only; cell-level alignment not checked"
+      }
+    },
+    "socgen_pillar3_2025_en": {
+      "available": "not found",
+      "note": "no Pillar 3 xlsx in search results; the investor document base needs a category filter ('Pillar III and other prudential publications') to be checked by hand"
+    },
+    "socgen_pillar3_2025_fr": {
+      "available": "not found",
+      "note": "same as EN"
+    },
+    "socgen_pillar3_2025_h1_en": {
+      "available": "not found",
+      "note": "same as EN"
+    },
+    "bnpp_fortis_pillar3_2025": {
+      "available": "unknown",
+      "note": "financial reports page returned HTTP 503 twice; search found PDFs only"
+    },
+    "bnpp_fortis_pillar3_2025_tables": {
+      "available": "unknown",
+      "note": "same as above"
+    },
+    "dependency": "reading cells needs openpyxl (3.1.5 is installed in the venv but not declared; needs approval) or a stdlib zip + XML reader (no dependency, more code: shared strings, merged cells)"
+  },
+  "vision_reextraction": {
+    "model": "Mistral OCR (document OCR API; returns Markdown/HTML tables per page)",
+    "price_checked": "2026-11-23: $4 per 1,000 pages (OCR 4.x, standard); older OCR versions $1-2 per 1,000 pages",
+    "scope_pages": {
+      "flagged_header_uncertain_or_total_failed": {
+        "tables": 106,
+        "pages": 91
+      },
+      "plus_tables_without_detected_header": {
+        "pages": 315
+      },
+      "all_pages_with_a_table": 709,
+      "all_report_pages": 1092,
+      "comparison_test_pages": 20
+    },
+    "cost_estimate_usd_at_4_per_1000": {
+      "comparison_20_pages": 0.08,
+      "flagged_91_pages": 0.36,
+      "flagged_plus_no_header_315_pages": 1.26,
+      "all_table_pages_709": 2.84,
+      "all_1092_pages": 4.37
+    },
+    "dependency": "none required: httpx (declared) can call the REST API; the mistralai SDK would be optional. Needs MISTRAL_API_KEY in .env",
+    "data_leaving_the_machine": "raw report pages (public bank documents, unmasked) are sent to the API",
+    "status": "not called (no paid API call without approval)"
+  }
+}

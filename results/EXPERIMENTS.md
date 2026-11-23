@@ -90,3 +90,40 @@ Phases 0, 1: no measurement (setup and corpus generation).
 - **Check of the "Total" filter (independent sample):** 10 fresh candidates among the 41 kept by the filter (seed 43), with the decision rule set beforehand: link only if at least 9 are true. Result: 8 / 10 (precision 0.8, 95 % interval 0.49–0.94). The 2 false positives: a table title on the page that Docling did not output as a heading; a Total row whose label follows a row number, so the rule missed it.
 - **Decision:** continued tables are neither merged nor linked. Known limitation: about 33 pairs (20–39), i.e. the second part of roughly 3–4 % of the tables is chunked without the first part's title, and without a header when it has none of its own (4 of the 7 true pairs of the first review, 5 of the 8 of the second).
 - **Files:** `2026-11-22_table_continuations.json` (detection, first review), `2026-11-22_table_continuations_2.json` (filter check); review images with unmasked report content in `data/cache/continuation_review/` (not committed)
+
+### Table rows: header-path serialization and Total-row check
+- **Measures:** (1) tokens of one self-describing line per table row ("row label — header path = value; ..."), against the Markdown grid; (2) "Total" rows that equal the sum of their component rows, within rounding (each printed value is off by at most half a unit of its last digit), on the 929 report tables; (3) whether a failed total catches the header errors of the 10 visually labelled tables.
+- **Why:** row groups of large tables must keep their labels; a total check could flag values misread or put in the wrong column.
+- **Result (serialization):** table tokens grow from 0.77 M (Markdown) to 1.50 M (row lines): ratio median 1.34, P95 3.45. 18 tables have a single row line over 512 tokens (wide templates with long header paths). 278 tables (30 %) have no detected header row; 226 of them start with rows without numbers, i.e. a header Docling missed: their lines carry header text as data. On bnpp_fortis_pillar3_2025#tbl-10, the known wrong year span is carried into every line.
+- **Result (total check):** 477 tables have a "Total" row; 253 are checkable; 36 fail. 0 / 6 labelled header errors caught (header errors move labels, not values: the sums still hold). Review of 8 failures: 0 confirmed extraction errors (5 check limitations: subtraction, split tables, numbered or (a)/(b) hierarchies; 1 source sign convention; 1 tolerance bug, fixed; 1 unclear). A first version that ignored row hierarchy gave 46 failures; detecting subtotal rows brought it to 39, the rounding fix to 36.
+- **Decision:** pending. Serialization needs header-row inference first; the total check is not precise enough to flag tables as wrong (proposal: keep it as a diagnostic, not a chunk flag).
+- **File:** `2026-11-23_table_rows.json`
+
+### Structured table sources and vision re-extraction (investigation)
+- **Measures:** which reports publish their tables in a structured file, how many of the corpus's table ids such a file could map to; pages and cost to re-extract flagged tables with a vision model. No paid call.
+- **Why:** improve table content (headers in particular) instead of only flagging errors; table ids must stay unchanged.
+- **Result (structured):** ING publishes an `.xlsx` appendix (81 sheets, 79 EBA templates). 112 of its 216 tables carry a template code with a matching sheet (67 templates); 59 more follow such a table without a code of their own (continuations, second year), so up to 171 (79 %) at template level; cell alignment not checked. SocGen: no Pillar 3 spreadsheet found (to check by hand on its document base). BNPP Fortis: unknown (site unavailable). Reading cells needs openpyxl (installed, not declared) or a standard-library reader.
+- **Result (vision):** 106 flagged tables (74 `header_uncertain`, 36 failed totals) on 91 pages; 315 pages if tables without a detected header are added; 20 pages for the comparison on the Phase 2 test tables. At $4 per 1,000 pages: $0.08 for the comparison, $0.36 for the 91 pages, $1.26 for 315, $4.37 for all 1,092 report pages. No new dependency (httpx is declared); the pages (public, unmasked) leave the machine.
+- **Decision:** pending.
+- **File:** `2026-11-23_table_sources.json`
+
+### Header-row inference (tables without a detected header)
+- **Measures:** how many of the 278 tables without a detected header row receive one, and whether the inferred count is right (PDF region vs grid, by eye, 10 random tables).
+- **Rule:** leading rows with text beyond the first column and no number except years become header rows, at most 4, only if a row with numbers follows.
+- **Result:** v1 on sample seed 42: 7 / 10 right (2 tables with 5 header rows cut at the cap of 4; 1 section row repeated by a span read as a header). v2 (a row whose only text repeats the first cell is a section) on a fresh sample, seed 43: 9 / 10 right (the miss: the same 5-row climate template). With v2: 182 tables get 1 to 4 header rows, 96 keep 0. 8 tables reach the cap with a 5th header-like row.
+- **Decision:** approved rule; header text quality (fused dates) is not fixed by it.
+- **Files:** `2026-11-23_header_inference.json` (v1), `2026-11-23_header_inference_2.json` (v2)
+
+### Header spans from the PDF geometry
+- **Measures:** header-path accuracy on the 66 value columns of the 10 visually labelled tables (gold written from the PDF images before the method ran); on the 20 Phase 2 test tables, cells found in the PDF text layer, number cells found and word coverage; tables changed over the corpus; a spot check of 10 random changed tables outside the labelled set.
+- **Method:** columns from Docling's body cell boxes; header labels from the PDF characters (pypdfium2); each label spans the filled box that holds only it, else the rule just under it, else the columns its text overlaps. Body rows unchanged. Adoption rule fixed beforehand (see the result file).
+- **Result:** run 1 invalid (character-box bug: words and lines split). Run 2: accuracy 37 / 66 (56 %) vs 24 / 66 (36 %) for Docling + header-row inference; 0 regressions on the 4 tables labelled correct; test tables: cells found 98.98 % vs 97.13 %, number cells 1,008 / 1,008, coverage 99.09 % vs 98.85 %. The fixed rule passes. Applied to 700 of 929 tables, header paths changed on 645. Spot check outside the labelled set: 4 better, 3 worse, 3 mixed. Two causes: right-aligned headers of adjacent columns read as one label; section rows above the first value row read as header lines.
+- **Decision:** not adopted yet: the rule passed on 10 tables but the out-of-sample check is mixed. Fixes proposed (split phrases at column gutters; end the header at the first label-only row), to be judged on the labelled set and a fresh spot check.
+- **Files:** `2026-11-23_header_geometry.json` (invalid run), `2026-11-23_header_geometry_2.json`
+
+### ING spreadsheet appendix mapped to the extracted tables
+- **Measures:** how many of the 216 ING tables map with certainty to a block of the bank's `.xlsx` appendix (113 blocks in 76 sheets), using the numbers themselves.
+- **Method:** a table maps to the block holding its informative numbers (non-zero, not a bare integer < 100, not a year) once spreadsheet values are rounded as printed. Certain = at least 5 such numbers, at least 95 % found in the best block, runner-up block at least 0.2 lower. Row level: every table row finds the one spreadsheet row holding all its numbers, in order.
+- **Result:** 151 tables have at least 5 informative numbers; 132 map with certainty to one block; 112 of them also align row by row. 12 cover a whole block; the others are page parts of one block (25 blocks are shared by several tables). The template code, when the table has one (81 of 132), always agrees with the sheet. Misses seen: rounding differences in a few rows, and a table where Docling fused header and body text (the spreadsheet holds the correct values).
+- **Decision:** prototype only; replacing table content from the spreadsheet is not built.
+- **File:** `2026-11-23_structured_tables.json`
