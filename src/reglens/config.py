@@ -52,8 +52,8 @@ class Settings(BaseSettings):
         """Committed experiment results (the evidence for every reported number)."""
         return Path("results")
 
-    # PII masking (Presidio). spaCy model per language: decision O5 = md. lg was measured and
-    # missed more names than md (results/2026-11-19_pii_names_ablation.json).
+    # PII masking (Presidio). spaCy model per language: md. lg was measured on planted names
+    # and missed more of them than md, at a larger size.
     pii_spacy_models: dict[str, str] = {"en": "en_core_web_md", "fr": "fr_core_news_md"}
     # Context recognizer: mask the name after "Owner:", "Deputy:", "Responsable :" ...
     pii_context_names: bool = True

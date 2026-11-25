@@ -35,15 +35,25 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
       en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32025R0301
       fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32025R0301
 
-  - id: dora_its_incident_templates
-    title: "Règlement d'exécution (UE) 2025/302 — formulaires de déclaration d'incidents"
-    short_name: "ITS 2025/302"
-    what: "Complète DORA : les formulaires et modèles standard à utiliser pour déclarer un incident."
+  - id: dora_rts_ict_risk_framework
+    title: "Règlement délégué (UE) 2024/1774 — cadre de gestion du risque informatique"
+    short_name: "RTS 2024/1774"
+    what: "Complète DORA : outils, méthodes et politiques du cadre de gestion du risque informatique (et cadre simplifié)."
     format: html
     mode: auto
     urls:
-      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32025R0302
-      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32025R0302
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32024R1774
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R1774
+
+  - id: dora_its_register_of_information
+    title: "Règlement d'exécution (UE) 2024/2956 — registre d'informations"
+    short_name: "ITS 2024/2956"
+    what: "Complète DORA : modèles standard du registre d'informations sur les accords avec les prestataires de services informatiques."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32024R2956
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R2956
 
   - id: ai_act
     title: "AI Act — Règlement (UE) 2024/1689 sur l'intelligence artificielle"
@@ -85,23 +95,37 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
       en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32024R1624
       fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R1624
 
-reports:   # Rapports Pillar 3 — publiés par chaque banque sur son site investisseurs
-  - id: bnpp_fortis_pillar3_2025
-    title: "BNP Paribas Fortis — Pillar 3 2025 (partie texte)"
-    what: "Organisation et gestion des risques de la banque, avec des tableaux."
-    format: pdf
+  - id: psd2
+    title: "DSP2 — Directive (UE) 2015/2366 concernant les services de paiement"
+    short_name: "PSD2"
+    what: "Règles pour les prestataires de services de paiement : agrément, transparence, droits et obligations, authentification forte, incidents."
+    format: html
     mode: auto
-    language: en
-    url: https://app.easybanking.bnpparibasfortis.be/rsc/documents/investors/pillar-3-disclosure-2025.pdf
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32015L2366
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32015L2366
 
-  - id: bnpp_fortis_pillar3_2025_tables
-    title: "BNP Paribas Fortis — Pillar 3 2025 (annexe tableaux)"
-    what: "Tableaux chiffrés : fonds propres, ratios CET1 et Tier 1, 2025 vs 2024."
-    format: pdf
+  - id: psd2_rts_sca
+    title: "Règlement délégué (UE) 2018/389 — authentification forte du client et communication sécurisée"
+    short_name: "RTS 2018/389"
+    what: "Complète la DSP2 : exigences d'authentification forte (SCA), exemptions, accès sécurisé aux comptes."
+    format: html
     mode: auto
-    language: en
-    url: https://app.easybanking.bnpparibasfortis.be/rsc/documents/investors/additional-pillar-3-2025.pdf
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32018R0389
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32018R0389
 
+  - id: emd2
+    title: "DME2 — Directive 2009/110/CE concernant les établissements de monnaie électronique"
+    short_name: "EMD2"
+    what: "Règles pour les établissements de monnaie électronique : agrément, capital, protection des fonds reçus, émission et remboursement."
+    format: html
+    mode: auto
+    urls:
+      en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32009L0110
+      fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32009L0110
+
+reports:   # Rapport Pillar 3 d'une banque réelle (comparaison) — publié sur son site investisseurs
   - id: ing_group_pillar3_2025
     title: "ING Groep — Additional Pillar III Report 2025"
     what: "Rapport de risques annuel d'ING (Pays-Bas), très riche en tableaux."
@@ -113,30 +137,6 @@ reports:   # Rapports Pillar 3 — publiés par chaque banque sur son site inves
       format: xlsx
       url: https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-appendices-additional-pillar-iii-disclosures.xlsx
       what: "Appendices Pillar III d'ING au format tableur (un onglet par modèle EBA)."
-
-  - id: socgen_pillar3_2025_en
-    title: "Société Générale — Pillar 3 au 31/12/2025 (anglais)"
-    what: "Rapport de risques annuel de Société Générale (~300 pages)."
-    format: pdf
-    mode: auto
-    language: en
-    url: https://www.societegenerale.com/sites/default/files/documents/2026-03/pillar-3-31122025-en.pdf
-
-  - id: socgen_pillar3_2025_fr
-    title: "Société Générale — Pilier 3 au 31/12/2025 (français)"
-    what: "Même rapport en français : permet de tester les questions en français."
-    format: pdf
-    mode: auto
-    language: fr
-    url: https://www.societegenerale.com/sites/default/files/documents/2026-03/pilier-3-31122025-fr.pdf
-
-  - id: socgen_pillar3_2025_h1_en
-    title: "Société Générale — Pillar 3 au 30/06/2025 (semestriel, anglais)"
-    what: "Mise à jour semestrielle : permet des questions de comparaison dans le temps."
-    format: pdf
-    mode: auto
-    language: en
-    url: https://www.societegenerale.com/sites/default/files/documents/2025-09/pillar-3-30062025.pdf
 
 policies:   # Documents internes d'une fintech fictive — générés, jamais téléchargés
   - id: synthetic_policies

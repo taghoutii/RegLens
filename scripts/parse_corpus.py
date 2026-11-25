@@ -12,6 +12,10 @@ data/processed/ or PostgreSQL. Full reports are read from the Docling cache, whi
 scripts/run_docling.py fills (hours on CPU). A report with a spreadsheet appendix
 (sources.yaml `appendix`) has the tables it matches with certainty replaced by their
 spreadsheet version before masking (reglens/ingestion/structured_tables.py).
+
+Only the documents of the corpus are parsed (sources.yaml + generated files); parsed
+files and PostgreSQL tables of documents no longer listed are deleted
+(reglens/ingestion/inventory.py).
 """
 
 import argparse
@@ -25,6 +29,7 @@ from docling_core.types.doc.document import DoclingDocument
 
 from reglens.config import get_settings
 from reglens.corpus.sources import load_corpus
+from reglens.ingestion.inventory import expected_documents, prune, report_ids
 from reglens.ingestion.models import ParsedDocument
 from reglens.ingestion.parse_eurlex import parse_eurlex
 from reglens.ingestion.parse_pdf import (
@@ -38,7 +43,12 @@ from reglens.ingestion.parse_pdf import (
 from reglens.ingestion.parse_synthetic import parse_incident_log, parse_policy
 from reglens.ingestion.pii import PiiMasker
 from reglens.ingestion.structured_tables import apply_spreadsheet, summary
-from reglens.ingestion.table_store import conninfo, ensure_schema, store_tables
+from reglens.ingestion.table_store import (
+    conninfo,
+    delete_other_documents,
+    ensure_schema,
+    store_tables,
+)
 
 TYPES = ["regulations", "reports", "policies", "logs"]
 logger = logging.getLogger("parse_corpus")
@@ -69,6 +79,11 @@ def main() -> int:
     conn = None if args.no_db or "reports" not in args.only else psycopg.connect(conninfo(settings))
     if conn is not None:
         ensure_schema(conn)
+        for doc_id in delete_other_documents(conn, report_ids(corpus)):
+            logger.info("%s: not in sources.yaml, its tables deleted from PostgreSQL", doc_id)
+    expected = expected_documents(corpus, raw)
+    for path in prune(out_dir, "*.json", expected):
+        logger.info("%s: not in the corpus, parsed file deleted", path.name)
 
     def done(doc: ParsedDocument, t0: float) -> None:
         masked = masker.mask_document(doc)

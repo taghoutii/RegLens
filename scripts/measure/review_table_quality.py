@@ -3,7 +3,7 @@
 Usage (repository root, virtual environment active, after scripts/build_corpus.py):
     python scripts/measure/review_table_quality.py --n 20 --seed 42
 
-Draws a reproducible random sample of the 929 parsed report tables (final versions:
+Draws a reproducible random sample of the parsed report tables (final versions:
 spreadsheet content for replaced tables, Docling's grid with inferred header rows
 otherwise) and writes data/cache/table_quality_review/: the PDF region of each table next
 to its stored grid (header rows in bold) and the header path of every column. That page

@@ -12,16 +12,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def test_real_sources_file_is_valid() -> None:
     corpus = load_corpus(REPO_ROOT / "data" / "sources.yaml")
-    assert len(corpus.regulations) == 8
-    assert len(corpus.reports) == 6
+    assert len(corpus.regulations) == 12
+    assert [s.id for s in corpus.reports] == ["ing_group_pillar3_2025"]
 
 
 def test_targets_one_file_per_language(tmp_path: Path) -> None:
     corpus = load_corpus(REPO_ROOT / "data" / "sources.yaml")
     targets = download_targets(corpus, tmp_path)
-    # 8 regulations x 2 languages + 6 reports + 1 spreadsheet appendix (ING); generated
+    # 12 regulations x 2 languages + 1 report + its spreadsheet appendix; generated
     # sources are not downloaded
-    assert len(targets) == 8 * 2 + 6 + 1
+    assert len(targets) == 12 * 2 + 1 + 1
     paths = {t.path.relative_to(tmp_path).as_posix() for t in targets}
     assert "regulations/dora_fr.html" in paths
     assert "reports/ing_group_pillar3_2025.pdf" in paths

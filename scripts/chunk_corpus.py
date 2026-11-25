@@ -14,6 +14,9 @@ Steps:
      (without it, the statistics are only printed: a rebuild adds no result file).
 Every semantic cut of the main strategy goes to data/processed/chunks/semantic_cuts.jsonl
 for inspection. Input documents are masked; chunks are only slices of them.
+Only the documents of the corpus are chunked (reglens/ingestion/inventory.py): a parsed
+file left by a document no longer listed is ignored, and each strategy folder is rebuilt
+from scratch, so it keeps no stale chunk file.
 """
 
 import argparse
@@ -32,6 +35,7 @@ from reglens.evaluation.memory import peak_memory_mb
 from reglens.evaluation.results import append_row, write_result
 from reglens.ingestion.chunking import STRATEGIES, Chunk, Chunker, ChunkParams, ChunkTools
 from reglens.ingestion.encoders import Bgem3, SpacySentences
+from reglens.ingestion.inventory import expected_documents
 from reglens.ingestion.models import ParsedDocument
 from reglens.ingestion.references import act_number_from_url
 from reglens.ingestion.text_split import Span, sentence_spans
@@ -91,7 +95,13 @@ def main() -> int:
             acts[number] = src.short_name
     titles = {src.id: src.title or src.id for src in corpus.reports}
 
-    parsed = sorted((settings.processed_dir / "parsed").glob("*.json"))
+    expected = expected_documents(corpus, settings.raw_dir)
+    parsed_dir = settings.processed_dir / "parsed"
+    parsed = sorted(p for p in parsed_dir.glob("*.json") if p.stem in expected)
+    missing = sorted(expected - {p.stem for p in parsed})
+    if missing:
+        logger.error("not parsed yet (run scripts/parse_corpus.py): %s", ", ".join(missing))
+        return 1
     docs = [ParsedDocument.model_validate_json(p.read_text(encoding="utf-8")) for p in parsed]
     logger.info("%d parsed documents, acts %s", len(docs), acts)
 

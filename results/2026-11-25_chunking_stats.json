@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-23",
+  "date": "2026-11-25",
   "name": "chunking_stats",
   "phase": 3,
   "config": {
@@ -7,52 +7,52 @@
     "max_tokens": 512,
     "min_tokens": 100,
     "overlap": 64,
-    "threshold": 0.4714,
+    "threshold": 0.4561,
     "noise_events": [
       "monitoring"
     ],
     "token_counts": "bge-m3 tokenizer, without special tokens"
   },
   "calibration": {
-    "pieces_over_max": 198,
-    "boundaries": 3211,
+    "pieces_over_max": 262,
+    "boundaries": 4673,
     "percentile": 5.0,
-    "threshold": 0.4714,
-    "min": 0.2559,
+    "threshold": 0.4561,
+    "min": 0.2405,
     "max": 0.9962,
     "deciles": [
-      0.5183,
-      0.5713,
-      0.617,
-      0.6546,
-      0.6895,
-      0.724,
-      0.7596,
-      0.8004,
-      0.8524
+      0.5092,
+      0.5739,
+      0.622,
+      0.6616,
+      0.6996,
+      0.7363,
+      0.7738,
+      0.822,
+      0.8828
     ]
   },
-  "documents": 73,
+  "documents": 76,
   "strategies": {
     "structure_semantic": {
-      "seconds": 186.1,
-      "embedding_seconds": 80.3,
-      "sentence_split_seconds": 21.8,
-      "new_sentences_embedded": 81,
+      "seconds": 109.7,
+      "embedding_seconds": 50.7,
+      "sentence_split_seconds": 23.2,
+      "new_sentences_embedded": 45,
       "duplicate_chunk_ids": 0,
-      "semantic_cuts": 629,
-      "semantic_cuts_below_threshold": 79,
+      "semantic_cuts": 720,
+      "semantic_cuts_below_threshold": 89,
       "tokens": {
         "all": {
-          "chunks": 13551,
-          "min": 4,
-          "median": 135,
-          "p95": 420,
+          "chunks": 8159,
+          "min": 6,
+          "median": 182,
+          "p95": 455,
           "max": 616,
-          "mean": 170.5,
+          "mean": 206.0,
           "over_512": 2,
-          "under_100": 4394,
-          "tokens_total": 2310716
+          "under_100": 1638,
+          "tokens_total": 1680623
         },
         "logs/incident": {
           "chunks": 200,
@@ -77,78 +77,78 @@
           "tokens_total": 22230
         },
         "regulations/text": {
-          "chunks": 4967,
+          "chunks": 6222,
           "min": 6,
-          "median": 214,
-          "p95": 468,
+          "median": 208.0,
+          "p95": 463,
           "max": 512,
-          "mean": 236.3,
+          "mean": 230.7,
           "over_512": 0,
-          "under_100": 392,
-          "tokens_total": 1173495
+          "under_100": 570,
+          "tokens_total": 1435570
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 8,
-          "median": 93,
-          "p95": 296,
+          "median": 79.0,
+          "p95": 366,
           "max": 616,
-          "mean": 114.4,
+          "mean": 120.5,
           "over_512": 2,
-          "under_100": 3206,
-          "tokens_total": 676829
+          "under_100": 659,
+          "tokens_total": 133971
         },
         "reports/text": {
-          "chunks": 2117,
-          "min": 4,
-          "median": 165,
-          "p95": 451,
+          "chunks": 275,
+          "min": 10,
+          "median": 155,
+          "p95": 500,
           "max": 512,
-          "mean": 189.5,
+          "mean": 189.0,
           "over_512": 0,
-          "under_100": 446,
-          "tokens_total": 401272
+          "under_100": 59,
+          "tokens_total": 51962
         }
       },
       "table_embedding_tokens": {
         "all": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 43,
-          "median": 440,
-          "p95": 503,
+          "median": 423.5,
+          "p95": 505,
           "max": 737,
-          "mean": 413.3,
+          "mean": 391.9,
           "over_512": 20,
-          "under_100": 88,
-          "tokens_total": 2445431
+          "under_100": 42,
+          "tokens_total": 435802
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 43,
-          "median": 440,
-          "p95": 503,
+          "median": 423.5,
+          "p95": 505,
           "max": 737,
-          "mean": 413.3,
+          "mean": 391.9,
           "over_512": 20,
-          "under_100": 88,
-          "tokens_total": 2445431
+          "under_100": 42,
+          "tokens_total": 435802
         }
       },
       "table_sources": {
-        "pdf": 5312,
-        "spreadsheet": 605
+        "pdf": 425,
+        "spreadsheet": 687
       },
       "context_tokens": {
         "all": {
-          "chunks": 9474,
+          "chunks": 5511,
           "min": 6,
-          "median": 53.0,
-          "p95": 245,
-          "max": 256,
-          "mean": 91.5,
+          "median": 19,
+          "p95": 173,
+          "max": 255,
+          "mean": 33.7,
           "over_512": 0,
-          "under_100": 6229,
-          "tokens_total": 866705
+          "under_100": 5123,
+          "tokens_total": 185818
         },
         "policies/policy_section": {
           "chunks": 300,
@@ -162,31 +162,31 @@
           "tokens_total": 4842
         },
         "regulations/text": {
-          "chunks": 3257,
+          "chunks": 4099,
           "min": 6,
           "median": 16,
-          "p95": 42,
+          "p95": 38,
           "max": 77,
-          "mean": 19.7,
+          "mean": 18.6,
           "over_512": 0,
-          "under_100": 3257,
-          "tokens_total": 64079
+          "under_100": 4099,
+          "tokens_total": 76260
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 26,
-          "median": 134,
-          "p95": 248,
-          "max": 256,
-          "mean": 134.8,
+          "median": 45.0,
+          "p95": 233,
+          "max": 255,
+          "mean": 94.2,
           "over_512": 0,
-          "under_100": 2672,
-          "tokens_total": 797784
+          "under_100": 724,
+          "tokens_total": 104716
         }
       }
     },
     "recursive": {
-      "seconds": 70.8,
+      "seconds": 24.2,
       "embedding_seconds": 0.0,
       "sentence_split_seconds": 0.0,
       "new_sentences_embedded": 0,
@@ -195,15 +195,15 @@
       "semantic_cuts_below_threshold": 0,
       "tokens": {
         "all": {
-          "chunks": 10165,
+          "chunks": 5191,
           "min": 6,
-          "median": 148,
-          "p95": 502,
+          "median": 397,
+          "p95": 506,
           "max": 616,
-          "mean": 229.5,
+          "mean": 324.9,
           "over_512": 2,
-          "under_100": 3576,
-          "tokens_total": 2332935
+          "under_100": 1036,
+          "tokens_total": 1686748
         },
         "logs/incident": {
           "chunks": 200,
@@ -228,78 +228,78 @@
           "tokens_total": 22230
         },
         "regulations/text": {
-          "chunks": 2780,
+          "chunks": 3411,
           "min": 6,
-          "median": 449.0,
+          "median": 451,
           "p95": 508,
           "max": 512,
-          "mean": 421.4,
+          "mean": 421.9,
           "over_512": 0,
-          "under_100": 19,
-          "tokens_total": 1171521
+          "under_100": 27,
+          "tokens_total": 1439082
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 8,
-          "median": 93,
-          "p95": 296,
+          "median": 79.0,
+          "p95": 366,
           "max": 616,
-          "mean": 114.4,
+          "mean": 120.5,
           "over_512": 2,
-          "under_100": 3206,
-          "tokens_total": 676829
+          "under_100": 659,
+          "tokens_total": 133971
         },
         "reports/text": {
-          "chunks": 918,
-          "min": 41,
-          "median": 482.0,
-          "p95": 511,
+          "chunks": 118,
+          "min": 234,
+          "median": 480.0,
+          "p95": 512,
           "max": 512,
-          "mean": 463.5,
+          "mean": 462.5,
           "over_512": 0,
-          "under_100": 1,
-          "tokens_total": 425465
+          "under_100": 0,
+          "tokens_total": 54575
         }
       },
       "table_embedding_tokens": {
         "all": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 43,
-          "median": 440,
-          "p95": 503,
+          "median": 423.5,
+          "p95": 505,
           "max": 737,
-          "mean": 413.3,
+          "mean": 391.9,
           "over_512": 20,
-          "under_100": 88,
-          "tokens_total": 2445431
+          "under_100": 42,
+          "tokens_total": 435802
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 43,
-          "median": 440,
-          "p95": 503,
+          "median": 423.5,
+          "p95": 505,
           "max": 737,
-          "mean": 413.3,
+          "mean": 391.9,
           "over_512": 20,
-          "under_100": 88,
-          "tokens_total": 2445431
+          "under_100": 42,
+          "tokens_total": 435802
         }
       },
       "table_sources": {
-        "pdf": 5312,
-        "spreadsheet": 605
+        "pdf": 425,
+        "spreadsheet": 687
       },
       "context_tokens": {
         "all": {
-          "chunks": 8080,
+          "chunks": 3721,
           "min": 6,
-          "median": 72.0,
-          "p95": 245,
-          "max": 256,
-          "mean": 104.0,
+          "median": 21,
+          "p95": 198,
+          "max": 255,
+          "mean": 41.2,
           "over_512": 0,
-          "under_100": 4835,
-          "tokens_total": 840078
+          "under_100": 3333,
+          "tokens_total": 153321
         },
         "policies/policy_section": {
           "chunks": 300,
@@ -313,48 +313,48 @@
           "tokens_total": 4842
         },
         "regulations/text": {
-          "chunks": 1863,
+          "chunks": 2309,
           "min": 6,
-          "median": 17,
-          "p95": 42,
+          "median": 16,
+          "p95": 39,
           "max": 77,
-          "mean": 20.1,
+          "mean": 19.0,
           "over_512": 0,
-          "under_100": 1863,
-          "tokens_total": 37452
+          "under_100": 2309,
+          "tokens_total": 43763
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 26,
-          "median": 134,
-          "p95": 248,
-          "max": 256,
-          "mean": 134.8,
+          "median": 45.0,
+          "p95": 233,
+          "max": 255,
+          "mean": 94.2,
           "over_512": 0,
-          "under_100": 2672,
-          "tokens_total": 797784
+          "under_100": 724,
+          "tokens_total": 104716
         }
       }
     },
     "semantic": {
-      "seconds": 4368.2,
-      "embedding_seconds": 4137.0,
-      "sentence_split_seconds": 170.3,
-      "new_sentences_embedded": 30320,
+      "seconds": 3849.3,
+      "embedding_seconds": 3662.4,
+      "sentence_split_seconds": 150.5,
+      "new_sentences_embedded": 24868,
       "duplicate_chunk_ids": 0,
       "semantic_cuts": 0,
       "semantic_cuts_below_threshold": 0,
       "tokens": {
         "all": {
-          "chunks": 12224,
-          "min": 8,
-          "median": 144.0,
-          "p95": 444,
+          "chunks": 6771,
+          "min": 0,
+          "median": 221,
+          "p95": 477,
           "max": 616,
-          "mean": 185.8,
-          "over_512": 2,
-          "under_100": 3559,
-          "tokens_total": 2270886
+          "mean": 241.5,
+          "over_512": 3,
+          "under_100": 1011,
+          "tokens_total": 1635012
         },
         "logs/incident": {
           "chunks": 200,
@@ -379,78 +379,78 @@
           "tokens_total": 22230
         },
         "regulations/text": {
-          "chunks": 3977,
-          "min": 51,
-          "median": 278,
+          "chunks": 4874,
+          "min": 0,
+          "median": 279.0,
           "p95": 483,
-          "max": 512,
-          "mean": 285.2,
-          "over_512": 0,
-          "under_100": 3,
-          "tokens_total": 1134401
+          "max": 513,
+          "mean": 285.3,
+          "over_512": 1,
+          "under_100": 2,
+          "tokens_total": 1390442
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 8,
-          "median": 93,
-          "p95": 296,
+          "median": 79.0,
+          "p95": 366,
           "max": 616,
-          "mean": 114.4,
+          "mean": 120.5,
           "over_512": 2,
-          "under_100": 3206,
-          "tokens_total": 676829
+          "under_100": 659,
+          "tokens_total": 133971
         },
         "reports/text": {
-          "chunks": 1780,
+          "chunks": 235,
           "min": 100,
-          "median": 195.0,
-          "p95": 441,
+          "median": 173,
+          "p95": 495,
           "max": 512,
-          "mean": 225.0,
+          "mean": 219.1,
           "over_512": 0,
           "under_100": 0,
-          "tokens_total": 400536
+          "tokens_total": 51479
         }
       },
       "table_embedding_tokens": {
         "all": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 43,
-          "median": 440,
-          "p95": 503,
+          "median": 423.5,
+          "p95": 505,
           "max": 737,
-          "mean": 413.3,
+          "mean": 391.9,
           "over_512": 20,
-          "under_100": 88,
-          "tokens_total": 2445431
+          "under_100": 42,
+          "tokens_total": 435802
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 43,
-          "median": 440,
-          "p95": 503,
+          "median": 423.5,
+          "p95": 505,
           "max": 737,
-          "mean": 413.3,
+          "mean": 391.9,
           "over_512": 20,
-          "under_100": 88,
-          "tokens_total": 2445431
+          "under_100": 42,
+          "tokens_total": 435802
         }
       },
       "table_sources": {
-        "pdf": 5312,
-        "spreadsheet": 605
+        "pdf": 425,
+        "spreadsheet": 687
       },
       "context_tokens": {
         "all": {
-          "chunks": 8978,
+          "chunks": 4825,
           "min": 6,
-          "median": 58.0,
-          "p95": 245,
-          "max": 256,
-          "mean": 95.6,
+          "median": 20,
+          "p95": 186,
+          "max": 255,
+          "mean": 36.1,
           "over_512": 0,
-          "under_100": 5733,
-          "tokens_total": 857949
+          "under_100": 4437,
+          "tokens_total": 174201
         },
         "policies/policy_section": {
           "chunks": 300,
@@ -464,38 +464,38 @@
           "tokens_total": 4842
         },
         "regulations/text": {
-          "chunks": 2761,
+          "chunks": 3413,
           "min": 6,
           "median": 16,
-          "p95": 43,
+          "p95": 40,
           "max": 77,
-          "mean": 20.0,
+          "mean": 18.9,
           "over_512": 0,
-          "under_100": 2761,
-          "tokens_total": 55323
+          "under_100": 3413,
+          "tokens_total": 64643
         },
         "reports/table": {
-          "chunks": 5917,
+          "chunks": 1112,
           "min": 26,
-          "median": 134,
-          "p95": 248,
-          "max": 256,
-          "mean": 134.8,
+          "median": 45.0,
+          "p95": 233,
+          "max": 255,
+          "mean": 94.2,
           "over_512": 0,
-          "under_100": 2672,
-          "tokens_total": 797784
+          "under_100": 724,
+          "tokens_total": 104716
         }
       }
     }
   },
   "bge_m3_cpu": {
-    "setup_seconds": 13.2,
+    "setup_seconds": 9.5,
     "model_load_seconds": 0.9,
-    "embedding_seconds_total": 5296.6,
-    "sentences_embedded": 33728,
-    "sentences_per_second": 6.4,
+    "embedding_seconds_total": 5357.9,
+    "sentences_embedded": 29707,
+    "sentences_per_second": 5.5,
     "parameter_mb": 2165.8,
-    "peak_process_memory_mb": 3337.1,
-    "spacy_sentence_seconds_total": 210.8
+    "peak_process_memory_mb": 3770.2,
+    "spacy_sentence_seconds_total": 200.5
   }
 }

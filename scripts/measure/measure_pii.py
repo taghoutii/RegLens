@@ -3,6 +3,12 @@
 Usage (repository root, virtual environment active):
     python scripts/measure/measure_pii.py                 # all policies, the log, all regulations
     python scripts/measure/measure_pii.py --show-failures # also print the leaked values locally
+    python scripts/measure/measure_pii.py --holdout-seeds 43 44
+
+Recall is measured on the corpus's synthetic documents (data/raw/, seed 42) and on
+held-out sets generated with other seeds (default 43) in a temporary folder, deleted
+afterwards: the recognizers were built on seed 42, so the held-out seeds show whether
+they generalise to other names and values.
 
 Also scans the regulations and the reports already in the Docling cache: they hold no
 planted PII, so every detection there is a candidate false positive.
@@ -14,16 +20,19 @@ and appends one row to results/EXPERIMENTS.md. Writes nothing to data/processed/
 import argparse
 import logging
 import sys
+import tempfile
 import time
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from docling_core.types.doc.document import DoclingDocument
 
 from reglens.config import get_settings
 from reglens.corpus.sources import load_corpus
+from reglens.corpus.synthetic import generate_all
 from reglens.evaluation.pii_leaks import check_leaks, load_planted
 from reglens.evaluation.results import append_row, write_result
 from reglens.ingestion.models import ParsedDocument
@@ -86,11 +95,37 @@ class Scan:
         return out
 
 
+def mask_synthetic(masker: PiiMasker, raw: Path) -> dict[str, ParsedDocument]:
+    """The policies and the log of `raw`, parsed and masked as the pipeline does."""
+    docs: dict[str, ParsedDocument] = {}
+    for f in sorted((raw / "policies").glob("POL-*.md")):
+        d = masker.mask_document(parse_policy(f, source=f.as_posix()))
+        docs[d.doc_id] = d
+    log_file = raw / "logs" / "incident_log.jsonl"
+    docs["incident_log"] = masker.mask_document(
+        parse_incident_log(log_file, source=log_file.as_posix())
+    )
+    return docs
+
+
+def holdout_recall(masker: PiiMasker, seed: int) -> dict[str, Any]:
+    """Recall on a synthetic set generated with `seed` in a temporary folder."""
+    with tempfile.TemporaryDirectory() as tmp:
+        raw, truth = Path(tmp) / "raw", Path(tmp) / "ground_truth"
+        generate_all(raw, truth, seed=seed)
+        report = check_leaks(mask_synthetic(masker, raw), load_planted(truth))
+    summary = report.summary()
+    return {"seed": seed, "planted": summary["planted"], "leaked": summary["leaked"],
+            "recall": summary["recall"]}  # fmt: skip
+
+
 def main() -> int:
     settings = get_settings()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--show-failures", action="store_true", help="print leaked values (local)")
     parser.add_argument("--fp-examples", type=int, default=25, help="false-positive examples kept")
+    parser.add_argument("--holdout-seeds", type=int, nargs="*", default=[43],
+                        help="also measure recall on synthetic sets of these seeds")  # fmt: skip
     args = parser.parse_args()
     logging.basicConfig(level=logging.WARNING)
 
@@ -101,16 +136,10 @@ def main() -> int:
     # ---- synthetic documents: recall against the ground truth
     raw = settings.raw_dir
     t0 = time.perf_counter()
-    docs: dict[str, ParsedDocument] = {}
-    for f in sorted((raw / "policies").glob("POL-*.md")):
-        d = masker.mask_document(parse_policy(f, source=f.as_posix()))
-        docs[d.doc_id] = d
-    log_file = raw / "logs" / "incident_log.jsonl"
-    docs["incident_log"] = masker.mask_document(
-        parse_incident_log(log_file, source=log_file.as_posix())
-    )
+    docs = mask_synthetic(masker, raw)
     synthetic_s = time.perf_counter() - t0
     report = check_leaks(docs, load_planted(settings.ground_truth_dir))
+    holdout = {seed: holdout_recall(masker, seed) for seed in args.holdout_seeds}
 
     # ---- regulations and reports: no planted PII, so every detection is a candidate false
     # positive. "dropped" = PERSON spans removed by the shape filter (cannot be a name).
@@ -149,7 +178,8 @@ def main() -> int:
             "or made only of legal structure words",
             "batch_size": settings.pii_batch_size,
         },
-        "synthetic": summary,
+        "synthetic": {"seed": settings.synthetic_seed, **summary},
+        "holdout": [holdout[seed] for seed in args.holdout_seeds],
         # Regulations are public texts: what was flagged there is shown. Reports may name
         # real people (board members), so only counts are written for them.
         "regulations_false_positives": scans["regulations"].summary(args.fp_examples),
@@ -168,6 +198,7 @@ def main() -> int:
         f"| {result['date']} | pii_masking | 2 | Presidio recall on planted values; "
         f"detections on regulations and {scans['reports'].documents} cached reports | "
         f"recall {recall} ; leaks {sum(report.leaked.values())} ; "
+        f"held-out seeds {[(h['seed'], h['recall']) for h in holdout.values()]} ; "
         f"regulation detections {dict(scans['regulations'].kept)} ; "
         f"report detections {dict(scans['reports'].kept)} | `{out.as_posix()}` |\n"
     )
@@ -176,6 +207,8 @@ def main() -> int:
     print(f"planted: {summary['planted']}")
     print(f"leaked:  {summary['leaked']}")
     print(f"recall:  {recall}")
+    for h in holdout.values():
+        print(f"seed {h['seed']}: recall {h['recall']}, leaked {h['leaked']}")
     for name, scan in scans.items():
         print(f"{name}: kept {dict(scan.kept)}, dropped by the PERSON filter {scan.dropped_n}")
         for (entity, text), count in scan.examples.most_common(10):  # local console only
@@ -188,7 +221,8 @@ def main() -> int:
         for p, how in report.failures:
             print(f"   LEAK {p.doc_id} {p.where or ''} {p.kind}: {p.value!r} ({how})")
     print(f"written: {out}")
-    return 0 if not report.failures else 1
+    leaks = any(sum(h["leaked"].values()) for h in holdout.values())
+    return 0 if not report.failures and not leaks else 1
 
 
 if __name__ == "__main__":

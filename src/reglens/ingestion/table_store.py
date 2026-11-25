@@ -110,6 +110,17 @@ def store_tables(conn: psycopg.Connection, doc: ParsedDocument) -> int:
     return n_cells
 
 
+def delete_other_documents(conn: psycopg.Connection, keep: set[str]) -> list[str]:
+    """Delete the tables of every document not in `keep` (reports no longer listed in
+    sources.yaml); their cells go with them (ON DELETE CASCADE). Returns the doc_ids."""
+    with conn.transaction():
+        rows = conn.execute(
+            "DELETE FROM report_tables WHERE NOT (doc_id = ANY(%s)) RETURNING doc_id",
+            (sorted(keep),),
+        ).fetchall()
+    return sorted({r[0] for r in rows})
+
+
 def load_cells(conn: psycopg.Connection, table_id: str) -> list[list[str]]:
     """Read a table back as a grid (used by the cell-accuracy check)."""
     rows = conn.execute(

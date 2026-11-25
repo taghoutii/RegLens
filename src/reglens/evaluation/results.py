@@ -8,20 +8,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-ARCHIVE = "archive"  # superseded result files, kept as evidence of the progression
 UNFILED = "## Unfiled runs"
 
 
 def new_result_path(results_dir: Path, day: str, name: str) -> Path:
-    """`<day>_<name>.json`, or `<day>_<name>_<n>.json` if that name is already used, in
-    results/ or in results/archive/."""
+    """`<day>_<name>.json`, or `<day>_<name>_<n>.json` if that name is already used."""
     results_dir.mkdir(parents=True, exist_ok=True)
-
-    def used(file: str) -> bool:
-        return (results_dir / file).exists() or (results_dir / ARCHIVE / file).exists()
-
     file, n = f"{day}_{name}.json", 2
-    while used(file):
+    while (results_dir / file).exists():
         file = f"{day}_{name}_{n}.json"
         n += 1
     return results_dir / file

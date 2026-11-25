@@ -14,8 +14,10 @@ Stages, in order (each one is its own script, run as a separate process):
     parse     scripts/parse_corpus.py        data/processed/parsed/ + PostgreSQL tables
     chunk     scripts/chunk_corpus.py        data/processed/chunks/<strategy>/
 
-A stage is out of date when its output is missing or older than its input; once a stage
-runs, every later stage runs too. Measurements are separate (scripts/measure/).
+A stage is out of date when its output is missing or older than its input, or when its
+output folder holds files of documents no longer in the corpus (they are deleted by the
+parse step); once a stage runs, every later stage runs too. Measurements are separate
+(scripts/measure/).
 """
 
 import argparse
@@ -27,6 +29,7 @@ from pathlib import Path
 from reglens.config import Settings, get_settings
 from reglens.corpus.sources import download_targets, load_corpus
 from reglens.ingestion.chunking import STRATEGIES
+from reglens.ingestion.inventory import expected_documents, stale_files
 from reglens.ingestion.parse_pdf import docling_config, is_cached
 
 STAGES = ["download", "generate", "docling", "parse", "chunk"]
@@ -67,17 +70,26 @@ def out_of_date(settings: Settings) -> dict[str, Callable[[], bool]]:
         config = docling_config(settings)
         return any(not is_cached(settings.docling_cache_dir, s.id, config) for s in corpus.reports)
 
+    def complete(folder: Path, pattern: str) -> bool:
+        """Every document of the corpus has a file in `folder`, and nothing else does."""
+        stems = {p.stem for p in _files(folder, pattern)}
+        expected = expected_documents(corpus, raw)
+        return expected <= stems and not stale_files(folder, pattern, expected)
+
     def parse() -> bool:
         outputs = _files(processed / "parsed", "*.json")
         inputs = [p for p in raw.rglob("*") if p.is_file()]
         inputs += _files(settings.docling_cache_dir, "*.json")
-        return not outputs or _newest(inputs) > _oldest(outputs)
+        stale = not complete(processed / "parsed", "*.json")
+        return stale or _newest(inputs) > _oldest(outputs)
 
     def chunk() -> bool:
         newest_parsed = _newest(_files(processed / "parsed", "*.json"))
         for strategy in STRATEGIES:
-            chunks = _files(processed / "chunks" / strategy, "*.jsonl")
-            if not chunks or _oldest(chunks) < newest_parsed:
+            folder = processed / "chunks" / strategy
+            if not complete(folder, "*.jsonl"):
+                return True
+            if _oldest(_files(folder, "*.jsonl")) < newest_parsed:
                 return True
         return False
 

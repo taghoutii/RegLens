@@ -1,6 +1,6 @@
 {
   "name": "structured_tables",
-  "date": "2026-11-23",
+  "date": "2026-11-25",
   "phase": 3,
   "method": "PDF tables (Docling cache, inferred header rows) through apply_spreadsheet: certain block (>= 5 informative numbers, >= 95% in the best block, runner-up >= 0.2 lower), every row aligned in order, every PDF number printed by the rebuilt table; otherwise the PDF content is kept",
   "reports": {
@@ -123,6 +123,7 @@
         "ing_group_pillar3_2025#tbl-174",
         "ing_group_pillar3_2025#tbl-177"
       ],
+      "replaced_without_header_rows": [],
       "certain_not_replaced": [
         {
           "table": "ing_group_pillar3_2025#tbl-15",

@@ -50,6 +50,14 @@ def main() -> int:
             "tables": len(replacements),
             "outcomes": dict(reasons),
             "replaced": [r.table_id for r in replacements if r.replaced],
+            # a replaced table must keep column labels (the spreadsheet's header rows)
+            "replaced_without_header_rows": [
+                b.table.table_id
+                for b in doc.blocks
+                if b.table is not None
+                and b.table.content_source == "spreadsheet"
+                and b.table.header_rows == 0
+            ],  # fmt: skip
             "certain_not_replaced": [
                 {
                     "table": r.table_id,
@@ -61,7 +69,8 @@ def main() -> int:
                 if r.match.certain and not r.replaced
             ],  # fmt: skip
         }
-        print(f"{src.id}: {dict(reasons)}")
+        print(f"{src.id}: {dict(reasons)}, replaced without header rows: "
+              f"{len(per_report[src.id]['replaced_without_header_rows'])}")  # fmt: skip
     result = {
         "name": "structured_tables",
         "date": date.today().isoformat(),

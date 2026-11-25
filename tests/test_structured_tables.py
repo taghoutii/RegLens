@@ -13,7 +13,9 @@ from reglens.ingestion.structured_tables import (
     match_table,
     printed_forms,
     read_blocks,
+    subtitle,
 )
+from reglens.ingestion.table_rows import header_paths
 
 RULE: dict[str, Any] = {"min_numbers": 5, "min_share": 0.95, "margin": 0.2}
 
@@ -107,3 +109,39 @@ def test_no_replacement_when_a_value_differs(tmp_path: Path) -> None:
     [r] = apply_spreadsheet(doc, path, **RULE)
     assert not r.replaced
     assert doc.blocks[0].table is t
+
+
+def test_header_found_after_a_code_title_and_a_one_cell_subtitle(tmp_path: Path) -> None:
+    # "EU <code> - ..." title (no "Template" word), then a one-cell subtitle "2025": both
+    # used to stop the header detection, so the table was stored without header rows.
+    path = tmp_path / "b.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "TLAC1"
+    for row in [["EU TLAC1 - Composition"], [2025], ["", "Gross", "Impairment"],
+                ["Loans", 7854.4, -187], ["Households", 2879, -28.2],
+                ["Total", 10733.4, 0.1308]]:  # fmt: skip
+        ws.append(row)
+    for n in (4, 5, 6):
+        ws.cell(n, 2).number_format = "#,##0"
+        ws.cell(n, 3).number_format = "#,##0;(#,##0)"
+    ws.cell(6, 3).number_format = "0.00%"
+    wb.save(path)
+    block = Block(block_id="ing#tbl-1/table", parent_id="ing#tbl-1", kind="table",
+                  text="TLAC1", page_number=3, table=pdf_table())  # fmt: skip
+    doc = ParsedDocument(doc_id="ing", source="r.pdf", type_doc="reports", langue="en",
+                         parser="docling", blocks=[block])  # fmt: skip
+    [r] = apply_spreadsheet(doc, path, **RULE)
+    assert r.replaced, r.reason
+    new = doc.blocks[0].table
+    assert new is not None and new.header_rows == 2
+    assert new.cells[0] == ["2025", "2025", "2025"]  # the subtitle names every column
+    assert header_paths(new)[1:] == ["2025 > Gross", "2025 > Impairment"]
+    assert ["Loans", "7,854", "(187)"] in new.cells
+
+
+def test_subtitle_rows_hold_one_text_and_no_value() -> None:
+    # a one-text row (or merged span) with no value; one just above the body is trimmed
+    assert subtitle(["Own funds", "Own funds", "Own funds"], "en")  # a merged span
+    assert subtitle(["2025", "", ""], "en")
+    assert not subtitle(["Loans", "7,854", ""], "en")

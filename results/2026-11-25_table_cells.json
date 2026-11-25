@@ -1,0 +1,738 @@
+{
+  "name": "table_cells",
+  "date": "2026-11-25",
+  "method": "every non-empty extracted cell must appear in the pypdfium2 text layer inside the table bbox (whitespace-insensitive); values only, not positions",
+  "config": {
+    "do_cell_matching": true
+  },
+  "seed": 42,
+  "documents_in_cache": [
+    "ing_group_pillar3_2025"
+  ],
+  "tables": [
+    {
+      "table": "ing_group_pillar3_2025#tbl-37",
+      "pages": [
+        26
+      ],
+      "shape": [
+        28,
+        4
+      ],
+      "cells": 69,
+      "found": 69,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-14",
+      "pages": [
+        13
+      ],
+      "shape": [
+        11,
+        6
+      ],
+      "cells": 39,
+      "found": 39,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-207",
+      "pages": [
+        178
+      ],
+      "shape": [
+        13,
+        35
+      ],
+      "cells": 233,
+      "found": 211,
+      "missing_by_kind": {
+        "header": 3,
+        "label": 17,
+        "number": 2
+      },
+      "flagged": 47,
+      "header_rows": 1,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": false,
+      "coverage": 0.9958,
+      "missing_positions": [
+        [
+          0,
+          18
+        ],
+        [
+          0,
+          21
+        ],
+        [
+          0,
+          24
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          15
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          6,
+          15
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          21
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          11,
+          25
+        ],
+        [
+          11,
+          26
+        ],
+        [
+          11,
+          27
+        ],
+        [
+          11,
+          29
+        ],
+        [
+          12,
+          21
+        ],
+        [
+          12,
+          22
+        ],
+        [
+          12,
+          24
+        ],
+        [
+          12,
+          26
+        ],
+        [
+          12,
+          27
+        ],
+        [
+          12,
+          30
+        ],
+        [
+          12,
+          32
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-124",
+      "pages": [
+        92
+      ],
+      "shape": [
+        15,
+        11
+      ],
+      "cells": 79,
+      "found": 75,
+      "missing_by_kind": {
+        "header": 2,
+        "label": 2
+      },
+      "flagged": 3,
+      "header_rows": 3,
+      "spanning_headers": "4/4 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": false,
+      "coverage": 0.984,
+      "missing_positions": [
+        [
+          1,
+          9
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          9
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-63",
+      "pages": [
+        50
+      ],
+      "shape": [
+        7,
+        5
+      ],
+      "cells": 26,
+      "found": 25,
+      "missing_by_kind": {
+        "label": 1
+      },
+      "flagged": 0,
+      "header_rows": 2,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9636,
+      "missing_positions": [
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-6",
+      "pages": [
+        6
+      ],
+      "shape": [
+        27,
+        4
+      ],
+      "cells": 87,
+      "found": 87,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-66",
+      "pages": [
+        50
+      ],
+      "shape": [
+        11,
+        4
+      ],
+      "cells": 19,
+      "found": 19,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 3,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-31",
+      "pages": [
+        23
+      ],
+      "shape": [
+        20,
+        4
+      ],
+      "cells": 52,
+      "found": 52,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-53",
+      "pages": [
+        41
+      ],
+      "shape": [
+        14,
+        9
+      ],
+      "cells": 83,
+      "found": 79,
+      "missing_by_kind": {
+        "header": 4
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9935,
+      "missing_positions": [
+        [
+          0,
+          7
+        ],
+        [
+          1,
+          8
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          7
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-131",
+      "pages": [
+        97
+      ],
+      "shape": [
+        17,
+        4
+      ],
+      "cells": 35,
+      "found": 34,
+      "missing_by_kind": {
+        "header": 1
+      },
+      "flagged": 0,
+      "header_rows": 4,
+      "spanning_headers": "2/2 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-62",
+      "pages": [
+        48
+      ],
+      "shape": [
+        24,
+        5
+      ],
+      "cells": 88,
+      "found": 86,
+      "missing_by_kind": {
+        "label": 2
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9653,
+      "missing_positions": [
+        [
+          0,
+          2
+        ],
+        [
+          4,
+          4
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-82",
+      "pages": [
+        63
+      ],
+      "shape": [
+        29,
+        4
+      ],
+      "cells": 84,
+      "found": 84,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 3,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-92",
+      "pages": [
+        70
+      ],
+      "shape": [
+        21,
+        8
+      ],
+      "cells": 125,
+      "found": 123,
+      "missing_by_kind": {
+        "header": 2
+      },
+      "flagged": 0,
+      "header_rows": 2,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": true,
+      "header_uncertain": true,
+      "label_repeated_under_span": false,
+      "coverage": 0.9856,
+      "missing_positions": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-198",
+      "pages": [
+        168
+      ],
+      "shape": [
+        4,
+        20
+      ],
+      "cells": 75,
+      "found": 69,
+      "missing_by_kind": {
+        "label": 6
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          1,
+          12
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          4
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-38",
+      "pages": [
+        26
+      ],
+      "shape": [
+        17,
+        4
+      ],
+      "cells": 56,
+      "found": 56,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-178",
+      "pages": [
+        152
+      ],
+      "shape": [
+        9,
+        9
+      ],
+      "cells": 67,
+      "found": 67,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 2,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 0.9922,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-112",
+      "pages": [
+        83
+      ],
+      "shape": [
+        13,
+        14
+      ],
+      "cells": 60,
+      "found": 59,
+      "missing_by_kind": {
+        "header": 1
+      },
+      "flagged": 0,
+      "header_rows": 1,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          1,
+          7
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-45",
+      "pages": [
+        31
+      ],
+      "shape": [
+        26,
+        8
+      ],
+      "cells": 128,
+      "found": 120,
+      "missing_by_kind": {
+        "header": 4,
+        "label": 4
+      },
+      "flagged": 0,
+      "header_rows": 3,
+      "spanning_headers": "1/1 repeated",
+      "same_label_slots": true,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          0,
+          0
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          16,
+          2
+        ],
+        [
+          16,
+          5
+        ],
+        [
+          16,
+          6
+        ]
+      ]
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-16",
+      "pages": [
+        14
+      ],
+      "shape": [
+        33,
+        6
+      ],
+      "cells": 149,
+      "found": 149,
+      "missing_by_kind": {},
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": []
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-204",
+      "pages": [
+        174
+      ],
+      "shape": [
+        3,
+        20
+      ],
+      "cells": 41,
+      "found": 38,
+      "missing_by_kind": {
+        "label": 3
+      },
+      "flagged": 0,
+      "header_rows": 0,
+      "spanning_headers": "0/0 repeated",
+      "same_label_slots": false,
+      "same_label_cells": false,
+      "header_uncertain": false,
+      "label_repeated_under_span": false,
+      "coverage": 1.0,
+      "missing_positions": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    }
+  ],
+  "total": {
+    "tables": 20,
+    "tables_with_a_miss": 11,
+    "cells": 1595,
+    "found": 1541,
+    "rate": 0.9661,
+    "by_kind": {
+      "header": {
+        "cells": 154,
+        "missing": 17
+      },
+      "label": {
+        "cells": 603,
+        "missing": 35
+      },
+      "number": {
+        "cells": 838,
+        "missing": 2
+      }
+    },
+    "coverage": 0.996,
+    "flagged_low_confidence": 50,
+    "tables_with_fused_rows": 2,
+    "spanning_headers": 14,
+    "spanning_headers_repeated": 14,
+    "header_uncertain (same_label_cells, stored)": 4,
+    "header_rule_same_label_slots (measured only)": 10,
+    "header_rule_label_repeated_under_span (measured only)": 0,
+    "missing_caught_by_flag": "2/54"
+  },
+  "manual_review": []
+}

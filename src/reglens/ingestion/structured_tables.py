@@ -7,6 +7,7 @@ The new content keeps the table id, caption and PDF page (citations still point 
 page), and records `content_source = "spreadsheet"`.
 """
 
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -244,17 +245,39 @@ def align_rows(table: TableData, langue: str, block: SheetBlock) -> RowAlignment
     return out
 
 
+# A block's title row: "Template EU KM2: ...", "EU TLAC1 - ...", "EU-SEC1 - ...".
+TITLE = re.compile(r"^(?:template\b|eu[\s-]?[a-z]{2,}\d)", re.IGNORECASE)
+
+
+def _first_text(row: list[str]) -> str:
+    return next((x for x in row if x), "")
+
+
+def subtitle(row: list[str], langue: str) -> bool:
+    """A row with one text only (a merged span repeats it), no number except years:
+    "2025", "A-IRB", "Equity exposures under ...". Above the column headers it applies
+    to every column."""
+    texts = {clean(x) for x in row if clean(x)}
+    if len(texts) != 1:
+        return False
+    n = parse_number(next(iter(texts)), langue)
+    return n is None or is_year(n)
+
+
 def _header_end(block: SheetBlock, langue: str) -> tuple[int, int]:
-    """(first header row, first body row) of a block: leading "Template ..." title rows
-    are skipped, then the header is the run of header-like rows (no number but years)."""
+    """(first header row, first body row) of a block. Leading title rows are skipped;
+    the header is then the run of header-like and subtitle rows, without the subtitle
+    rows that end it (a one-text row just above the body is a section label)."""
     start = 0
-    while start < len(block.texts) and (
-        next((x for x in block.texts[start] if x), "").lower().startswith("template")
-    ):
+    while start < len(block.texts) and TITLE.match(_first_text(block.texts[start])):
         start += 1
     end = start
-    while end < len(block.texts) and header_like(block.texts[end], langue):
+    while end < len(block.texts) and (
+        header_like(block.texts[end], langue) or subtitle(block.texts[end], langue)
+    ):
         end += 1
+    while end > start and not header_like(block.texts[end - 1], langue):
+        end -= 1
     return start, end
 
 
@@ -279,6 +302,11 @@ def spreadsheet_table(
     cells = [[r[c] for c in keep] for r in rows]
     if len(keep) < 2:
         return None
+    # A subtitle in the first column only ("2025") names every column; a span that starts
+    # further right (header-like) covers its own columns and is kept as it is.
+    for r in range(h_end - h_start):
+        if subtitle(cells[r], langue) and not header_like(cells[r], langue):
+            cells[r] = [_first_text(cells[r])] * len(keep)
     return table.model_copy(update={
         "cells": cells, "n_rows": len(cells), "n_cols": len(keep),
         "header_rows": h_end - h_start, "header_inferred": False,

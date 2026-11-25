@@ -10,7 +10,13 @@ import pytest
 
 from reglens.config import Settings
 from reglens.ingestion.models import Block, ParsedDocument, TableData
-from reglens.ingestion.table_store import conninfo, ensure_schema, load_cells, store_tables
+from reglens.ingestion.table_store import (
+    conninfo,
+    delete_other_documents,
+    ensure_schema,
+    load_cells,
+    store_tables,
+)
 from tests.conftest import postgres_reachable, require
 
 pytestmark = pytest.mark.integration
@@ -83,3 +89,13 @@ def test_low_confidence_flag_is_stored(conn: psycopg.Connection) -> None:
         (table.table_id,),
     ).fetchall()
     assert flagged == [(2, 1)]
+
+
+def test_tables_of_unlisted_documents_are_deleted(conn: psycopg.Connection) -> None:
+    store_tables(conn, _doc())
+    listed = {r[0] for r in conn.execute("SELECT DISTINCT doc_id FROM report_tables")} - {DOC_ID}
+    assert delete_other_documents(conn, listed) == [DOC_ID]
+    left = conn.execute("SELECT count(*) FROM report_table_cells WHERE table_id = %s",
+                        (f"{DOC_ID}#tbl-1",)).fetchone()  # fmt: skip
+    assert left == (0,)  # cells deleted with their table
+    assert delete_other_documents(conn, listed) == []  # the other documents are kept
