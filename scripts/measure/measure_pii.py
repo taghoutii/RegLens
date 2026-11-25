@@ -13,8 +13,8 @@ they generalise to other names and values.
 Also scans the regulations and the reports already in the Docling cache: they hold no
 planted PII, so every detection there is a candidate false positive.
 
-Writes results/<date>_pii_masking.json (counts and ids only, never a planted value)
-and appends one row to results/EXPERIMENTS.md. Writes nothing to data/processed/.
+Writes results/<date>_pii_masking.json (counts and ids only, never a planted value).
+Writes nothing to data/processed/.
 """
 
 import argparse
@@ -34,7 +34,7 @@ from reglens.config import get_settings
 from reglens.corpus.sources import load_corpus
 from reglens.corpus.synthetic import generate_all
 from reglens.evaluation.pii_leaks import check_leaks, load_planted
-from reglens.evaluation.results import append_row, write_result
+from reglens.evaluation.results import write_result
 from reglens.ingestion.models import ParsedDocument
 from reglens.ingestion.parse_eurlex import parse_eurlex
 from reglens.ingestion.parse_pdf import cache_paths, from_docling
@@ -194,15 +194,6 @@ def main() -> int:
     out = write_result(settings.results_dir, result)
 
     recall = summary["recall"]
-    row = (
-        f"| {result['date']} | pii_masking | 2 | Presidio recall on planted values; "
-        f"detections on regulations and {scans['reports'].documents} cached reports | "
-        f"recall {recall} ; leaks {sum(report.leaked.values())} ; "
-        f"held-out seeds {[(h['seed'], h['recall']) for h in holdout.values()]} ; "
-        f"regulation detections {dict(scans['regulations'].kept)} ; "
-        f"report detections {dict(scans['reports'].kept)} | `{out.as_posix()}` |\n"
-    )
-    append_row(settings.results_dir, row)
 
     print(f"planted: {summary['planted']}")
     print(f"leaked:  {summary['leaked']}")

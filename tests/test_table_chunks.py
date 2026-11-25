@@ -1,7 +1,8 @@
 """Table chunks: one chunk when the table fits, row groups otherwise, column groups for
-a row too wide; and annex context lines. Tokens are words (tests/chunk_stubs.py)."""
+a row too wide; the summary and quality flags on every chunk. Tokens are words
+(tests/chunk_stubs.py)."""
 
-from reglens.ingestion.chunking import Chunker, ChunkParams, table_groups, unit_contexts
+from reglens.ingestion.chunking import Chunker, ChunkParams, table_groups
 from reglens.ingestion.models import Block, ParsedDocument, TableData
 from tests.chunk_stubs import WordTokens, stub_tools
 
@@ -56,30 +57,33 @@ def test_row_too_wide_is_cut_into_column_groups() -> None:
     assert all(g.text.startswith("| Row0 |") for g in groups)
 
 
-def test_table_chunks_share_the_table_id_and_flags() -> None:
+def test_table_chunks_share_the_table_id_summary_and_flags() -> None:
+    t = table(40)
+    t.low_confidence = [(2, 1)]
+    t.header_issues = ["same_label_cells"]
     doc = ParsedDocument(
         doc_id="rep", source="r.pdf", type_doc="reports", langue="en", parser="docling",
-        masked=True, blocks=[Block(block_id="rep#tbl-1/table", parent_id="rep#tbl-1",
-                                   kind="table", text="Own funds", page_number=4,
-                                   table=table(40))],
+        masked=True, blocks=[
+            Block(block_id="rep#sec-1/t1", parent_id="rep#sec-1", kind="text",
+                  page_number=3, section="Capital", text="Capital ratios rose in 2025."),
+            Block(block_id="rep#tbl-1/table", parent_id="rep#tbl-1", kind="table",
+                  text="Own funds", page_number=4, section="Capital", table=t),
+        ],
     )  # fmt: skip
     params = ChunkParams(max_tokens=60, min_tokens=10, overlap=5, table_context_max_tokens=40)
-    chunks = Chunker(stub_tools(), params).chunk(doc, "structure_semantic")
-    assert len(chunks) > 1
-    assert {c.parent_id for c in chunks} == {"rep#tbl-1"}
-    assert [c.position for c in chunks] == list(range(len(chunks)))
-    assert len({c.chunk_id for c in chunks}) == len(chunks)
-    assert all(c.table_source == "pdf" and c.page_number == 4 for c in chunks)
-    assert chunks[0].embedding_text() == chunks[0].context + "\n" + chunks[0].row_lines  # type: ignore[operator]
-
-
-def test_annex_context_line() -> None:
-    doc = ParsedDocument(
-        doc_id="ai_act", source="a.html", type_doc="regulations", langue="en",
-        reglement="AI Act", parser="eurlex", masked=True,
-        blocks=[Block(block_id=f"ai_act#anx-III/t{i}", parent_id="ai_act#anx-III",
-                      kind="text", text=text)
-                for i, text in enumerate(["ANNEX III", "High-risk AI systems",
-                                          "High-risk AI systems are the following."])],
-    )  # fmt: skip
-    assert unit_contexts(doc)["ai_act#anx-III"] == "AI Act — Annex III — High-risk AI systems"
+    chunker = Chunker(stub_tools(), params, titles={"rep": "Bank report 2025"})
+    chunks = chunker.chunk(doc, "structure_semantic")
+    tables = [c for c in chunks if c.kind == "table"]
+    assert len(tables) > 1
+    assert {c.parent_id for c in tables} == {"rep#tbl-1"}  # = report_tables.table_id
+    assert [c.position for c in tables] == list(range(len(tables)))
+    assert len({c.chunk_id for c in tables}) == len(tables)
+    for c in tables:
+        assert c.table_source == "pdf" and c.page_number == 4
+        assert c.header_uncertain is True and c.header_issues == ["same_label_cells"]
+        assert c.has_fused_rows is True
+        assert c.context is not None
+        assert c.context.startswith("Table: Own funds\nSource: Bank report 2025, page 4")
+    assert tables[0].embedding_text() == tables[0].context + "\n" + tables[0].row_lines  # type: ignore[operator]
+    (text,) = [c for c in chunks if c.kind == "text"]
+    assert text.header_uncertain is None and text.has_fused_rows is None

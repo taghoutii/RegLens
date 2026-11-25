@@ -119,16 +119,3 @@ def delete_other_documents(conn: psycopg.Connection, keep: set[str]) -> list[str
             (sorted(keep),),
         ).fetchall()
     return sorted({r[0] for r in rows})
-
-
-def load_cells(conn: psycopg.Connection, table_id: str) -> list[list[str]]:
-    """Read a table back as a grid (used by the cell-accuracy check)."""
-    rows = conn.execute(
-        "SELECT row_idx, col_idx, value FROM report_table_cells WHERE table_id = %s "
-        "ORDER BY row_idx, col_idx",
-        (table_id,),
-    ).fetchall()
-    grid: dict[int, dict[int, str]] = {}
-    for r, c, v in rows:
-        grid.setdefault(r, {})[c] = v
-    return [[grid[r][c] for c in sorted(grid[r])] for r in sorted(grid)]

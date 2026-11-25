@@ -1,5 +1,6 @@
 """Header rows and self-describing table rows, on hand-built tables."""
 
+from reglens.ingestion.models import TableData
 from reglens.ingestion.table_rows import (
     header_paths,
     infer_header_rows,
@@ -17,6 +18,11 @@ def test_header_paths_join_every_header_row() -> None:
               ["Loans", "100", "7"]], header_rows=2)  # fmt: skip
     assert header_paths(t) == ["EUR m", "31 December 2025 > Gross carrying amount",
                                "31 December 2025 > of which: defaulted"]  # fmt: skip
+
+
+def test_header_paths_without_header() -> None:
+    t = TableData(table_id="x#tbl-1", n_rows=1, n_cols=2, cells=[["a", "b"]])
+    assert header_paths(t) == ["", ""]
 
 
 def test_row_lines_carry_section_and_labels() -> None:

@@ -1,17 +1,19 @@
-"""Check Docling's tables against the PDF itself.
+"""Report tables for the measurement scripts: loaders, and Docling's cells checked against
+the PDF itself.
 
-Two complementary checks:
-  1. values (automatic): every non-empty cell Docling extracted must appear in the PDF's
-     own text layer, inside the table's bounding box on that page. Catches merged,
-     truncated or invented values. It does not prove a value sits in the right row/column.
-  2. structure (manual): a review page shows, side by side, the PDF region rendered as an
-     image and the extracted grid, so a person can check rows and columns.
+Two views of the same tables:
+- the parsed (masked) tables in data/processed/parsed/, as the pipeline stores them;
+- Docling's raw output in data/cache/docling/ with the PDF itself, for checks against
+  the PDF text layer (unmasked: the result files keep ids and counts only).
 
-Born-digital PDFs carry their text, so the text layer is an independent reference: Docling
-uses it too, but the check reads it back through a different library (pypdfium2).
+The value check: every non-empty cell Docling extracted must appear in the PDF's own text
+layer, inside the table's bounding box on that page. It catches merged, truncated or
+invented values; it does not prove a value sits in the right row or column (the visual
+review in scripts/measure/review_table_quality.py does). Born-digital PDFs carry their
+text, so the text layer is an independent reference: Docling uses it too, but the check
+reads it back through a different library (pypdfium2).
 """
 
-import html
 import random
 from collections import Counter
 from dataclasses import dataclass, field
@@ -21,15 +23,51 @@ import pypdfium2 as pdfium
 from docling_core.types.doc.document import DoclingDocument
 from docling_core.types.doc.items.table.table import TableItem
 
+from reglens.config import Settings
+from reglens.corpus.sources import Language, load_corpus
+from reglens.ingestion.models import ParsedDocument, TableData
 from reglens.ingestion.numbers import has_several_numbers, is_one_number
-from reglens.ingestion.parse_pdf import table_data
-from reglens.ingestion.table_quality import (
-    header_rows,
-    label_repeated_under_span,
-    same_label_cells,
-    same_label_slots,
-)
+from reglens.ingestion.parse_pdf import cache_paths, header_rows, same_label_cells, table_data
 from reglens.ingestion.text_norm import compact
+
+
+@dataclass
+class ReportTable:
+    table: TableData
+    doc_id: str
+    langue: Language
+    page_number: int | None
+    section: str | None
+
+
+def report_tables(processed_dir: Path, doc_ids: set[str] | None = None) -> list[ReportTable]:
+    """Every non-empty table of the parsed reports (optionally only some documents)."""
+    out = []
+    for path in sorted((processed_dir / "parsed").glob("*.json")):
+        doc = ParsedDocument.model_validate_json(path.read_text(encoding="utf-8"))
+        if doc.type_doc != "reports" or (doc_ids is not None and doc.doc_id not in doc_ids):
+            continue
+        for b in doc.blocks:
+            if b.table is not None and b.table.cells:
+                out.append(ReportTable(b.table, doc.doc_id, doc.langue, b.page_number, b.section))
+    return out
+
+
+def cached_reports(
+    settings: Settings, doc_ids: set[str] | None = None
+) -> dict[str, tuple[DoclingDocument, pdfium.PdfDocument]]:
+    """Docling output and PDF of every report already in the Docling cache."""
+    out = {}
+    for src in load_corpus(settings.sources_file).reports:
+        if doc_ids is not None and src.id not in doc_ids:
+            continue
+        doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
+        if doc_file.exists():
+            out[src.id] = (
+                DoclingDocument.load_from_json(doc_file),
+                pdfium.PdfDocument(settings.raw_dir / "reports" / f"{src.id}.pdf"),
+            )
+    return out
 
 
 @dataclass
@@ -49,14 +87,12 @@ class TableCheck:
     # Completeness (the reverse check): words of the PDF table region found in the cells.
     # A variant that drops text scores well on `found` but badly here.
     region_words: int = 0
-    # Header checks (ingestion/table_quality.py) and spanning headers.
+    covered_words: int = 0
+    # Header rows, spanning headers and the stored "header uncertain" flag.
     header_rows: int = 0
     spanning_headers: int = 0  # header cells covering several columns
     spans_repeated: int = 0  # ... whose text is in every slot of the stored grid
-    same_label_slots: bool = False
-    same_label_cells: bool = False  # = the stored "header uncertain" flag
-    label_repeated_under_span: bool = False
-    covered_words: int = 0
+    same_label_cells: bool = False
 
 
 def cell_kind(text: str, column_header: bool) -> str:
@@ -123,9 +159,7 @@ def check_table(
             for j in range(c.start_col_offset_idx, c.end_col_offset_idx))
         for c in spans.values()
     )  # fmt: skip
-    result.same_label_slots = same_label_slots(grid, n)
     result.same_label_cells = same_label_cells(grid, n)
-    result.label_repeated_under_span = label_repeated_under_span(grid, n)
     return result
 
 
@@ -152,18 +186,6 @@ def pick_tables(
     return picked
 
 
-def matching_table(table: TableItem, doc: DoclingDocument) -> TableItem | None:
-    """The table of `doc` on the same first page that overlaps `table` the most."""
-    page, box = table.prov[0].page_no, table.prov[0].bbox
-    best, best_iou = None, 0.0
-    for other in tables_of(doc):
-        if other.prov and other.prov[0].page_no == page:
-            iou = box.intersection_over_union(other.prov[0].bbox)
-            if iou > best_iou:
-                best, best_iou = other, iou
-    return best if best_iou >= 0.5 else None
-
-
 def render_region(
     pdf: pdfium.PdfDocument, doc: DoclingDocument, table: TableItem, out_png: Path
 ) -> None:
@@ -175,18 +197,6 @@ def render_region(
     scale = 2
     image = page.render(scale=scale).to_pil()
     image.crop((box.l * scale, box.t * scale, box.r * scale, box.b * scale)).save(out_png)
-
-
-def grid_html(table: TableItem) -> str:
-    """Extracted grid with row/column numbers, header cells in bold."""
-    rows = ["<tr><th></th>" + "".join(f"<th>c{c}</th>" for c in range(table.data.num_cols))]
-    for r, row in enumerate(table.data.grid):
-        cells = "".join(
-            f"<td{' class=h' if cell.column_header else ''}>{html.escape(cell.text)}</td>"
-            for cell in row
-        )
-        rows.append(f"<tr><th>r{r}</th>{cells}</tr>")
-    return "<table class=grid>" + "\n".join(rows) + "</table>"
 
 
 def summarize(checks: list[TableCheck]) -> dict[str, object]:
@@ -214,11 +224,7 @@ def summarize(checks: list[TableCheck]) -> dict[str, object]:
         "tables_with_fused_rows": sum(1 for c in checks if c.flagged),
         "spanning_headers": sum(c.spanning_headers for c in checks),
         "spanning_headers_repeated": sum(c.spans_repeated for c in checks),
-        "header_uncertain (same_label_cells, stored)": sum(c.same_label_cells for c in checks),
-        "header_rule_same_label_slots (measured only)": sum(c.same_label_slots for c in checks),
-        "header_rule_label_repeated_under_span (measured only)": sum(
-            c.label_repeated_under_span for c in checks
-        ),
+        "header_uncertain": sum(c.same_label_cells for c in checks),
         "missing_caught_by_flag": f"{sum(c.missing_flagged for c in checks)}/{missing}",
     }
 
@@ -234,10 +240,7 @@ def table_row(c: TableCheck) -> dict[str, object]:
         "flagged": c.flagged,
         "header_rows": c.header_rows,
         "spanning_headers": f"{c.spans_repeated}/{c.spanning_headers} repeated",
-        "same_label_slots": c.same_label_slots,
-        "same_label_cells": c.same_label_cells,
         "header_uncertain": c.same_label_cells,
-        "label_repeated_under_span": c.label_repeated_under_span,
         "coverage": _ratio(c.covered_words, c.region_words),
         "missing_positions": c.missing,
     }

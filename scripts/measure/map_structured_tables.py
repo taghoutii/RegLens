@@ -19,8 +19,8 @@ from typing import Any
 
 from reglens.config import get_settings
 from reglens.corpus.sources import load_corpus
-from reglens.evaluation.report_tables import cached_reports
 from reglens.evaluation.results import write_result
+from reglens.evaluation.table_check import cached_reports
 from reglens.ingestion.parse_pdf import from_docling
 from reglens.ingestion.structured_tables import apply_spreadsheet, read_blocks
 

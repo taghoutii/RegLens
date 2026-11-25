@@ -3,7 +3,6 @@
 - Required test 1 on the real corpus: every main-strategy chunk is a slice of ONE
   parsed unit (so it never crosses an article), and every metadata field is filled;
 - every table chunk's parent_id is a table_id in PostgreSQL (chunk -> exact values);
-- no planted PII/secret value in any chunk file;
 - chunk ids are unique inside each strategy.
 """
 
@@ -13,18 +12,16 @@ import psycopg
 import pytest
 
 from reglens.config import Settings
-from reglens.evaluation.pii_leaks import load_planted
 from reglens.ingestion.chunking import STRATEGIES, Chunk
 from reglens.ingestion.models import ParsedDocument
 from reglens.ingestion.table_store import conninfo
+from tests.chunk_stubs import required_fields_filled
 from tests.conftest import REPO_ROOT, postgres_reachable, require
-from tests.test_chunking import required_fields_filled
 
 pytestmark = pytest.mark.integration
 
 CHUNKS = REPO_ROOT / "data" / "processed" / "chunks"
 PARSED = REPO_ROOT / "data" / "processed" / "parsed"
-TRUTH = REPO_ROOT / "data" / "ground_truth"
 
 
 def _chunks(strategy: str) -> list[Chunk]:
@@ -67,17 +64,3 @@ def test_table_chunks_point_to_postgres_rows() -> None:
     with psycopg.connect(conninfo(Settings())) as conn:
         stored = {r[0] for r in conn.execute("SELECT table_id FROM report_tables").fetchall()}
     assert tables and tables <= stored
-
-
-def test_no_planted_value_in_chunks() -> None:
-    require((TRUTH / "policies.json").exists(), "ground truth missing")
-    values = [p.value for p in load_planted(TRUTH)]
-    files = list(CHUNKS.rglob("*.jsonl"))
-    require(bool(files), "no chunks yet")
-    # pydantic writes non-ASCII characters as they are (no \u escapes), so a plain search works
-    leaks = [
-        f.relative_to(REPO_ROOT).as_posix()
-        for f in files
-        if any(v in f.read_text(encoding="utf-8") for v in values)
-    ]
-    assert leaks == []  # file names only

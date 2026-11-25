@@ -14,13 +14,25 @@ from reglens.ingestion.table_store import (
     conninfo,
     delete_other_documents,
     ensure_schema,
-    load_cells,
     store_tables,
 )
 from tests.conftest import postgres_reachable, require
 
 pytestmark = pytest.mark.integration
 DOC_ID = "pytest_table_store"
+
+
+def load_cells(conn: psycopg.Connection, table_id: str) -> list[list[str]]:
+    """Read a stored table back as a grid."""
+    rows = conn.execute(
+        "SELECT row_idx, col_idx, value FROM report_table_cells WHERE table_id = %s "
+        "ORDER BY row_idx, col_idx",
+        (table_id,),
+    ).fetchall()
+    grid: dict[int, dict[int, str]] = {}
+    for r, c, v in rows:
+        grid.setdefault(r, {})[c] = v
+    return [[grid[r][c] for c in sorted(grid[r])] for r in sorted(grid)]
 
 
 def _doc(masked: bool = True) -> ParsedDocument:

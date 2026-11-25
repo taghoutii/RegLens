@@ -3,12 +3,14 @@
 tokens        1 word = 1 token
 sentences     split after ". " / "? " / "! "
 similarities  1.0 if two sentences start with the same word, else 0.0 (a "topic change")
+
+Also the chunk check shared by the unit and the integration tests (required_fields_filled).
 """
 
 import re
 
 from reglens.corpus.sources import Language
-from reglens.ingestion.chunking import ChunkTools
+from reglens.ingestion.chunking import Chunk, ChunkTools
 from reglens.ingestion.text_split import Span
 
 _WORD = re.compile(r"\S+")
@@ -39,3 +41,18 @@ def first_word_similarity(sentences: list[str]) -> list[float]:
 def stub_tools() -> ChunkTools:
     return ChunkTools(tokens=WordTokens(), sentences=regex_sentences,
                       similarities=first_word_similarity)  # fmt: skip
+
+
+def required_fields_filled(c: Chunk) -> bool:
+    common = all([c.chunk_id, c.text.strip(), c.n_tokens > 0, c.doc_id, c.source, c.langue,
+                  c.parent_id.startswith(c.doc_id + "#")])  # fmt: skip
+    if c.type_doc == "regulations":
+        is_article = "#art-" in c.parent_id
+        common = common and c.reglement is not None and (c.article is not None) == is_article
+    if c.type_doc == "reports":
+        common = common and c.page_number is not None
+    tables = (c.header_uncertain, c.header_issues, c.has_fused_rows, c.row_lines,
+              c.table_source)  # fmt: skip
+    if c.kind == "table":
+        return common and all(v is not None for v in tables)
+    return common and all(v is None for v in tables)

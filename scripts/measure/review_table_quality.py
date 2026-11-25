@@ -28,9 +28,8 @@ import sys
 from datetime import date
 
 from reglens.config import get_settings
-from reglens.evaluation.report_tables import cached_reports, report_tables
 from reglens.evaluation.results import write_result
-from reglens.evaluation.table_check import render_region, tables_of
+from reglens.evaluation.table_check import cached_reports, render_region, report_tables, tables_of
 from reglens.ingestion.models import TableData
 from reglens.ingestion.table_rows import header_paths
 

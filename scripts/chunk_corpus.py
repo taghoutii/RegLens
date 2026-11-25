@@ -3,7 +3,7 @@
 Usage (repository root, virtual environment active):
     python scripts/chunk_corpus.py                                  # all 3 strategies
     python scripts/chunk_corpus.py --strategies structure_semantic
-    python scripts/chunk_corpus.py --record             # also write results/ + EXPERIMENTS row
+    python scripts/chunk_corpus.py --record             # also write the result file to results/
 
 Steps:
   1. calibrate the semantic threshold (unless CHUNK_SEMANTIC_THRESHOLD is set): the
@@ -32,7 +32,7 @@ from reglens.config import get_settings
 from reglens.corpus.sources import Language, load_corpus
 from reglens.evaluation.chunk_stats import stats_by_group
 from reglens.evaluation.memory import peak_memory_mb
-from reglens.evaluation.results import append_row, write_result
+from reglens.evaluation.results import write_result
 from reglens.ingestion.chunking import STRATEGIES, Chunk, Chunker, ChunkParams, ChunkTools
 from reglens.ingestion.encoders import Bgem3, SpacySentences
 from reglens.ingestion.inventory import expected_documents
@@ -227,10 +227,7 @@ def main() -> int:
         f"max {v['tokens']['all']['max']}"
         for s, v in per_strategy.items()
     )
-    append_row(settings.results_dir,
-               f"| {result['date']} | chunking_stats | 3 | Token lengths per strategy and type; "
-               f"threshold {threshold} (p{settings.chunk_semantic_percentile}) | {summary} | "
-               f"`{path.as_posix()}` |")  # fmt: skip
+    logger.info("threshold %s (p%s); %s", threshold, settings.chunk_semantic_percentile, summary)
     logger.info("recorded %s", path)
     return 0
 

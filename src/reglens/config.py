@@ -65,8 +65,7 @@ class Settings(BaseSettings):
     # Regions used to validate phone numbers (the synthetic corpus has UK and FR numbers).
     pii_phone_regions: list[str] = ["GB", "FR"]
 
-    # Docling (PDF parsing). OCR is only needed for scanned PDFs; the bank reports are
-    # born-digital, so it is off by default (measured: see results/EXPERIMENTS.md).
+    # Docling (PDF parsing). OCR off: the reports are born-digital, their text layer is read.
     docling_do_ocr: bool = False
     # "fast" TableFormer is ~2.2x quicker but changed 63 % of cells on the sample: not usable
     # with the 100 %-of-cells requirement.
@@ -81,7 +80,7 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-m3"
     embedding_batch_size: int = 32
 
-    # Chunking (Phase 3). These values are hypotheses, tested in Phase 6 (results/EXPERIMENTS.md).
+    # Chunking (Phase 3). Starting values, kept until the Phase 6 retrieval comparison.
     chunk_max_tokens: int = 512
     chunk_min_tokens: int = 100  # a smaller piece is merged with its neighbour
     chunk_overlap_tokens: int = 64  # only on semantic cuts (and in the recursive strategy)
@@ -96,7 +95,7 @@ class Settings(BaseSettings):
     # caption and source only (the row lines carry the column headers anyway).
     chunk_table_context_max_tokens: int = 256
 
-    # Report tables (decided before Phase 5, results/EXPERIMENTS.md).
+    # Report tables. Fixed before embedding, so every strategy indexes the same table chunks.
     # A table without a Docling header takes its leading rows without numbers as header,
     # at most this many (9 / 10 right on a visual sample; 8 tables have a 5th row).
     table_max_inferred_header_rows: int = 4

@@ -1,14 +1,21 @@
-"""Docling cache: a cached report is never converted again (no Docling model needed)."""
+"""Docling cache (a cached report is never converted again) and the header check, with
+no Docling model and no PDF."""
 
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 from docling_core.types.doc.document import DoclingDocument
+from docling_core.types.doc.items.table.table_data import TableCell, TableData
 
-from reglens.ingestion.numbers import has_several_numbers
-from reglens.ingestion.parse_pdf import cache_paths, cached_conversion, from_docling, is_cached
-from reglens.ingestion.text_norm import compact
+from reglens.ingestion.parse_pdf import (
+    cache_paths,
+    cached_conversion,
+    from_docling,
+    header_rows,
+    is_cached,
+    same_label_cells,
+)
 
 CONFIG: dict[str, object] = {"do_ocr": False, "table_mode": "accurate", "do_cell_matching": True}
 
@@ -56,12 +63,31 @@ def test_cached_document_maps_to_blocks(tmp_path: Path) -> None:
     assert parsed.blocks[0].parent_id == "rep#sec-0" and not parsed.masked
 
 
-def test_compact_ignores_whitespace_and_dash_variants() -> None:
-    assert compact("1 234\n567 −12") == compact("1234567 -12") == "1234567-12"
+def _cell(r: int, c: int, text: str, span: int = 1, header: bool = True) -> TableCell:
+    return TableCell(text=text, start_row_offset_idx=r, end_row_offset_idx=r + 1,
+                     start_col_offset_idx=c, end_col_offset_idx=c + span, col_span=span,
+                     column_header=header)  # fmt: skip
 
 
-def test_fused_numbers_are_flagged() -> None:
-    for text in ["1,571 898 92", "33 34", "0.6% 0.4% 0.0%", "0,50% 1,00%"]:
-        assert has_several_numbers(text), text
-    for text in ["39,306", "(1,043)", "12,9 %", "1 234 567", "2.5", "-", "Total 767", "EU-7"]:
-        assert not has_several_numbers(text), text
+def _grid(labels: list[str]) -> list[list[TableCell]]:
+    """Two years (each a span over 2 columns) above the given 4 column labels."""
+    cells = [
+        _cell(0, 1, "2025", span=2),
+        _cell(0, 3, "2024", span=2),
+        _cell(1, 0, "EUR m"),
+        *[_cell(1, c, label) for c, label in enumerate(labels, start=1)],
+        _cell(2, 0, "IRB", header=False),
+        *[_cell(2, c, str(c), header=False) for c in range(1, 5)],
+    ]
+    return TableData(num_rows=3, num_cols=5, table_cells=cells).grid
+
+
+def test_header_rows_ignore_empty_corner_cells() -> None:
+    assert header_rows(_grid(["Total", "Collateral", "Gross", "Net"])) == 2  # empty (0, 0)
+
+
+def test_same_label_in_two_header_cells_is_flagged() -> None:
+    # a span repeated over its slots is one cell, so it does not count
+    assert not same_label_cells(_grid(["Total", "Collateral", "Gross", "Net"]), 2)
+    # "Total" once per year: two cells with one label (fires on correct tables too)
+    assert same_label_cells(_grid(["Total", "Collateral", "Total", "Collateral"]), 2)

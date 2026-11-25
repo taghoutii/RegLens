@@ -8,8 +8,7 @@ Usage (repository root, virtual environment active):
 Resumable per document: a report whose JSON is already in data/cache/docling/ is skipped,
 so after an interruption just run the same command again. A failing report is logged and
 the others continue. With --record, once every report is cached, writes
-results/<date>_docling_full_run.json (pages, seconds per page for each report) and one row
-in EXPERIMENTS.md.
+results/<date>_docling_full_run.json (pages, seconds per page for each report).
 
 The cache holds unmasked text (same status as data/raw/): it is never committed and never
 ingested. scripts/parse_corpus.py reads it, masks, and writes data/processed/.
@@ -26,7 +25,7 @@ import pypdfium2 as pdfium
 
 from reglens.config import get_settings
 from reglens.corpus.sources import load_corpus
-from reglens.evaluation.results import append_row, write_result
+from reglens.evaluation.results import write_result
 from reglens.ingestion.parse_pdf import (
     cache_paths,
     cached_conversion,
@@ -114,13 +113,7 @@ def main() -> int:
         "total": {"pages": pages, "convert_h": hours, "s_per_page": s_per_page},
     }
     out = write_result(settings.results_dir, result)
-    row = (
-        f"| {result['date']} | docling_full_run | 2 | Docling on all {len(metas)} reports "
-        f"(CPU, accurate tables, no OCR, {settings.docling_num_threads} threads) | "
-        f"{pages} pages in {hours} h, "
-        f"{s_per_page} s/page | `{out.as_posix()}` |\n"
-    )
-    append_row(settings.results_dir, row)
+    print(f"{pages} pages in {hours} h, {s_per_page} s/page")
     logger.info("written: %s", out)
     return 0
 

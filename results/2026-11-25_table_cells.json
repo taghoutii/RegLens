@@ -25,10 +25,7 @@
       "flagged": 0,
       "header_rows": 1,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -47,10 +44,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -73,10 +67,7 @@
       "flagged": 47,
       "header_rows": 1,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": true,
       "header_uncertain": true,
-      "label_repeated_under_span": false,
       "coverage": 0.9958,
       "missing_positions": [
         [
@@ -187,10 +178,7 @@
       "flagged": 3,
       "header_rows": 3,
       "spanning_headers": "4/4 repeated",
-      "same_label_slots": true,
-      "same_label_cells": true,
       "header_uncertain": true,
-      "label_repeated_under_span": false,
       "coverage": 0.984,
       "missing_positions": [
         [
@@ -228,10 +216,7 @@
       "flagged": 0,
       "header_rows": 2,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 0.9636,
       "missing_positions": [
         [
@@ -255,10 +240,7 @@
       "flagged": 0,
       "header_rows": 1,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -277,10 +259,7 @@
       "flagged": 0,
       "header_rows": 3,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -299,10 +278,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -323,10 +299,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 0.9935,
       "missing_positions": [
         [
@@ -364,10 +337,7 @@
       "flagged": 0,
       "header_rows": 4,
       "spanning_headers": "2/2 repeated",
-      "same_label_slots": true,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": [
         [
@@ -393,10 +363,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 0.9653,
       "missing_positions": [
         [
@@ -424,10 +391,7 @@
       "flagged": 0,
       "header_rows": 3,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": true,
       "header_uncertain": true,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -448,10 +412,7 @@
       "flagged": 0,
       "header_rows": 2,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": true,
       "header_uncertain": true,
-      "label_repeated_under_span": false,
       "coverage": 0.9856,
       "missing_positions": [
         [
@@ -481,10 +442,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": [
         [
@@ -528,10 +486,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -550,10 +505,7 @@
       "flagged": 0,
       "header_rows": 2,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 0.9922,
       "missing_positions": []
     },
@@ -574,10 +526,7 @@
       "flagged": 0,
       "header_rows": 1,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": [
         [
@@ -604,10 +553,7 @@
       "flagged": 0,
       "header_rows": 3,
       "spanning_headers": "1/1 repeated",
-      "same_label_slots": true,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": [
         [
@@ -659,10 +605,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": []
     },
@@ -683,10 +626,7 @@
       "flagged": 0,
       "header_rows": 0,
       "spanning_headers": "0/0 repeated",
-      "same_label_slots": false,
-      "same_label_cells": false,
       "header_uncertain": false,
-      "label_repeated_under_span": false,
       "coverage": 1.0,
       "missing_positions": [
         [
@@ -729,10 +669,7 @@
     "tables_with_fused_rows": 2,
     "spanning_headers": 14,
     "spanning_headers_repeated": 14,
-    "header_uncertain (same_label_cells, stored)": 4,
-    "header_rule_same_label_slots (measured only)": 10,
-    "header_rule_label_repeated_under_span (measured only)": 0,
+    "header_uncertain": 4,
     "missing_caught_by_flag": "2/54"
-  },
-  "manual_review": []
+  }
 }

@@ -1,6 +1,7 @@
-"""One number parser for the whole code base."""
+"""One number parser for the whole code base, and the text normalization it relies on."""
 
 from reglens.ingestion.numbers import has_several_numbers, is_year, parse_number
+from reglens.ingestion.text_norm import compact
 
 
 def test_parse_number_formats() -> None:
@@ -22,3 +23,14 @@ def test_space_before_closing_bracket_is_one_number() -> None:
 def test_years_are_recognized() -> None:
     assert is_year(parse_number("2025", "en"))  # type: ignore[arg-type]
     assert not is_year(parse_number("2025.0", "en"))  # type: ignore[arg-type]
+
+
+def test_fused_numbers_are_flagged() -> None:
+    for text in ["1,571 898 92", "33 34", "0.6% 0.4% 0.0%", "0,50% 1,00%"]:
+        assert has_several_numbers(text), text
+    for text in ["39,306", "(1,043)", "12,9 %", "1 234 567", "2.5", "-", "Total 767", "EU-7"]:
+        assert not has_several_numbers(text), text
+
+
+def test_compact_ignores_whitespace_and_dash_variants() -> None:
+    assert compact("1 234\n567 −12") == compact("1234567 -12") == "1234567-12"

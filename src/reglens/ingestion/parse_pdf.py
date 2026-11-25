@@ -5,10 +5,16 @@ Mapping to the parsed-document model:
     paragraph / list    -> text block in the current section, with its page number
     table               -> its own unit               "<doc_id>#tbl-<n>", cells as a grid
     page header/footer  -> dropped (repeated on every page, no content)
+
+Header check: a header row holding the same label in two different cells (e.g. a year
+span cut in two) means the header structure may be wrong; such a table gets
+header_issues = ["same_label_cells"] (stored as `header_uncertain`). The check flags, it
+never changes the cells.
 """
 
 import json
 import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Literal
 
@@ -24,6 +30,7 @@ from docling_core.types.doc.base import ImageRefMode
 from docling_core.types.doc.document import DoclingDocument
 from docling_core.types.doc.items.node import DocItem
 from docling_core.types.doc.items.table.table import TableItem
+from docling_core.types.doc.items.table.table_data import TableCell
 from docling_core.types.doc.items.text import SectionHeaderItem, TextItem
 from docling_core.types.doc.labels import DocItemLabel
 
@@ -31,11 +38,11 @@ from reglens.config import Settings
 from reglens.corpus.sources import Language
 from reglens.ingestion.models import Block, ParsedDocument, TableData
 from reglens.ingestion.numbers import has_several_numbers
-from reglens.ingestion.table_quality import header_issues, header_rows
 from reglens.ingestion.table_rows import with_header
 
 SKIPPED_LABELS = {DocItemLabel.PAGE_HEADER, DocItemLabel.PAGE_FOOTER}
 TableMode = Literal["accurate", "fast"]
+Grid = list[list[TableCell]]
 
 
 def make_converter(
@@ -58,6 +65,38 @@ def make_converter(
     )
     converter.initialize_pipeline(InputFormat.PDF)
     return converter
+
+
+def header_rows(grid: Grid) -> int:
+    """Leading rows in which every non-empty cell is a column header (empty corners are
+    ignored: a header row often starts with a blank cell above the row labels)."""
+    n = 0
+    for row in grid:
+        filled = [c for c in row if c.text.strip()]
+        if filled and all(c.column_header for c in filled):
+            n += 1
+        else:
+            break
+    return n
+
+
+def same_label_cells(grid: Grid, n_header: int) -> bool:
+    """True if one header row holds the same label in two different cells (a merged cell
+    repeated over the slots it covers counts once)."""
+    for row in grid[:n_header]:
+        found: dict[str, set[int]] = defaultdict(set)
+        for cell in row:
+            if cell.text.strip():
+                found[" ".join(cell.text.split())].add(id(cell))
+        if any(len(cells) > 1 for cells in found.values()):
+            return True
+    return False
+
+
+def header_issues(item: TableItem) -> list[str]:
+    """Reasons to distrust the header (empty list = no warning)."""
+    grid = item.data.grid
+    return ["same_label_cells"] if same_label_cells(grid, header_rows(grid)) else []
 
 
 def table_data(item: TableItem, table_id: str, caption: str | None) -> TableData:
