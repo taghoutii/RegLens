@@ -1,0 +1,155 @@
+{
+  "name": "table_quality",
+  "date": "2026-11-23",
+  "phase": 3,
+  "method": "random.Random(42).sample of 20 of the 929 final report tables; PDF region vs stored grid, labelled by eye (severity rules in scripts/measure/review_table_quality.py, fixed before the review)",
+  "seed": 42,
+  "sample": [
+    "socgen_pillar3_2025_fr#tbl-132",
+    "ing_group_pillar3_2025#tbl-40",
+    "bnpp_fortis_pillar3_2025#tbl-26",
+    "socgen_pillar3_2025_h1_en#tbl-6",
+    "ing_group_pillar3_2025#tbl-207",
+    "ing_group_pillar3_2025#tbl-176",
+    "ing_group_pillar3_2025#tbl-154",
+    "ing_group_pillar3_2025#tbl-68",
+    "socgen_pillar3_2025_h1_en#tbl-1",
+    "ing_group_pillar3_2025#tbl-30",
+    "socgen_pillar3_2025_fr#tbl-170",
+    "socgen_pillar3_2025_h1_en#tbl-5",
+    "socgen_pillar3_2025_h1_en#tbl-160",
+    "socgen_pillar3_2025_fr#tbl-36",
+    "ing_group_pillar3_2025#tbl-15",
+    "socgen_pillar3_2025_fr#tbl-82",
+    "socgen_pillar3_2025_en#tbl-142",
+    "bnpp_fortis_pillar3_2025#tbl-33",
+    "bnpp_fortis_pillar3_2025#tbl-31",
+    "ing_group_pillar3_2025#tbl-21"
+  ],
+  "severity_rules": {
+    "high": "a reader would get a wrong answer: value under the wrong column or row label, header path naming the wrong year or measure, wrong or missing value",
+    "medium": "meaning recoverable but degraded: header text truncated or fused, missing column or row label, section or title attached to the wrong rows, while every value keeps its correct label",
+    "none": "headers, labels and values match the PDF"
+  },
+  "labels": [
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-132",
+      "severity": "high",
+      "finding": "from the 3rd exposure class on, rows shift: a sub-total is labelled with the next class, several cells hold values of two rows; header lost the date on all but one column; 'Clientele' masked as <PERSON>"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-40",
+      "severity": "medium",
+      "finding": "spreadsheet replacement stored without header rows: values correct but no column labels (dates, MREL vs TLAC); cause: a one-cell subtitle row after the title stops the header detection"
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-26",
+      "severity": "medium",
+      "finding": "headers correct; first row label fused with the unit 'In millions of euros'"
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-6",
+      "severity": "none",
+      "finding": "inferred header row correct"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-207",
+      "severity": "high",
+      "finding": "transposed instrument table: data row used as header, values of neighbouring columns fused, later rows shifted by one column"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-176",
+      "severity": "none",
+      "finding": ""
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-154",
+      "severity": "high",
+      "finding": "header spans garbled; first value of each row fused into the sector label column, so gross carrying amounts sit under 'Sector/subsector'"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-68",
+      "severity": "medium",
+      "finding": "values and columns correct; header paths start with a title fragment and the year sits only in the label column"
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-1",
+      "severity": "none",
+      "finding": "table of contents; faithful"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-30",
+      "severity": "none",
+      "finding": "spreadsheet replacement; correct, and adds the year headers the continued PDF page lacks"
+    },
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-170",
+      "severity": "medium",
+      "finding": "values correct; 'Approche simplifiée' masked as '<PERSON> simplifiée'; top header 'Expositions pondérées (RWA)' outside the table box"
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-5",
+      "severity": "none",
+      "finding": ""
+    },
+    {
+      "table": "socgen_pillar3_2025_h1_en#tbl-160",
+      "severity": "high",
+      "finding": "5-row header cut at 4: maturity buckets end up in a data row, and the 'Average weighted maturity' column is labelled as a gross carrying amount"
+    },
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-36",
+      "severity": "high",
+      "finding": "'Somme de 1 à 10' column carries the 'Rang en cas d'insolvabilité' span; rank descriptions and '(plus senior)' read as data rows"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-15",
+      "severity": "medium",
+      "finding": "values and dates correct; section 'Available own funds (amounts)' absorbed into the header, another section repeated across all columns"
+    },
+    {
+      "table": "socgen_pillar3_2025_fr#tbl-82",
+      "severity": "high",
+      "finding": "leaf headers in a data row and paths shifted: the 'Total nominal' column is labelled 'dont non performantes', the non-performing column has no leaf"
+    },
+    {
+      "table": "socgen_pillar3_2025_en#tbl-142",
+      "severity": "high",
+      "finding": "'of which SRT' / 'Sub-Total' leaves in a data row; the originator Sub-Total column is labelled 'Institution acts as sponsor'"
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-33",
+      "severity": "medium",
+      "finding": "leaf headers (Average, Minimum, Maximum, End of Year) in a data row; 3 columns without the year; 'Maximum' masked as <PERSON>"
+    },
+    {
+      "table": "bnpp_fortis_pillar3_2025#tbl-31",
+      "severity": "medium",
+      "finding": "headers correct except 'Maximum' masked as <PERSON>"
+    },
+    {
+      "table": "ing_group_pillar3_2025#tbl-21",
+      "severity": "medium",
+      "finding": "spreadsheet replacement, values and headers correct; section rows repeated in every column instead of prefixing the countries under them"
+    }
+  ],
+  "counts": {
+    "high": 7,
+    "medium": 8,
+    "none": 5
+  },
+  "high_severity_rate": {
+    "estimate": 0.35,
+    "wilson_95": [
+      0.181,
+      0.567
+    ],
+    "n": 20
+  },
+  "notes": {
+    "header_uncertain_flag_on_high": "2 / 7 (tbl-207 and en tbl-142 carry same_label_cells)",
+    "masking_false_positives_seen": "3 tables: 'Maximum' (x2) and 'Approche', 'Clientele' masked as <PERSON>",
+    "pipeline_defect_found": "18 of 107 spreadsheet tables stored without header rows (one-cell subtitle row after the title); fix proposed, not applied",
+    "labelled_by": "visual review, single reviewer; to be spot-checked by the project owner"
+  }
+}
