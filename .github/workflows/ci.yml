@@ -16,12 +16,12 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      # Docling needs PyTorch. On Linux, PyPI's default build bundles CUDA (several GB);
-      # CI has no GPU, so install the CPU build first, at the versions pinned locally.
+      # bge-m3 (transformers) runs on PyTorch. On Linux, PyPI's default build bundles CUDA
+      # (several GB); CI has no GPU, so install the CPU build first, at the version pinned locally.
       - name: Install PyTorch (CPU build)
-        run: pip install torch==2.15.0 torchvision==0.29.2 --index-url https://download.pytorch.org/whl/cpu
+        run: pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
 
-      # No spaCy/Docling models in CI: tests that need them are marked `integration`.
+      # No spaCy or bge-m3 models in CI: tests that need them are marked `integration`.
       - name: Install
         run: pip install -e ".[dev]"
 

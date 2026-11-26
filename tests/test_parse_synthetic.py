@@ -1,10 +1,15 @@
-"""Policy and incident-log readers, on a small freshly generated corpus."""
+"""Policy, incident-log and register readers, on a small freshly generated corpus."""
 
 import json
 from pathlib import Path
 
 from reglens.corpus.synthetic import generate_all
-from reglens.ingestion.parse_synthetic import parse_incident_log, parse_policy
+from reglens.ingestion.parse_synthetic import (
+    REGISTER_FILE,
+    parse_incident_log,
+    parse_policy,
+    parse_register,
+)
 
 
 def _generate(tmp_path: Path) -> Path:
@@ -44,3 +49,15 @@ def test_one_block_per_incident_with_all_events(tmp_path: Path) -> None:
     stamps = [e["timestamp"] for e in block.records or []]
     assert stamps == sorted(stamps)
     assert all(json.dumps(e) for e in block.records or [])
+
+
+def test_one_block_per_provider_with_every_field(tmp_path: Path) -> None:
+    raw = _generate(tmp_path)
+    doc = parse_register(raw / "register" / REGISTER_FILE, source="x")
+    truth = json.loads((tmp_path / "gt" / "register.json").read_text(encoding="utf-8"))
+    assert doc.doc_id == "register" and doc.type_doc == "register" and doc.langue == "en"
+    assert [b.parent_id for b in doc.blocks] == [f"register#{p['provider_id']}" for p in truth]
+    first = doc.blocks[0].text
+    assert first.startswith(f"Provider ID: {truth[0]['provider_id']} | Provider name: ")
+    assert f"Contact person: {truth[0]['contact']['name']} |" in first  # the masking label
+    assert "\n" not in first  # one line per provider

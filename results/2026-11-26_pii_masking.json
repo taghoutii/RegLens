@@ -1,6 +1,6 @@
 {
   "name": "pii_masking",
-  "date": "2026-11-25",
+  "date": "2026-11-26",
   "config": {
     "spacy_models": {
       "en": "en_core_web_md",
@@ -19,11 +19,11 @@
   "synthetic": {
     "seed": 42,
     "planted": {
-      "names": 300,
-      "emails": 300,
-      "phones": 50,
-      "ibans": 50,
-      "secrets": 50
+      "names": 342,
+      "emails": 342,
+      "phones": 80,
+      "ibans": 62,
+      "secrets": 62
     },
     "leaked": {},
     "recall": {
@@ -39,11 +39,11 @@
     {
       "seed": 43,
       "planted": {
-        "names": 300,
-        "emails": 300,
-        "phones": 50,
-        "ibans": 50,
-        "secrets": 50
+        "names": 342,
+        "emails": 342,
+        "phones": 80,
+        "ibans": 62,
+        "secrets": 62
       },
       "leaked": {},
       "recall": {
@@ -55,6 +55,18 @@
       }
     }
   ],
+  "register_masked_vs_planted": {
+    "planted": {
+      "names": 18,
+      "emails": 18,
+      "phones": 18
+    },
+    "masked": {
+      "PHONE_NUMBER": 18,
+      "EMAIL_ADDRESS": 18,
+      "PERSON": 18
+    }
+  },
   "regulations_false_positives": {
     "documents": 24,
     "chars_scanned": 6541081,
@@ -294,19 +306,9 @@
       }
     ]
   },
-  "reports_false_positives": {
-    "documents": 1,
-    "chars_scanned": 703168,
-    "detections_by_type": {
-      "PERSON": 280
-    },
-    "dropped_by_person_filter": 1884,
-    "caps_multiword_masked": 5
-  },
   "timing_s": {
-    "analyzer_load": 4.9,
-    "synthetic_parse_and_mask": 57.2,
-    "regulations_scan": 203.4,
-    "reports_scan": 34.1
+    "analyzer_load": 9.3,
+    "synthetic_parse_and_mask": 84.8,
+    "regulations_scan": 328.0
   }
 }

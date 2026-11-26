@@ -13,8 +13,17 @@ from reglens.ingestion.pii import (
     PHONE_PATTERNS,
     NationalPhoneRecognizer,
     cannot_be_a_name,
+    in_company_field,
     is_legal_structure,
 )
+
+
+def test_company_field_covers_only_the_provider_name() -> None:
+    text = "Provider ID: PRV-005 | Provider name: Keystone Identity | Contact person: Ana Diaz"
+    name, contact = text.index("Keystone Identity"), text.index("Ana Diaz")
+    assert in_company_field(text, name, name + len("Keystone Identity"))
+    assert not in_company_field(text, contact, contact + len("Ana Diaz"))
+    assert not in_company_field("Owner: Keystone Identity", 7, 24)
 
 
 def _spans(recognizer: object, text: str, entity: str) -> list[str]:

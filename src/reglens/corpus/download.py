@@ -27,7 +27,6 @@ class FormatRule:
     """What a valid file of a given format looks like."""
 
     content_types: tuple[str, ...]
-    magic: bytes | None  # expected first bytes ("magic number"), if the format has one
     min_bytes: int  # smaller than this = probably an error or captcha page
     max_bytes: int  # larger than this = refuse (protects the disk)
     must_contain: bytes | None = None  # a marker the real document always has
@@ -38,28 +37,9 @@ RULES: dict[FileFormat, FormatRule] = {
     # Bot-protection / error pages are small and do not.
     "html": FormatRule(
         content_types=("text/html", "application/xhtml+xml"),
-        magic=None,
         min_bytes=50_000,
         max_bytes=50_000_000,
         must_contain=b"Article",
-    ),
-    # Some servers label PDFs as octet-stream; the %PDF- magic bytes are the real proof.
-    "pdf": FormatRule(
-        content_types=("application/pdf", "application/octet-stream"),
-        magic=b"%PDF-",
-        min_bytes=100_000,
-        max_bytes=200_000_000,
-    ),
-    # An .xlsx file is a zip archive: it starts with the zip signature "PK\x03\x04".
-    "xlsx": FormatRule(
-        content_types=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/octet-stream",
-        ),
-        magic=b"PK\x03\x04",
-        min_bytes=10_000,
-        max_bytes=50_000_000,
-        must_contain=b"xl/workbook.xml",
     ),
 }
 
@@ -91,8 +71,6 @@ def check_file(path: Path, rule: FormatRule) -> int:
     if size < rule.min_bytes:
         raise InvalidContentError(f"file too small ({size} bytes < {rule.min_bytes})")
     data = path.read_bytes()
-    if rule.magic is not None and not data.startswith(rule.magic):
-        raise InvalidContentError(f"file does not start with {rule.magic!r}")
     if rule.must_contain is not None and rule.must_contain not in data:
         raise InvalidContentError(f"expected marker {rule.must_contain!r} not found")
     return size

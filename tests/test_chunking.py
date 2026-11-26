@@ -15,7 +15,7 @@ from reglens.ingestion.chunking import (
     chunk_id,
     unit_contexts,
 )
-from reglens.ingestion.models import Block, ParsedDocument, TableData
+from reglens.ingestion.models import Block, ParsedDocument
 from tests.chunk_stubs import required_fields_filled, stub_tools
 
 PARAMS = ChunkParams(max_tokens=60, min_tokens=10, overlap=5, threshold=0.5)
@@ -60,7 +60,7 @@ def unit_text(doc: ParsedDocument, parent_id: str) -> str:
 
 
 def chunker() -> Chunker:
-    return Chunker(stub_tools(), PARAMS, acts=ACTS, titles={"rep": "Bank report 2025"})
+    return Chunker(stub_tools(), PARAMS, acts=ACTS)
 
 
 def test_required_1_no_chunk_crosses_an_article_and_metadata_is_filled() -> None:
@@ -117,55 +117,6 @@ def test_chunk_ids_are_deterministic_and_language_aware() -> None:
                                                                     "x")  # fmt: skip
 
 
-def report() -> ParsedDocument:
-    table = TableData(table_id="rep#tbl-1", caption="EU CC1 - Own funds", n_rows=3, n_cols=3,
-                      header_rows=2,
-                      cells=[["", "2025", "2025"], ["EUR m", "Total", "IRB"],
-                             ["CET1", "1 571 898", "12"]],
-                      low_confidence=[(2, 1)], header_issues=["same_label_cells"])  # fmt: skip
-    blocks = [
-        Block(
-            block_id="rep#sec-1/title",
-            parent_id="rep#sec-1",
-            kind="title",
-            text="Capital",
-            page_number=3,
-            section="Capital",
-        ),  # fmt: skip
-        Block(
-            block_id="rep#sec-1/t1",
-            parent_id="rep#sec-1",
-            kind="text",
-            page_number=3,
-            text=_sentences("Capital", 4),
-            section="Capital",
-        ),  # fmt: skip
-        Block(
-            block_id="rep#tbl-1/table",
-            parent_id="rep#tbl-1",
-            kind="table",
-            page_number=4,
-            text="EU CC1 - Own funds",
-            section="Capital",
-            table=table,
-        ),  # fmt: skip
-    ]
-    return ParsedDocument(doc_id="rep", source="data/raw/reports/rep.pdf", type_doc="reports",
-                          langue="en", parser="docling", blocks=blocks, masked=True)  # fmt: skip
-
-
-@pytest.mark.parametrize("strategy", STRATEGIES)
-def test_report_heading_without_text_is_dropped(strategy: Any) -> None:
-    doc = report()
-    heading = Block(block_id="rep#sec-2/title", parent_id="rep#sec-2", kind="title",
-                    text="CONTENTS", page_number=2, section="CONTENTS")  # fmt: skip
-    doc.blocks.insert(0, heading)
-    chunks = chunker().chunk(doc, strategy)
-    assert "rep#sec-2" not in {c.parent_id for c in chunks}
-    assert all("CONTENTS" not in c.text for c in chunks)
-    assert "rep#sec-1" in {c.parent_id for c in chunks}  # a heading with text is kept
-
-
 def test_policy_and_incident_chunks() -> None:
     policy = ParsedDocument(
         doc_id="POL-001", source="p.md", type_doc="policies", langue="en", parser="policy_md",
@@ -218,3 +169,21 @@ def test_annex_context_line() -> None:
                                           "High-risk AI systems are the following."])],
     )  # fmt: skip
     assert unit_contexts(doc)["ai_act#anx-III"] == "AI Act — Annex III — High-risk AI systems"
+
+
+def test_one_chunk_per_provider_in_every_strategy() -> None:
+    line = ("Provider ID: PRV-001 | Provider name: Nimbus Cloud Services | Systems: "
+            "payments-gateway | Exit plan: No | Contact person: <PERSON>")  # fmt: skip
+    register = ParsedDocument(
+        doc_id="register", source="r.csv", type_doc="register", langue="en",
+        parser="register_csv", masked=True,
+        blocks=[Block(block_id="register#PRV-001/row", parent_id="register#PRV-001",
+                      kind="text", text=line),
+                Block(block_id="register#PRV-002/row", parent_id="register#PRV-002",
+                      kind="text", text=line.replace("PRV-001", "PRV-002"))],
+    )  # fmt: skip
+    for strategy in STRATEGIES:
+        chunks = chunker().chunk(register, strategy)
+        assert [c.parent_id for c in chunks] == ["register#PRV-001", "register#PRV-002"]
+        assert all(c.kind == "provider" and c.context is None for c in chunks)
+        assert chunks[0].text == line and all(required_fields_filled(c) for c in chunks)

@@ -10,7 +10,10 @@ Steps:
      CHUNK_SEMANTIC_PERCENTILE-th percentile of consecutive-sentence similarity inside the
      regulation pieces longer than CHUNK_MAX_TOKENS (the only places it is used);
   2. chunk every document with every strategy, one JSONL file per document;
-  3. with --record, record token statistics, bge-m3 CPU time and memory in results/
+  3. write data/processed/chunks/run.json on every run: the threshold used (and its
+     calibration), the chunking parameters and the date, so the chunks on disk always say
+     how they were cut; a threshold that differs from the previous run is logged;
+  4. with --record, record token statistics, bge-m3 CPU time and memory in results/
      (without it, the statistics are only printed: a rebuild adds no result file).
 Every semantic cut of the main strategy goes to data/processed/chunks/semantic_cuts.jsonl
 for inspection. Input documents are masked; chunks are only slices of them.
@@ -26,11 +29,12 @@ import statistics
 import sys
 import time
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from reglens.config import get_settings
 from reglens.corpus.sources import Language, load_corpus
-from reglens.evaluation.chunk_stats import stats_by_group
+from reglens.evaluation.chunk_stats import reference_counts, stats_by_group
 from reglens.evaluation.memory import peak_memory_mb
 from reglens.evaluation.results import write_result
 from reglens.ingestion.chunking import STRATEGIES, Chunk, Chunker, ChunkParams, ChunkTools
@@ -79,6 +83,28 @@ def calibrate(docs: list[ParsedDocument], tools: ChunkTools, max_tokens: int,
     return threshold, info
 
 
+def record_run(path: Path, threshold: float, calibration: dict[str, object],
+               params: ChunkParams, strategies: list[str]) -> None:  # fmt: skip
+    """Write the parameters of this run next to the chunks (run.json); log a threshold that
+    differs from the previous run's, since it changes where long articles are cut."""
+    if path.exists():
+        previous = json.loads(path.read_text(encoding="utf-8")).get("threshold")
+        if previous is not None and previous != threshold:
+            logger.warning("semantic threshold changed: %s -> %s", previous, threshold)
+    run = {
+        "date": date.today().isoformat(),
+        "strategies": strategies,
+        "threshold": threshold,
+        "calibration": calibration,
+        "max_tokens": params.max_tokens,
+        "min_tokens": params.min_tokens,
+        "overlap": params.overlap,
+        "noise_events": list(params.noise_events),
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(run, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     settings = get_settings()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -93,7 +119,6 @@ def main() -> int:
         number = act_number_from_url(str((src.urls or {}).get("en", "")))
         if number and src.short_name:
             acts[number] = src.short_name
-    titles = {src.id: src.title or src.id for src in corpus.reports}
 
     expected = expected_documents(corpus, settings.raw_dir)
     parsed_dir = settings.processed_dir / "parsed"
@@ -120,14 +145,13 @@ def main() -> int:
     params = ChunkParams(max_tokens=settings.chunk_max_tokens,
                          min_tokens=settings.chunk_min_tokens,
                          overlap=settings.chunk_overlap_tokens, threshold=threshold,
-                         noise_events=tuple(settings.chunk_incident_noise_events),
-                         table_context_max_tokens=settings.chunk_table_context_max_tokens,
-                         )  # fmt: skip
+                         noise_events=tuple(settings.chunk_incident_noise_events))  # fmt: skip
 
     out_root = settings.processed_dir / "chunks"
+    record_run(out_root / "run.json", threshold, calibration, params, args.strategies)
     per_strategy: dict[str, dict[str, Any]] = {}
     for strategy in args.strategies:
-        chunker = Chunker(tools, params, acts=acts, titles=titles)
+        chunker = Chunker(tools, params, acts=acts)
         out_dir = out_root / strategy
         out_dir.mkdir(parents=True, exist_ok=True)
         for old in out_dir.glob("*.jsonl"):
@@ -157,20 +181,8 @@ def main() -> int:
             "tokens": stats_by_group(
                 all_chunks, max_tokens=params.max_tokens, min_tokens=params.min_tokens
             ),  # fmt: skip
-            # what the embedding reads for table chunks (context + row lines)
-            "table_embedding_tokens": stats_by_group(
-                [
-                    c.model_copy(update={"n_tokens": bge.count(c.embedding_text())})
-                    for c in all_chunks
-                    if c.kind == "table"
-                ],
-                max_tokens=params.max_tokens,
-                min_tokens=params.min_tokens,
-            ),  # fmt: skip
-            "table_sources": {
-                src: sum(1 for c in all_chunks if c.table_source == src)
-                for src in ("pdf", "spreadsheet")
-            },  # fmt: skip
+            # per cited act: chunks of the act itself vs of other acts (both languages)
+            "references_by_act": reference_counts(all_chunks),
             # extra tokens the embedding reads (context line + newline), per chunk with one
             "context_tokens": stats_by_group(
                 [

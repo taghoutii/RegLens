@@ -3,10 +3,13 @@
 Which detector finds what:
   PERSON         spaCy NER plus a *context* recognizer: the word right
                  after a label that always introduces a person ("Owner:", "Deputy:",
-                 "Responsable :", "Suppléant :", "On-call <name> <e-mail>").
+                 "Responsable :", "Suppléant :", "Contact person:",
+                 "On-call <name> <e-mail>").
                  Spans that cannot be a name are dropped: no lowercase letter
                  (acronyms "RWEA"), digits or "|" ("2024/1620", "| Oui"), or only legal
                  structure words ("Chapter III"). NER mistakes them for names.
+                 The register's "Provider name:" field holds a company name, never a
+                 person: PERSON spans inside it are dropped ("Keystone Identity").
   EMAIL_ADDRESS  a custom regex. Presidio's built-in recognizer also checks the domain
                  against the public suffix list, which rejects internal domains
                  (".corp", ".internal") and the corpus's reserved ".example" domain.
@@ -97,8 +100,13 @@ _WORD = r"\p{Lu}[\p{L}'’]*(?:-\p{L}+)*\.?"  # "Anaïs", "Cross-Berry", "Dr", "
 _PARTICLES = r"(?:(?:de|du|des|la|le|van|von|der|den|di|da)\s+|d['’])*"  # "de la", "d'"
 NAME = rf"{_WORD}(?:\s+{_PARTICLES}{_WORD}){{0,4}}"
 NAME_CONTEXT_PATTERNS = [
-    # "Owner: <name> (", "Deputy: <name>,", "Responsable : <name>", "Suppléant : <name>"
-    Pattern("labelled_name", rf"(?<=\b(?:Owner|Deputy|Responsable|Suppléant)\s?:\s+){NAME}", 0.85),
+    # "Owner: <name> (", "Deputy: <name>,", "Responsable : <name>", "Suppléant : <name>",
+    # register: "Contact person: <name>,"
+    Pattern(
+        "labelled_name",
+        rf"(?<=\b(?:Owner|Deputy|Responsable|Suppléant|Contact person)\s?:\s+){NAME}",
+        0.85,
+    ),
     # incident log: "On-call <name> <e-mail> acknowledged the page"
     Pattern("on_call_name", rf"(?<=\bOn-call\s+){NAME}(?=\s*<)", 0.85),
 ]
@@ -140,6 +148,15 @@ def cannot_be_a_name(span: str) -> bool:
         or any(ch.isdigit() or ch == "|" for ch in span)
         or is_legal_structure(span)
     )
+
+
+# Register field whose value is a company name (fields are separated by " | ").
+_COMPANY_FIELD = re.compile(r"\bProvider name: ([^|]*)")
+
+
+def in_company_field(text: str, start: int, end: int) -> bool:
+    """True when text[start:end] lies inside the value of a "Provider name:" field."""
+    return any(m.start(1) <= start and end <= m.end(1) for m in _COMPANY_FIELD.finditer(text))
 
 
 # Log-record fields that are structure, not free text: never sent to the analyzer.
@@ -211,7 +228,7 @@ def build_analyzer(settings: Settings) -> AnalyzerEngine:
 
 
 class PiiMasker:
-    """Masks text, tables and log records; counts what it masked (never logs the values)."""
+    """Masks text and log records; counts what it masked (never logs the values)."""
 
     def __init__(self, settings: Settings) -> None:
         self.analyzer = build_analyzer(settings)
@@ -221,9 +238,14 @@ class PiiMasker:
         self.batch_size = settings.pii_batch_size
 
     def keeps(self, text: str, result: Any) -> bool:
-        """False for a PERSON span that cannot be a name (see cannot_be_a_name)."""
+        """False for a PERSON span that cannot be a name (see cannot_be_a_name) or that is
+        a provider's company name in the register."""
         return not (
-            result.entity_type == "PERSON" and cannot_be_a_name(text[result.start : result.end])
+            result.entity_type == "PERSON"
+            and (
+                cannot_be_a_name(text[result.start : result.end])
+                or in_company_field(text, result.start, result.end)
+            )
         )
 
     def find_many(
@@ -289,10 +311,6 @@ class PiiMasker:
                 b.text = value
             elif field == "section":
                 b.section = value
-            elif field == "caption" and b.table is not None:
-                b.table.caption = value
-            elif field == "cell" and b.table is not None:
-                b.table.cells[pos[0]][pos[1]] = value
             elif field == "record" and b.records is not None:
                 b.records[pos[0]][pos[1]] = value
         logger.info("masked %s (%s): %s", doc.doc_id, doc.langue, dict(counts))
@@ -317,25 +335,8 @@ def collect_strings(doc: ParsedDocument) -> tuple[list[tuple[int, str, Any]], li
         add(i, "text", None, b.text)
         if b.section:
             add(i, "section", None, b.section)
-        if b.table is not None:
-            if b.table.caption:
-                add(i, "caption", None, b.table.caption)
-            for r, row in enumerate(b.table.cells):
-                for c, cell in enumerate(row):
-                    if _has_letters_or_at(cell):
-                        add(i, "cell", (r, c), cell)
         for r, rec in enumerate(b.records or []):
             for key, value in rec.items():
                 if isinstance(value, str) and key not in STRUCTURED_LOG_FIELDS:
                     add(i, "record", (r, key), value)
     return slots, texts
-
-
-def _has_letters_or_at(cell: str) -> bool:
-    """Pure numbers ("12.4", "1 234") cannot hold a name, e-mail, IBAN or key; skipping them
-    keeps table masking fast. Digit-only phone numbers are the exception: a cell with 8+
-    digits and phone punctuation, or starting with 0, is still checked."""
-    if any(ch.isalpha() or ch == "@" for ch in cell):
-        return True
-    digits = sum(ch.isdigit() for ch in cell)
-    return digits >= 8 and (any(ch in "+()" for ch in cell) or cell.lstrip().startswith("0"))

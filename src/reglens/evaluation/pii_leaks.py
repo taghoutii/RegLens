@@ -21,7 +21,7 @@ NAME_TITLES = {"Dr", "Mr", "Mrs", "Ms", "Miss", "Mx", "Prof", "Mme", "Mlle", "M.
 
 @dataclass
 class Planted:
-    doc_id: str  # where the value was planted ("POL-005", "incident_log")
+    doc_id: str  # where the value was planted ("POL-005", "incident_log", "register")
     kind: str  # names | emails | phones | ibans | secrets
     value: str
     where: str | None = None  # for log people: the incident id
@@ -60,16 +60,20 @@ def load_planted(truth_dir: Path) -> list[Planted]:
     for i in incidents:
         planted.append(Planted("incident_log", "names", i["on_call_engineer"], i["incident_id"]))
         planted.append(Planted("incident_log", "emails", i["on_call_email"], i["incident_id"]))
+    register = truth_dir / "register.json"
+    if register.exists():  # the register is listed in sources.yaml, but optional
+        for prv in json.loads(register.read_text(encoding="utf-8")):
+            contact = prv["contact"]
+            for kind, key in (("names", "name"), ("emails", "email"), ("phones", "phone")):
+                planted.append(Planted("register", kind, contact[key]))
     return planted
 
 
 def document_text(doc: ParsedDocument) -> str:
-    """Every string a masked document will ever expose (text, sections, cells, records)."""
+    """Every string a masked document will ever expose (text, sections, records)."""
     parts = [doc.title or ""]
     for b in doc.blocks:
         parts += [b.text, b.section or ""]
-        if b.table:
-            parts += [c for row in b.table.cells for c in row] + [b.table.caption or ""]
         if b.records:
             parts += [str(v) for rec in b.records for v in rec.values()]
     return "\n".join(parts)

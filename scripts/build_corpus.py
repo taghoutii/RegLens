@@ -1,17 +1,16 @@
 """Build the corpus with one command: data/raw/ -> parsed, masked documents -> chunks.
 
-Usage (repository root, virtual environment active, `docker compose up -d` for tables):
+Usage (repository root, virtual environment active):
     python scripts/build_corpus.py                    # run every stage that is out of date
-    python scripts/build_corpus.py --record           # also record Docling and chunking runs
+    python scripts/build_corpus.py --record           # also record the chunking run
     python scripts/build_corpus.py --from parse       # force parse and every stage after it
     python scripts/build_corpus.py --only chunk       # force one stage (or several)
     python scripts/build_corpus.py --dry-run          # show what would run
 
 Stages, in order (each one is its own script, run as a separate process):
-    download  scripts/download_corpus.py     data/raw/{regulations,reports}/
-    generate  scripts/generate_synthetic.py  data/raw/{policies,logs}/, data/ground_truth/
-    docling   scripts/run_docling.py         data/cache/docling/   (hours on CPU, resumable)
-    parse     scripts/parse_corpus.py        data/processed/parsed/ + PostgreSQL tables
+    download  scripts/download_corpus.py     data/raw/regulations/
+    generate  scripts/generate_synthetic.py  data/raw/{policies,logs,register}/, data/ground_truth/
+    parse     scripts/parse_corpus.py        data/processed/parsed/
     chunk     scripts/chunk_corpus.py        data/processed/chunks/<strategy>/
 
 A stage is out of date when its output is missing or older than its input, or when its
@@ -30,13 +29,12 @@ from reglens.config import Settings, get_settings
 from reglens.corpus.sources import download_targets, load_corpus
 from reglens.ingestion.chunking import STRATEGIES
 from reglens.ingestion.inventory import expected_documents, stale_files
-from reglens.ingestion.parse_pdf import docling_config, is_cached
+from reglens.ingestion.parse_synthetic import REGISTER_FILE
 
-STAGES = ["download", "generate", "docling", "parse", "chunk"]
+STAGES = ["download", "generate", "parse", "chunk"]
 SCRIPTS = {
     "download": "download_corpus.py",
     "generate": "generate_synthetic.py",
-    "docling": "run_docling.py",
     "parse": "parse_corpus.py",
     "chunk": "chunk_corpus.py",
 }
@@ -64,11 +62,8 @@ def out_of_date(settings: Settings) -> dict[str, Callable[[], bool]]:
 
     def generate() -> bool:
         return not (_files(raw / "policies", "POL-*.md") and (raw / "logs").exists()
-                    and _files(settings.ground_truth_dir, "*.json"))  # fmt: skip
-
-    def docling() -> bool:
-        config = docling_config(settings)
-        return any(not is_cached(settings.docling_cache_dir, s.id, config) for s in corpus.reports)
+                    and (raw / "register" / REGISTER_FILE).exists()
+                    and (settings.ground_truth_dir / "register.json").exists())  # fmt: skip
 
     def complete(folder: Path, pattern: str) -> bool:
         """Every document of the corpus has a file in `folder`, and nothing else does."""
@@ -79,7 +74,6 @@ def out_of_date(settings: Settings) -> dict[str, Callable[[], bool]]:
     def parse() -> bool:
         outputs = _files(processed / "parsed", "*.json")
         inputs = [p for p in raw.rglob("*") if p.is_file()]
-        inputs += _files(settings.docling_cache_dir, "*.json")
         stale = not complete(processed / "parsed", "*.json")
         return stale or _newest(inputs) > _oldest(outputs)
 
@@ -93,8 +87,7 @@ def out_of_date(settings: Settings) -> dict[str, Callable[[], bool]]:
                 return True
         return False
 
-    return {"download": download, "generate": generate, "docling": docling,
-            "parse": parse, "chunk": chunk}  # fmt: skip
+    return {"download": download, "generate": generate, "parse": parse, "chunk": chunk}
 
 
 def main() -> int:
@@ -103,8 +96,7 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--from", dest="start", choices=STAGES, help="force this stage and later")
     group.add_argument("--only", nargs="+", choices=STAGES, help="force only these stages")
-    parser.add_argument("--record", action="store_true", help="record docling + chunk runs")
-    parser.add_argument("--no-db", action="store_true", help="parse without PostgreSQL")
+    parser.add_argument("--record", action="store_true", help="record the chunking run")
     parser.add_argument("--dry-run", action="store_true", help="show the plan, run nothing")
     args = parser.parse_args()
 
@@ -122,10 +114,8 @@ def main() -> int:
             print(f"[{stage}] up to date")
             continue
         command = [sys.executable, str(scripts_dir / SCRIPTS[stage])]
-        if args.record and stage in ("docling", "chunk"):
+        if args.record and stage == "chunk":
             command.append("--record")
-        if args.no_db and stage == "parse":
-            command.append("--no-db")
         print(f"[{stage}] {' '.join(command[1:])}", flush=True)
         if args.dry_run:
             continue

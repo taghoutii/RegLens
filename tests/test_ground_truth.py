@@ -1,6 +1,7 @@
 """Ground truth must never sit under data/raw/ (ingestion reads all of data/raw/),
-and the incident -> unit -> policy links must hold."""
+and the incident -> unit -> policy and provider -> system -> unit links must hold."""
 
+import csv
 import json
 from datetime import datetime
 from pathlib import Path
@@ -9,8 +10,20 @@ from typing import Any
 import pytest
 
 from reglens.config import Settings
-from reglens.corpus.policy_templates import INCIDENT_POLICY_DEADLINES, SYSTEM_OWNERS, UNITS
-from reglens.corpus.synthetic import generate_all, is_inside, is_reported_late
+from reglens.corpus.policy_templates import (
+    INCIDENT_POLICY_DEADLINES,
+    SYSTEM_OWNERS,
+    UNITS,
+    VARIANT_TEMPLATES,
+    VARIANTS,
+)
+from reglens.corpus.synthetic import (
+    REGISTER_CRITICAL_WITHOUT_EXIT_PLAN,
+    REGISTER_FILE,
+    generate_all,
+    is_inside,
+    is_reported_late,
+)
 
 
 def _load(path: Path) -> Any:
@@ -43,15 +56,17 @@ def test_generator_refuses_ground_truth_under_raw(tmp_path: Path) -> None:
 
 def test_no_ground_truth_file_is_written_under_raw(generated: tuple[Path, Path]) -> None:
     raw, truth = generated
-    assert {p.name for p in truth.iterdir()} == {"policies.json", "incidents.json"}
-    assert not list(raw.rglob("*.json")), "only .md and .jsonl corpus files belong in raw/"
+    assert {p.name for p in truth.iterdir()} == {"policies.json", "incidents.json",
+                                                 "register.json"}  # fmt: skip
+    assert not list(raw.rglob("*.json")), "only .md, .jsonl and .csv corpus files belong in raw/"
 
 
 # ---------------------------------------------------------------- people
 
 
-def _people(truth: Path) -> tuple[set[str], set[str]]:
-    """(people planted in policies, people planted in logs), as names + emails, lowercased."""
+def _people(truth: Path) -> tuple[set[str], set[str], set[str]]:
+    """People planted in policies, in the log and in the register, as names + emails,
+    lowercased."""
     in_policies = {
         v.lower()
         for p in _load(truth / "policies.json")
@@ -62,18 +77,23 @@ def _people(truth: Path) -> tuple[set[str], set[str]]:
         for i in _load(truth / "incidents.json")
         for v in (i["on_call_engineer"], i["on_call_email"])
     }
-    return in_policies, in_logs
+    in_register = {
+        v.lower() for p in _load(truth / "register.json") for v in (p["contact"]["name"],
+                                                                     p["contact"]["email"])
+    }  # fmt: skip
+    return in_policies, in_logs, in_register
 
 
-def test_no_person_appears_in_both_policies_and_logs(tmp_path: Path) -> None:
-    """The only intended policy<->log link is the business unit. A shared person would be
+def test_no_person_appears_in_two_document_types(tmp_path: Path) -> None:
+    """The only intended links are business units and systems. A shared person would be
     an accidental link (and confuse multi-hop questions). Checked on the real corpus size
     and seed, so the committed defaults are protected."""
     truth = tmp_path / "ground_truth"
     generate_all(tmp_path / "raw", truth, seed=42, n_policies=50, n_incidents=200)
-    in_policies, in_logs = _people(truth)
-    assert in_policies and in_logs
+    in_policies, in_logs, in_register = _people(truth)
+    assert in_policies and in_logs and in_register
     assert sorted(in_policies & in_logs) == []
+    assert sorted(in_register & (in_policies | in_logs)) == []
 
 
 # ---------------------------------------------------------------- links
@@ -142,3 +162,73 @@ def test_incident_policy_compliance_flag_matches_dora(generated: tuple[Path, Pat
         assert d == INCIDENT_POLICY_DEADLINES[p["unit_code"]]
         within_dora = d["initial_hours"] <= 4 and d["initial_cap_hours"] <= 24
         assert p["compliant"] == within_dora
+
+
+# ---------------------------------------------------------------- fixed-variant topics
+
+
+def test_variant_topics_exist_once_per_variant_and_language(
+    generated: tuple[Path, Path],
+) -> None:
+    _, truth = generated
+    policies = _load(truth / "policies.json")
+    for tpl in VARIANT_TEMPLATES:
+        mine = [p for p in policies if p["topic"] == tpl.topic]
+        assert sorted((p["variant"], p["language"]) for p in mine) == sorted(
+            (v, lang) for v in VARIANTS for lang in ("en", "fr")
+        )
+        for p in mine:  # lenient breaks the rule; equal and stricter respect it
+            assert p["compliant"] == (p["variant"] != "lenient")
+            assert p["compliance_reference"] == tpl.check.reference  # type: ignore[union-attr]
+
+
+def test_variant_values_appear_in_the_policy_text(generated: tuple[Path, Path]) -> None:
+    raw, truth = generated
+    for p in _load(truth / "policies.json"):
+        if p["variant"] is None:
+            continue
+        text = (raw / "policies" / p["file"]).read_text(encoding="utf-8")
+        for value in p["params"].values():
+            assert str(value) in text
+
+
+def test_drawn_policies_do_not_depend_on_the_variant_topics(tmp_path: Path) -> None:
+    """Variant policies are generated after the drawn ones: the first n files are the
+    same as a run that stops at n (so adding a topic never changes existing policies)."""
+    generate_all(tmp_path / "a", tmp_path / "ta", seed=5, n_policies=10, n_incidents=5)
+    files = sorted((tmp_path / "a" / "policies").glob("POL-*.md"))
+    assert len(files) == 10 + len(VARIANT_TEMPLATES) * len(VARIANTS) * 2
+    drawn = [f for f in files if int(f.name[4:7]) <= 10]
+    assert all("payment_security" not in f.name and "safeguarding" not in f.name
+               for f in drawn)  # fmt: skip
+
+
+# ---------------------------------------------------------------- register
+
+
+def test_register_links_providers_to_systems_and_units(generated: tuple[Path, Path]) -> None:
+    raw, truth = generated
+    providers = _load(truth / "register.json")
+    covered = {s for p in providers for s in p["systems"]}
+    assert covered == set(SYSTEM_OWNERS)  # every system has at least one provider
+    for p in providers:
+        assert p["units"] == list(dict.fromkeys(SYSTEM_OWNERS[s] for s in p["systems"]))
+        assert p["critical_without_exit_plan"] == (p["critical"] and not p["exit_plan"])
+    with (raw / "register" / REGISTER_FILE).open(encoding="utf-8", newline="") as f:
+        rows = {r["Provider ID"]: r for r in csv.DictReader(f)}
+    for p in providers:
+        row = rows[p["provider_id"]]
+        assert row["Systems"] == "; ".join(p["systems"])
+        assert all(f"({u})" in row["Business units"] for u in p["units"])
+        assert row["Exit plan"] == ("Yes" if p["exit_plan"] else "No")
+        assert row["Contact person"] == p["contact"]["name"]
+
+
+def test_register_has_planted_findings(tmp_path: Path) -> None:
+    """A fixed number of critical providers have no exit plan (questions need them)."""
+    truth = tmp_path / "ground_truth"
+    generate_all(tmp_path / "raw", truth, seed=42, n_policies=5, n_incidents=5)
+    providers = _load(truth / "register.json")
+    gaps = [p for p in providers if p["critical_without_exit_plan"]]
+    assert len(gaps) == REGISTER_CRITICAL_WITHOUT_EXIT_PLAN
+    assert any(p["critical"] and p["exit_plan"] for p in providers)

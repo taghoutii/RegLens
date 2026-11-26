@@ -1,7 +1,7 @@
 """Measure PII masking: recall on every planted value, false positives on regulations.
 
 Usage (repository root, virtual environment active):
-    python scripts/measure/measure_pii.py                 # all policies, the log, all regulations
+    python scripts/measure/measure_pii.py                 # synthetic documents + regulations
     python scripts/measure/measure_pii.py --show-failures # also print the leaked values locally
     python scripts/measure/measure_pii.py --holdout-seeds 43 44
 
@@ -10,8 +10,9 @@ held-out sets generated with other seeds (default 43) in a temporary folder, del
 afterwards: the recognizers were built on seed 42, so the held-out seeds show whether
 they generalise to other names and values.
 
-Also scans the regulations and the reports already in the Docling cache: they hold no
-planted PII, so every detection there is a candidate false positive.
+Also scans the regulations: they hold no planted PII, so every detection there is a
+candidate false positive. In the register, spans masked beyond the planted contacts are
+counted the same way (a provider name masked as a person, for instance).
 
 Writes results/<date>_pii_masking.json (counts and ids only, never a planted value).
 Writes nothing to data/processed/.
@@ -28,8 +29,6 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from docling_core.types.doc.document import DoclingDocument
-
 from reglens.config import get_settings
 from reglens.corpus.sources import load_corpus
 from reglens.corpus.synthetic import generate_all
@@ -37,8 +36,12 @@ from reglens.evaluation.pii_leaks import check_leaks, load_planted
 from reglens.evaluation.results import write_result
 from reglens.ingestion.models import ParsedDocument
 from reglens.ingestion.parse_eurlex import parse_eurlex
-from reglens.ingestion.parse_pdf import cache_paths, from_docling
-from reglens.ingestion.parse_synthetic import parse_incident_log, parse_policy
+from reglens.ingestion.parse_synthetic import (
+    REGISTER_FILE,
+    parse_incident_log,
+    parse_policy,
+    parse_register,
+)
 from reglens.ingestion.pii import PiiMasker, collect_strings
 
 
@@ -96,7 +99,8 @@ class Scan:
 
 
 def mask_synthetic(masker: PiiMasker, raw: Path) -> dict[str, ParsedDocument]:
-    """The policies and the log of `raw`, parsed and masked as the pipeline does."""
+    """The policies, the log and the register of `raw`, parsed and masked as the pipeline
+    does."""
     docs: dict[str, ParsedDocument] = {}
     for f in sorted((raw / "policies").glob("POL-*.md")):
         d = masker.mask_document(parse_policy(f, source=f.as_posix()))
@@ -105,6 +109,8 @@ def mask_synthetic(masker: PiiMasker, raw: Path) -> dict[str, ParsedDocument]:
     docs["incident_log"] = masker.mask_document(
         parse_incident_log(log_file, source=log_file.as_posix())
     )
+    register = raw / "register" / REGISTER_FILE
+    docs["register"] = masker.mask_document(parse_register(register, source=register.as_posix()))
     return docs
 
 
@@ -141,10 +147,16 @@ def main() -> int:
     report = check_leaks(docs, load_planted(settings.ground_truth_dir))
     holdout = {seed: holdout_recall(masker, seed) for seed in args.holdout_seeds}
 
-    # ---- regulations and reports: no planted PII, so every detection is a candidate false
-    # positive. "dropped" = PERSON spans removed by the shape filter (cannot be a name).
+    # ---- register: masked spans per type vs the planted contacts (one name, e-mail and
+    # phone per provider); a surplus is a false positive
+    planted_register = Counter(p.kind for p in load_planted(settings.ground_truth_dir)
+                               if p.doc_id == "register")  # fmt: skip
+    register_masked = docs["register"].pii_counts
+
+    # ---- regulations: no planted PII, so every detection is a candidate false positive.
+    # "dropped" = PERSON spans removed by the shape filter (cannot be a name).
     corpus = load_corpus(settings.sources_file)
-    scans: dict[str, Scan] = {"regulations": Scan(), "reports": Scan()}
+    scans: dict[str, Scan] = {"regulations": Scan()}
     t0 = time.perf_counter()
     for src in corpus.regulations:
         for lang in ("en", "fr"):
@@ -154,15 +166,6 @@ def main() -> int:
                                    source=path.as_posix())  # fmt: skip
                 scans["regulations"].add(masker, doc)
     regulations_s = time.perf_counter() - t0
-    t0 = time.perf_counter()
-    for src in corpus.reports:
-        doc_file = cache_paths(settings.docling_cache_dir, src.id)[0]
-        if doc_file.exists():
-            doc = from_docling(DoclingDocument.load_from_json(doc_file), doc_id=src.id,
-                               langue=src.language or "en", source=src.id,
-                               max_header_rows=settings.table_max_inferred_header_rows)  # fmt: skip
-            scans["reports"].add(masker, doc)
-    reports_s = time.perf_counter() - t0
 
     summary = report.summary()
     result = {
@@ -180,15 +183,20 @@ def main() -> int:
         },
         "synthetic": {"seed": settings.synthetic_seed, **summary},
         "holdout": [holdout[seed] for seed in args.holdout_seeds],
-        # Regulations are public texts: what was flagged there is shown. Reports may name
-        # real people (board members), so only counts are written for them.
+        "register_masked_vs_planted": {
+            "planted": {
+                "names": planted_register["names"],
+                "emails": planted_register["emails"],
+                "phones": planted_register["phones"],
+            },
+            "masked": dict(register_masked),
+        },  # fmt: skip
+        # Regulations are public texts: what was flagged there is shown.
         "regulations_false_positives": scans["regulations"].summary(args.fp_examples),
-        "reports_false_positives": scans["reports"].summary(0),
         "timing_s": {
             "analyzer_load": round(load_s, 1),
             "synthetic_parse_and_mask": round(synthetic_s, 1),
             "regulations_scan": round(regulations_s, 1),
-            "reports_scan": round(reports_s, 1),
         },
     }
     out = write_result(settings.results_dir, result)
@@ -200,6 +208,7 @@ def main() -> int:
     print(f"recall:  {recall}")
     for h in holdout.values():
         print(f"seed {h['seed']}: recall {h['recall']}, leaked {h['leaked']}")
+    print(f"register: masked {dict(register_masked)}, planted {dict(planted_register)}")
     for name, scan in scans.items():
         print(f"{name}: kept {dict(scan.kept)}, dropped by the PERSON filter {scan.dropped_n}")
         for (entity, text), count in scan.examples.most_common(10):  # local console only

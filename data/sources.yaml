@@ -125,22 +125,9 @@ regulations:   # Lois européennes — source unique : EUR-Lex (base officielle 
       en: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32009L0110
       fr: https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32009L0110
 
-reports:   # Rapport Pillar 3 d'une banque réelle (comparaison) — publié sur son site investisseurs
-  - id: ing_group_pillar3_2025
-    title: "ING Groep — Additional Pillar III Report 2025"
-    what: "Rapport de risques annuel d'ING (Pays-Bas), très riche en tableaux."
-    format: pdf
-    mode: auto
-    language: en
-    url: https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-additional-pillar-iii-report.pdf
-    appendix:   # mêmes tableaux EBA en tableur : valeurs exactes, remplacent les tableaux reconnus avec certitude
-      format: xlsx
-      url: https://ing.com/binaries/content/assets/documents/annual-reports/2025-ing-groep-nv-appendices-additional-pillar-iii-disclosures.xlsx
-      what: "Appendices Pillar III d'ING au format tableur (un onglet par modèle EBA)."
-
 policies:   # Documents internes d'une fintech fictive — générés, jamais téléchargés
   - id: synthetic_policies
-    what: "50 politiques internes en Markdown (gestion des incidents IT, anti-blanchiment, sous-traitance), avec fausses PII (noms, e-mails, IBAN) et une fausse clé API chacune."
+    what: "62 politiques internes en Markdown, 8 thèmes (incidents IT, violations de données, anti-blanchiment, sous-traitance IT, conservation crypto, gouvernance IA, sécurité des paiements, protection des fonds), avec fausses PII (noms, e-mails, IBAN) et une fausse clé API chacune."
     format: md
     mode: generated
 
@@ -148,4 +135,10 @@ logs:   # Journal des incidents IT de la fintech fictive — généré
   - id: synthetic_incident_logs
     what: "~50 000 lignes JSON (JSONL, un événement par ligne) pour ~200 incidents (incident_id, timestamp, severity, system, owning_unit, status, detected_at, reported_at). Certains incidents sont volontairement déclarés en retard."
     format: jsonl
+    mode: generated
+
+register_of_information:   # Registre d'informations des prestataires TIC de la fintech fictive — généré
+  - id: synthetic_register
+    what: "Registre d'informations DORA (colonnes inspirées des modèles de l'ITS 2024/2956) : un prestataire TIC par ligne, lié aux systèmes et unités, avec une personne de contact fictive."
+    format: csv
     mode: generated

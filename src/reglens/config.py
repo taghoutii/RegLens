@@ -4,10 +4,8 @@ Every URL, key and threshold used by the code comes from here, so nothing is
 hard-coded in the logic and tests can override values easily.
 """
 
-import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -43,11 +41,6 @@ class Settings(BaseSettings):
         return self.data_dir / "processed"
 
     @property
-    def docling_cache_dir(self) -> Path:
-        """Raw Docling output (unmasked, like data/raw/): never ingested, never committed."""
-        return self.data_dir / "cache" / "docling"
-
-    @property
     def results_dir(self) -> Path:
         """Committed experiment results (the evidence for every reported number)."""
         return Path("results")
@@ -65,16 +58,6 @@ class Settings(BaseSettings):
     # Regions used to validate phone numbers (the synthetic corpus has UK and FR numbers).
     pii_phone_regions: list[str] = ["GB", "FR"]
 
-    # Docling (PDF parsing). OCR off: the reports are born-digital, their text layer is read.
-    docling_do_ocr: bool = False
-    # "fast" TableFormer is ~2.2x quicker but changed 63 % of cells on the sample: not usable
-    # with the 100 %-of-cells requirement.
-    docling_table_mode: Literal["accurate", "fast"] = "accurate"
-    # All cores: 8 threads were 34 % faster than Docling's default 4, identical output.
-    docling_num_threads: int = os.cpu_count() or 4
-    # Table cell text: True = PDF text cells matched into the predicted grid (Docling default).
-    docling_cell_matching: bool = True
-
     # Embedding model: bge-m3 (FR + EN). Phase 3 uses its tokenizer (chunk sizes) and its
     # dense vectors (semantic cuts); Phase 5 indexes with it.
     embedding_model: str = "BAAI/bge-m3"
@@ -84,43 +67,23 @@ class Settings(BaseSettings):
     chunk_max_tokens: int = 512
     chunk_min_tokens: int = 100  # a smaller piece is merged with its neighbour
     chunk_overlap_tokens: int = 64  # only on semantic cuts (and in the recursive strategy)
-    # Semantic cut threshold. None = calibrate: the `chunk_semantic_percentile`-th
-    # percentile of consecutive-sentence similarity inside the pieces that need a cut.
+    # Semantic cut threshold. None = calibrate at each run: the `chunk_semantic_percentile`-th
+    # percentile of consecutive-sentence similarity inside the pieces that need a cut. A
+    # value (CHUNK_SEMANTIC_THRESHOLD) fixes it. The value used is written with the chunks
+    # (data/processed/chunks/run.json).
     chunk_semantic_threshold: float | None = None
     chunk_semantic_percentile: float = 5.0
     # Log events that are noise for a question (left out of incident chunks).
     chunk_incident_noise_events: list[str] = ["monitoring"]
-    # A table row group's context (summary + header rows) is shortened beyond this many
-    # tokens, so the rows keep room: first without the summary's column list, then the
-    # caption and source only (the row lines carry the column headers anyway).
-    chunk_table_context_max_tokens: int = 256
-
-    # Report tables. Fixed before embedding, so every strategy indexes the same table chunks.
-    # A table without a Docling header takes its leading rows without numbers as header,
-    # at most this many (9 / 10 right on a visual sample; 8 tables have a 5th row).
-    table_max_inferred_header_rows: int = 4
-    # Spreadsheet appendix -> extracted table: certain when the table has at least
-    # `min_numbers` informative values, at least `min_share` of them in the best block and
-    # the runner-up block at least `margin` lower; then every row must align in order.
-    spreadsheet_min_numbers: int = 5
-    spreadsheet_min_share: float = 0.95
-    spreadsheet_margin: float = 0.2
 
     # Vector database
     qdrant_url: str = "http://localhost:6333"
 
-    # Queue + semantic cache
+    # Queue, job status + semantic cache
     redis_url: str = "redis://localhost:6379/0"
 
-    # Table values
-    postgres_user: str = "reglens"
+    # LLM ("fake" = no API calls; used until Phase 8 and in tests).
     # SecretStr hides the value when the settings object is printed or logged.
-    postgres_password: SecretStr = SecretStr("")
-    postgres_db: str = "reglens"
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
-
-    # LLM ("fake" = no API calls; used until Phase 8 and in tests)
     llm_provider: str = "fake"
     mistral_api_key: SecretStr = SecretStr("")
 

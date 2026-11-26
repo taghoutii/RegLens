@@ -1,7 +1,8 @@
-"""Generate the synthetic part of the corpus: internal policies and an ICT incident log.
-Everything is driven by one seed
+"""Generate the synthetic part of the corpus: internal policies, an ICT incident log and a
+register of ICT third-party providers. Everything is driven by one seed.
 """
 
+import csv
 import json
 import random
 import string
@@ -24,6 +25,10 @@ from reglens.corpus.policy_templates import (
     TEMPLATES,
     UNITS,
     UNITS_BY_CODE,
+    VARIANT_PARAMS,
+    VARIANT_TEMPLATES,
+    VARIANT_UNITS,
+    VARIANTS,
     Lang,
     ParamValues,
     PolicyTemplate,
@@ -90,6 +95,7 @@ class PolicyTruth:
     compliant: bool | None  # None = this topic has no compliance check
     pii: dict[str, list[str]]
     secrets: list[str]
+    variant: str | None = None  # lenient | equal | stricter, for the fixed-variant topics
 
 
 def plan_policies(n: int, rng: random.Random) -> list[tuple[PolicyTemplate, Lang, Unit]]:
@@ -110,6 +116,16 @@ def plan_policies(n: int, rng: random.Random) -> list[tuple[PolicyTemplate, Lang
         lang: Lang = "en" if (k // len(others)) % 2 == 0 else "fr"
         plan.append((others[k % len(others)], lang, rng.choice(UNITS)))
     return plan
+
+
+def plan_variants() -> list[tuple[PolicyTemplate, Lang, Unit, str]]:
+    """The fixed-variant topics: every variant of every topic, in English then French."""
+    return [
+        (tpl, lang, UNITS_BY_CODE[VARIANT_UNITS[tpl.topic][variant]], variant)
+        for tpl in VARIANT_TEMPLATES
+        for variant in VARIANTS
+        for lang in ("en", "fr")
+    ]
 
 
 def _choose_params(
@@ -144,7 +160,9 @@ def render_policy(tpl: PolicyTemplate, lang: Lang, values: dict[str, Any], polic
 
 
 def generate_policies(out_dir: Path, truth_path: Path, *, n: int = 50, seed: int = 42) -> int:
-    """Write `n` Markdown policies into out_dir and their ground truth into truth_path."""
+    """Write `n` drawn policies, then the fixed-variant ones (plan_variants), into out_dir
+    and their ground truth into truth_path; return the number of files. The variants come
+    last, so adding them leaves the drawn policies unchanged."""
     rng = random.Random(seed)
     fakers = {lang: Faker(locale) for lang, locale in FAKER_LOCALES.items()}
     for i, f in enumerate(fakers.values()):
@@ -155,11 +173,18 @@ def generate_policies(out_dir: Path, truth_path: Path, *, n: int = 50, seed: int
         old.unlink()
 
     truths: list[PolicyTruth] = []
-    for i, (tpl, lang, unit) in enumerate(plan_policies(n, rng)):
+    plan: list[tuple[PolicyTemplate, Lang, Unit, str | None]] = [
+        (tpl, lang, unit, None) for tpl, lang, unit in plan_policies(n, rng)
+    ]
+    plan += plan_variants()
+    for i, (tpl, lang, unit, variant) in enumerate(plan):
         fake = fakers[lang]
         policy_id = f"POL-{i + 1:03d}"
 
-        params, compliant = _choose_params(tpl, unit, rng)
+        if variant is None:
+            params, compliant = _choose_params(tpl, unit, rng)
+        else:
+            params, compliant = dict(VARIANT_PARAMS[tpl.topic][variant]), variant != "lenient"
         owner, deputy = fake.name(), fake.name()
         values: dict[str, Any] = {
             "company": COMPANY,
@@ -206,10 +231,11 @@ def generate_policies(out_dir: Path, truth_path: Path, *, n: int = 50, seed: int
                     "ibans": [values["iban"]],
                 },
                 secrets=[values["api_key"]],
+                variant=variant,
             )
         )
     _write_json(truth_path, [asdict(t) for t in truths])
-    return n
+    return len(plan)
 
 
 # ============================================================================ incident log
@@ -453,13 +479,190 @@ def generate_logs(
     return len(events)
 
 
-# ============================================================================ both
+# ============================================================================ register
+
+REGISTER_FILE = "register_of_information.csv"  # read by ingestion/parse_synthetic.py
+REGISTER_SEED_OFFSET = 200  # register contacts come from their own Faker stream
+REGISTER_CRITICAL_WITHOUT_EXIT_PLAN = 3  # planted gaps: critical function, no exit plan
+
+# The function each system supports (ITS 2024/2956 B_06.01), and whether it is critical
+# or important.
+SYSTEM_FUNCTIONS: dict[str, tuple[str, bool]] = {
+    "payments-gateway": ("Payment initiation and processing", True),
+    "card-processing": ("Card issuing and acquiring", True),
+    "core-banking-api": ("Loan account management", True),
+    "crypto-wallet": ("Crypto-asset custody", True),
+    "identity-provider": ("Customer authentication", True),
+    "data-warehouse": ("Regulatory and management reporting", False),
+    "kyc-service": ("Customer due diligence", True),
+    "mobile-app-backend": ("Mobile banking channel", False),
+}
+# (name, country of headquarters, type of ICT service): fictional providers.
+PROVIDERS: list[tuple[str, str, str]] = [
+    ("Nimbus Cloud Services", "IE", "Cloud computing (IaaS)"),
+    ("Ardent Card Technologies", "NL", "Card processing software"),
+    ("Corelink Banking Systems", "DE", "Core banking platform (SaaS)"),
+    ("Vaultline Custody Tech", "LU", "Crypto-asset custody infrastructure"),
+    ("Keystone Identity", "FR", "Identity and access management"),
+    ("Datapoint Analytics", "BE", "Data warehousing and analytics"),
+    ("Verity KYC Solutions", "GB", "Customer screening and KYC (SaaS)"),
+    ("Appforge Mobile", "FR", "Mobile application hosting"),
+    ("Helios Network Services", "DE", "Network infrastructure"),
+    ("Sentinel Security Operations", "IE", "Managed security services (SOC)"),
+    ("Paystream Connect", "NL", "Payment network connectivity"),
+    ("Archive Vault Storage", "LU", "Backup and recovery"),
+    ("Brightline Communications", "GB", "Customer notifications (SMS, e-mail)"),
+    ("Quantis Fraud Detection", "FR", "Fraud detection (SaaS)"),
+    ("Orbital Data Centres", "BE", "Data centre colocation"),
+    ("Ledgerwise Software", "US", "Reconciliation software"),
+    ("Cobalt API Gateway", "IE", "API management"),
+    ("Meridian Support Desk", "GB", "IT service desk"),
+]
+CONTACT_LOCALE: dict[str, Lang] = {"FR": "fr", "BE": "fr", "LU": "fr"}  # others: en
+NOTICE_ENTITY_DAYS = [30, 60, 90, 180]
+NOTICE_PROVIDER_DAYS = [90, 180, 365]
+SUBSTITUTABILITY = [
+    "Not substitutable",
+    "Highly complex substitutability",
+    "Medium complexity in terms of substitutability",
+    "Easily substitutable",
+]
+REINTEGRATION = ["Easy", "Difficult", "Highly complex"]
+SENSITIVENESS = ["Low", "Medium", "High"]
+
+
+def fake_lei(rng: random.Random) -> str:
+    """An LEI-shaped code (ISO 17442): 18 characters and 2 check digits (mod 97, as IBANs)."""
+    base = "".join(rng.choices(string.digits + string.ascii_uppercase, k=18))
+    number = int("".join(str(int(c, 36)) for c in base + "00"))
+    return f"{base}{98 - number % 97:02d}"
+
+
+@dataclass
+class ProviderTruth:
+    provider_id: str
+    name: str
+    lei: str
+    systems: list[str]
+    units: list[str]  # unit codes, through the systems
+    function: str
+    critical: bool
+    contract_reference: str
+    start_date: str
+    end_date: str
+    exit_plan: bool
+    alternative_providers: bool
+    last_audit_date: str
+    contact: dict[str, str]  # name, email, phone (planted PII)
+    critical_without_exit_plan: bool  # planted finding (DORA Art. 28(8) exit strategies)
+
+
+def generate_register(out_file: Path, truth_path: Path, *, seed: int = 42) -> int:
+    """Write the register of information (one CSV row per provider); return the row count.
+
+    Columns follow ITS 2024/2956: B_05.01 provider (name, LEI, country), B_02.02 contractual
+    arrangement (reference, service type, dates, notice periods, governing law, data),
+    B_06.01 function (name, criticality, RTO, RPO), B_07.01 assessment (substitutability,
+    exit plan, reintegration, alternatives, last audit); plus the linked systems and units
+    and a contact person (planted PII)."""
+    rng = random.Random(seed + REGISTER_SEED_OFFSET)
+    fakers = {lang: Faker(locale) for lang, locale in FAKER_LOCALES.items()}
+    for i, fk in enumerate(fakers.values()):
+        fk.seed_instance(seed + REGISTER_SEED_OFFSET + i)
+
+    systems = list(SYSTEM_FUNCTIONS)
+    rows: list[dict[str, str]] = []
+    truths: list[ProviderTruth] = []
+    for k, (name, country, service) in enumerate(PROVIDERS):
+        provider_id = f"PRV-{k + 1:03d}"
+        # the first providers cover every system once; the others support 1 or 2 at random
+        linked = [systems[k]] if k < len(systems) else rng.sample(systems, rng.randint(1, 2))
+        units = list(dict.fromkeys(SYSTEM_OWNERS[s] for s in linked))
+        function, critical = SYSTEM_FUNCTIONS[linked[0]]
+        critical = any(SYSTEM_FUNCTIONS[s][1] for s in linked)
+        start = datetime(2019, 1, 1) + timedelta(days=rng.randrange(6 * 365))
+        end = start + timedelta(days=365 * rng.randint(3, 6))
+        audit = datetime(2023, 1, 1) + timedelta(days=rng.randrange(3 * 365))
+        exit_plan = True  # planted gaps are set after the loop
+        alternatives = rng.random() < (0.5 if critical else 0.8)
+        lang = CONTACT_LOCALE.get(country, "en")
+        contact_name = fakers[lang].name()
+        domain = name.lower().split()[0] + ".example"
+        contact = {
+            "name": contact_name,
+            "email": f"{_ascii_slug(contact_name)}@{domain}",
+            "phone": fakers[lang].phone_number(),
+        }
+        rows.append({
+            "Provider ID": provider_id,
+            "Provider name": name,
+            "LEI": fake_lei(rng),
+            "Country of headquarters": country,
+            "Contractual arrangement": f"CA-{start.year}-{k + 1:03d}",
+            "Type of ICT service": service,
+            "Function": function,
+            "Critical or important function": "Yes" if critical else "No",
+            "Systems": "; ".join(linked),
+            "Business units": "; ".join(UNITS_BY_CODE[u].label("en") for u in units),
+            "Start date": start.date().isoformat(),
+            "End date": end.date().isoformat(),
+            "Notice period of the entity (days)": str(rng.choice(NOTICE_ENTITY_DAYS)),
+            "Notice period of the provider (days)": str(rng.choice(NOTICE_PROVIDER_DAYS)),
+            "Governing law": rng.choice([country, "IE", "FR"]),
+            "Country of provision": rng.choice([country, "IE", "FR", "DE"]),
+            "Storage of data": "Yes" if service != "IT service desk" else "No",
+            "Location of data at rest": rng.choice(["IE", "FR", "DE", "NL"]),
+            "Sensitiveness of data": rng.choice(SENSITIVENESS[1:] if critical else SENSITIVENESS),
+            "Level of reliance": "Full reliance" if critical else rng.choice(
+                ["Material reliance", "Low reliance"]),
+            "Substitutability": rng.choice(SUBSTITUTABILITY[:3] if critical else SUBSTITUTABILITY),
+            "Exit plan": "Yes" if exit_plan else "No",
+            "Possibility of reintegration": rng.choice(REINTEGRATION),
+            "Alternative providers identified": "Yes" if alternatives else "No",
+            "Date of the last audit": audit.date().isoformat(),
+            "Recovery time objective (hours)": str(
+                rng.choice([2, 4, 8, 24] if critical else [24, 48])),
+            "Recovery point objective (hours)": str(
+                rng.choice([1, 2, 4] if critical else [12, 24])),
+            "Annual expense (EUR)": str(rng.randrange(20, 900) * 1000),
+            "Contact person": contact["name"],
+            "Contact e-mail": contact["email"],
+            "Contact phone": contact["phone"],
+        })  # fmt: skip
+        truths.append(ProviderTruth(
+            provider_id=provider_id, name=name, lei=rows[-1]["LEI"], systems=linked,
+            units=units, function=function, critical=critical,
+            contract_reference=rows[-1]["Contractual arrangement"],
+            start_date=rows[-1]["Start date"], end_date=rows[-1]["End date"],
+            exit_plan=exit_plan, alternative_providers=alternatives,
+            last_audit_date=rows[-1]["Date of the last audit"], contact=contact,
+            critical_without_exit_plan=critical and not exit_plan,
+        ))  # fmt: skip
+
+    # A fixed number of critical providers without an exit plan, chosen with the seed.
+    critical_ids = [k for k, truth in enumerate(truths) if truth.critical]
+    for k in rng.sample(critical_ids, REGISTER_CRITICAL_WITHOUT_EXIT_PLAN):
+        rows[k]["Exit plan"] = "No"
+        truths[k].exit_plan = False
+        truths[k].critical_without_exit_plan = True
+
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    with out_file.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    _write_json(truth_path, [asdict(t) for t in truths])
+    return len(rows)
+
+
+# ============================================================================ all
 
 
 @dataclass(frozen=True)
 class GenerationReport:
     n_policies: int | None
     n_log_lines: int | None
+    n_providers: int | None = None
 
 
 def generate_all(
@@ -471,14 +674,14 @@ def generate_all(
     n_incidents: int = 200,
     only: str | None = None,
 ) -> GenerationReport:
-    """Generate policies and/or logs into raw_dir, ground truth into truth_dir.
+    """Generate policies, logs and the register into raw_dir, ground truth into truth_dir.
 
     Refuses a truth_dir inside raw_dir: ingestion reads everything under data/raw/,
     and the answers must never be indexed next to the questions' sources.
     """
     if is_inside(truth_dir, raw_dir):
         raise ValueError(f"ground truth dir {truth_dir} must not be inside {raw_dir}")
-    n_pol = n_lines = None
+    n_pol = n_lines = n_prv = None
     if only in (None, "policies"):
         n_pol = generate_policies(
             raw_dir / "policies", truth_dir / "policies.json", n=n_policies, seed=seed
@@ -490,4 +693,8 @@ def generate_all(
             n_incidents=n_incidents,
             seed=seed,
         )
-    return GenerationReport(n_pol, n_lines)
+    if only in (None, "register"):
+        n_prv = generate_register(
+            raw_dir / "register" / REGISTER_FILE, truth_dir / "register.json", seed=seed
+        )
+    return GenerationReport(n_pol, n_lines, n_prv)
