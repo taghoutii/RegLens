@@ -2,7 +2,8 @@
 
 from reglens.ingestion.references import act_number_from_url, find_references, most_cited
 
-ACTS = {"2022/2554": "DORA", "2024/1772": "RTS 2024/1772", "2025/301": "RTS 2025/301"}
+ACTS = {"2022/2554": "DORA", "2024/1772": "RTS 2024/1772", "2025/301": "RTS 2025/301",
+        "2009/110": "EMD2"}  # fmt: skip
 
 
 def _refs(text: str, own: str | None = "RTS2025/301") -> list[str]:
@@ -36,6 +37,22 @@ def test_own_regulation_unknown_act_and_no_false_link() -> None:
     # the act is not linked to the article by "of": the article is this regulation's own
     assert _refs("Under Article 5, entities apply Regulation (EU) 2022/2554") == ["RTS2025/301:5"]
     assert _refs("Article 5 applies.", own=None) == []
+
+
+def test_old_style_directive_citations() -> None:
+    # how PSD2 cites the E-Money Directive (EN and FR)
+    assert _refs("within the meaning of point (1) of Article 2 of Directive 2009/110/EC, incl") == [
+        "EMD2:2"
+    ]
+    assert _refs("au sens de l'article 2, point 1), de la directive 2009/110/CE, y compris") == [
+        "EMD2:2"
+    ]
+    assert _refs("Article 28 of Directive 95/46/EC shall") == ["95/46:28"]  # not in the corpus
+    # a list of directives after the article: the first one is its act
+    assert _refs("Article 3 of Directives 2002/65/EC, 2009/110/EC and 2013/36/EU") == ["2002/65:3"]
+    # the new style is unchanged, and a number inside a date or path is not an act
+    assert _refs("Article 4 of Directive (EU) 2015/2366") == ["2015/2366:4"]
+    assert _refs("Article 9 of 12/03/2024/EC-form") == ["RTS2025/301:9"]
 
 
 def test_headings_are_not_references() -> None:

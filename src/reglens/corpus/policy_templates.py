@@ -579,3 +579,229 @@ TEMPLATES: list[PolicyTemplate] = [
         params={"reconciliation_hours": [12, 24]},
     ),
 ]
+
+
+# ---------------------------------------------------------------------------------------
+# Topics generated as fixed variants (after the policies above, so these never change the
+# ones drawn from TEMPLATES). Each topic exists once per variant and per language:
+#   lenient  -> breaks the rule (non-compliant)
+#   equal    -> exactly the regulatory value (compliant)
+#   stricter -> tighter than the rule (compliant)
+# Values checked in the texts as downloaded; rules amended later are avoided (e.g. the
+# SCA RTS Article 10 account-access renewal).
+VARIANTS: tuple[str, ...] = ("lenient", "equal", "stricter")
+
+VARIANT_TEMPLATES: list[PolicyTemplate] = [
+    # ------------------------------------------------------------------ PSD2 SCA
+    PolicyTemplate(
+        topic="payment_security",
+        title={
+            "en": "Payment Security and Strong Customer Authentication Policy",
+            "fr": "Politique de sécurité des paiements et d'authentification forte du client",
+        },
+        owner_title={
+            "en": "Head of Payment Security",
+            "fr": "Responsable de la sécurité des paiements",
+        },
+        sections={
+            "en": [
+                (
+                    "Purpose and scope",
+                    "This policy sets out how {company} ({unit}) applies strong customer "
+                    "authentication to online account access, electronic payments and remote actions "
+                    "that may imply a risk of payment fraud, under Directive (EU) 2015/2366 (PSD2) "
+                    "and Commission Delegated Regulation (EU) 2018/389.",
+                ),
+                (
+                    "Authentication",
+                    "Strong customer authentication combines at least two independent elements: "
+                    "knowledge, possession and inherence. Each authentication code is accepted only "
+                    "once, and no element can be derived from a disclosed code.",
+                ),
+                (
+                    "Failed attempts and sessions",
+                    "After {max_failed_attempts} consecutive failed authentication attempts, online "
+                    "access and payment functions are blocked until the customer is identified "
+                    "again. An online session is closed after {inactivity_minutes} minutes without "
+                    "activity by the customer.",
+                ),
+                (
+                    "Contactless payments",
+                    "A contactless payment at the point of sale may be executed without strong "
+                    "customer authentication when its amount does not exceed EUR "
+                    "{contactless_limit_eur}, provided the cumulative amount since the last strong "
+                    "customer authentication does not exceed EUR 150 or no more than five "
+                    "consecutive contactless payments have been made.",
+                ),
+                (
+                    "Monitoring and fraud reporting",
+                    "Transaction monitoring flags unusual payment patterns in real time. Fraud rates "
+                    "per payment type are reviewed every quarter by the payment security committee.",
+                ),
+            ],
+            "fr": [
+                (
+                    "Objet et périmètre",
+                    "La présente politique décrit comment {company} ({unit}) applique "
+                    "l'authentification forte du client à l'accès aux comptes en ligne, aux "
+                    "paiements électroniques et aux actions à distance susceptibles de comporter un "
+                    "risque de fraude, conformément à la directive (UE) 2015/2366 (DSP2) et au "
+                    "règlement délégué (UE) 2018/389 de la Commission.",
+                ),
+                (
+                    "Authentification",
+                    "L'authentification forte du client combine au moins deux éléments "
+                    "indépendants : connaissance, possession et inhérence. Chaque code "
+                    "d'authentification n'est accepté qu'une seule fois, et aucun élément ne peut "
+                    "être déduit d'un code divulgué.",
+                ),
+                (
+                    "Tentatives infructueuses et sessions",
+                    "Après {max_failed_attempts} tentatives d'authentification infructueuses "
+                    "consécutives, l'accès en ligne et les fonctions de paiement sont bloqués "
+                    "jusqu'à une nouvelle identification du client. Une session en ligne est fermée "
+                    "après {inactivity_minutes} minutes sans activité du client.",
+                ),
+                (
+                    "Paiements sans contact",
+                    "Un paiement sans contact au point de vente peut être exécuté sans "
+                    "authentification forte du client lorsque son montant ne dépasse pas "
+                    "{contactless_limit_eur} EUR, à condition que le montant cumulé depuis la "
+                    "dernière authentification forte ne dépasse pas 150 EUR ou que cinq paiements "
+                    "sans contact consécutifs au plus aient été effectués.",
+                ),
+                (
+                    "Surveillance et suivi de la fraude",
+                    "La surveillance des opérations signale en temps réel les schémas de paiement "
+                    "inhabituels. Les taux de fraude par type de paiement sont revus chaque "
+                    "trimestre par le comité de sécurité des paiements.",
+                ),
+            ],
+        },
+        check=ComplianceCheck(
+            rule="At most 5 consecutive failed authentication attempts before blocking, at most "
+            "5 minutes of inactivity after authentication, and contactless payments without "
+            "strong customer authentication only up to EUR 50 per transaction.",
+            reference="Delegated Regulation (EU) 2018/389, Articles 4(3)(b), 4(3)(d) and 11(a)",
+            compliant=[
+                {"max_failed_attempts": 5, "inactivity_minutes": 5, "contactless_limit_eur": 50},
+                {"max_failed_attempts": 3, "inactivity_minutes": 3, "contactless_limit_eur": 30},
+            ],
+            non_compliant=[
+                {"max_failed_attempts": 10, "inactivity_minutes": 15, "contactless_limit_eur": 100},
+            ],
+        ),
+    ),
+    # ------------------------------------------------------------------ safeguarding
+    PolicyTemplate(
+        topic="safeguarding",
+        title={
+            "en": "Safeguarding of Client Funds Policy",
+            "fr": "Politique de protection des fonds des clients",
+        },
+        owner_title={
+            "en": "Head of Finance and Safeguarding",
+            "fr": "Responsable financier et de la protection des fonds",
+        },
+        sections={
+            "en": [
+                (
+                    "Purpose and scope",
+                    "This policy sets out how {company} ({unit}) safeguards the funds received from "
+                    "payment service users and in exchange for electronic money, under Directive "
+                    "(EU) 2015/2366 (PSD2) and Directive 2009/110/EC (EMD2).",
+                ),
+                (
+                    "Segregation of payment funds",
+                    "Funds received for the execution of payment transactions are never commingled "
+                    "with the company's own funds. Funds not yet delivered to the payee or "
+                    "transferred to another payment service provider are deposited in a segregated "
+                    "account at the latest by the end of business day {segregation_business_days} "
+                    "after the day of receipt.",
+                ),
+                (
+                    "Electronic money funds",
+                    "Funds received in exchange for electronic money are safeguarded at the latest "
+                    "{emoney_safeguard_business_days} business days after the electronic money is "
+                    "issued.",
+                ),
+                (
+                    "Segregated accounts and reconciliation",
+                    "Segregated funds are held in a separate account with a credit institution or "
+                    "invested in secure, liquid, low-risk assets. Safeguarded balances are "
+                    "reconciled with client balances every business day.",
+                ),
+                (
+                    "Protection in insolvency",
+                    "Safeguarded funds are insulated against the claims of the company's other "
+                    "creditors, in particular in the event of insolvency. The safeguarding "
+                    "arrangements are audited once a year.",
+                ),
+            ],
+            "fr": [
+                (
+                    "Objet et périmètre",
+                    "La présente politique décrit comment {company} ({unit}) protège les fonds reçus "
+                    "des utilisateurs de services de paiement et en échange de monnaie "
+                    "électronique, conformément à la directive (UE) 2015/2366 (DSP2) et à la "
+                    "directive 2009/110/CE (DME2).",
+                ),
+                (
+                    "Cantonnement des fonds de paiement",
+                    "Les fonds reçus pour l'exécution d'opérations de paiement ne sont jamais "
+                    "mélangés avec les fonds propres de la société. Les fonds non encore remis au "
+                    "bénéficiaire ni transférés à un autre prestataire de services de paiement sont "
+                    "déposés sur un compte cantonné au plus tard à la fin du jour ouvrable "
+                    "{segregation_business_days} suivant le jour de leur réception.",
+                ),
+                (
+                    "Fonds de monnaie électronique",
+                    "Les fonds reçus en échange de monnaie électronique sont protégés au plus tard "
+                    "{emoney_safeguard_business_days} jours ouvrables après l'émission de la "
+                    "monnaie électronique.",
+                ),
+                (
+                    "Comptes cantonnés et rapprochement",
+                    "Les fonds cantonnés sont détenus sur un compte distinct auprès d'un "
+                    "établissement de crédit ou investis dans des actifs sûrs, liquides et à faible "
+                    "risque. Les soldes protégés sont rapprochés des soldes clients chaque jour "
+                    "ouvrable.",
+                ),
+                (
+                    "Protection en cas d'insolvabilité",
+                    "Les fonds protégés sont soustraits aux recours des autres créanciers de la "
+                    "société, notamment en cas d'insolvabilité. Le dispositif de protection est "
+                    "audité une fois par an.",
+                ),
+            ],
+        },
+        check=ComplianceCheck(
+            rule="Payment funds not yet delivered by the end of the business day following "
+            "receipt are segregated, and funds received for electronic money are safeguarded at "
+            "the latest 5 business days after issuance.",
+            reference="Directive (EU) 2015/2366, Article 10(1)(a); Directive 2009/110/EC, Article 7(1)",
+            compliant=[
+                {"segregation_business_days": 1, "emoney_safeguard_business_days": 5},
+                {"segregation_business_days": 1, "emoney_safeguard_business_days": 2},
+            ],
+            non_compliant=[
+                {"segregation_business_days": 3, "emoney_safeguard_business_days": 10},
+            ],
+        ),
+    ),
+]
+
+# Parameters and business unit of each variant (index 0 of `compliant` = equal, 1 = stricter).
+VARIANT_PARAMS: dict[str, dict[str, ParamValues]] = {
+    t.topic: {
+        "lenient": t.check.non_compliant[0],
+        "equal": t.check.compliant[0],
+        "stricter": t.check.compliant[1],
+    }
+    for t in VARIANT_TEMPLATES
+    if t.check is not None
+}
+VARIANT_UNITS: dict[str, dict[str, str]] = {
+    "payment_security": {"lenient": "BU-CRY", "equal": "BU-PAY", "stricter": "BU-OPS"},
+    "safeguarding": {"lenient": "BU-LEN", "equal": "BU-CRY", "stricter": "BU-PAY"},
+}

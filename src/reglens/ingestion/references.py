@@ -4,6 +4,7 @@
     "article 19, paragraphe 4, du règlement (UE) 2022/2554" -> DORA:19
     "Articles 1 to 8 of Delegated Regulation (EU) 2024/1772" -> RTS2024/1772:1 ... :8
     "Article 3 of Directive (EU) 2022/2555"             -> 2022/2555:3 (act not in the corpus)
+    "Article 2 of Directive 2009/110/EC" (old style)    -> EMD2:2
     "Article 17" (no act named)                          -> <this regulation>:17
 
 An act is attached to an article only if it follows closely, linked by "of" / "du" / "de"
@@ -22,7 +23,10 @@ _ARTICLES = re.compile(
 )
 _LIST_ITEM = re.compile(rf"{_NUMBER}|\b(?:to|à)\b")
 _ACT = re.compile(
+    # "(EU) 2022/2554", "(EC) No 1060/2009", "(UE) n° 1093/2010"
     r"\((?:EU|UE|EC|CE|EEC|CEE)\)\s*(?P<no>No\.?\s*|n\s?o\s*|n°\s*)?(?P<a>\d+)/(?P<b>\d+)"
+    # old style, the act type after the number: "Directive 2009/110/EC", "95/46/CE"
+    r"|(?<![\d/])(?P<c>\d{2,4})/(?P<d>\d{1,4})/(?:EU|UE|EC|CE|EEC|CEE)\b"
 )
 _LINK = re.compile(r"\b(?:of|du|de|des|d['’])\b", re.IGNORECASE)
 _STOP = re.compile(r"[.;:]\s|\b[Aa]rticles?\b")
@@ -66,6 +70,8 @@ def _act_after(text: str, pos: int) -> str | None:
     m = _ACT.search(window)
     if not m or not _LINK.search(window[: m.start()]):
         return None
+    if m.group("c"):
+        return f"{m.group('c')}/{m.group('d')}"
     return f"{m.group('a')}/{m.group('b')}"
 
 

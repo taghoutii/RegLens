@@ -2,29 +2,24 @@
 
 - Required test 1 on the real corpus: every main-strategy chunk is a slice of ONE
   parsed unit (so it never crosses an article), and every metadata field is filled;
-- every table chunk's parent_id is a table_id in PostgreSQL (chunk -> exact values);
-- no planted PII/secret value in any chunk file;
-- chunk ids are unique inside each strategy.
+- chunk ids are unique inside each strategy;
+- every provider of the register ground truth has exactly one chunk in every strategy.
 """
 
-from collections import defaultdict
+import json
+from collections import Counter, defaultdict
 
-import psycopg
 import pytest
 
-from reglens.config import Settings
-from reglens.evaluation.pii_leaks import load_planted
 from reglens.ingestion.chunking import STRATEGIES, Chunk
 from reglens.ingestion.models import ParsedDocument
-from reglens.ingestion.table_store import conninfo
-from tests.conftest import REPO_ROOT, postgres_reachable, require
-from tests.test_chunking import required_fields_filled
+from tests.chunk_stubs import required_fields_filled
+from tests.conftest import REPO_ROOT, require
 
 pytestmark = pytest.mark.integration
 
 CHUNKS = REPO_ROOT / "data" / "processed" / "chunks"
 PARSED = REPO_ROOT / "data" / "processed" / "parsed"
-TRUTH = REPO_ROOT / "data" / "ground_truth"
 
 
 def _chunks(strategy: str) -> list[Chunk]:
@@ -61,23 +56,24 @@ def test_chunk_ids_are_unique(strategy: str) -> None:
     assert len(ids) == len(set(ids))
 
 
-def test_table_chunks_point_to_postgres_rows() -> None:
-    require(postgres_reachable(), "PostgreSQL not running (docker compose up -d)")
-    tables = {c.parent_id for c in _chunks("structure_semantic") if c.kind == "table"}
-    with psycopg.connect(conninfo(Settings())) as conn:
-        stored = {r[0] for r in conn.execute("SELECT table_id FROM report_tables").fetchall()}
-    assert tables and tables <= stored
+@pytest.mark.parametrize("strategy", STRATEGIES)
+def test_one_chunk_per_provider(strategy: str) -> None:
+    truth = REPO_ROOT / "data" / "ground_truth" / "register.json"
+    require(truth.exists(), "register not generated yet (scripts/generate_synthetic.py)")
+    providers = {p["provider_id"] for p in json.loads(truth.read_text(encoding="utf-8"))}
+    per_unit = Counter(c.parent_id for c in _chunks(strategy) if c.kind == "provider")
+    assert per_unit == Counter({f"register#{p}": 1 for p in providers})
 
 
-def test_no_planted_value_in_chunks() -> None:
-    require((TRUTH / "policies.json").exists(), "ground truth missing")
-    values = [p.value for p in load_planted(TRUTH)]
-    files = list(CHUNKS.rglob("*.jsonl"))
-    require(bool(files), "no chunks yet")
-    # pydantic writes non-ASCII characters as they are (no \u escapes), so a plain search works
-    leaks = [
-        f.relative_to(REPO_ROOT).as_posix()
-        for f in files
-        if any(v in f.read_text(encoding="utf-8") for v in values)
-    ]
-    assert leaks == []  # file names only
+def test_run_records_the_threshold_used() -> None:
+    run = CHUNKS / "run.json"
+    require(run.exists(), "no chunking run yet (scripts/chunk_corpus.py)")
+    record = json.loads(run.read_text(encoding="utf-8"))
+    assert isinstance(record["threshold"], float)
+    calibrated = record["calibration"].get("threshold")
+    assert calibrated is None or calibrated == record["threshold"]  # None: fixed in config
+    # every strategy folder on disk says when and with which threshold it was built
+    built = record["strategies"]
+    for strategy in STRATEGIES:
+        if any((CHUNKS / strategy).glob("*.jsonl")):
+            assert isinstance(built[strategy]["threshold"], float)

@@ -1,0 +1,2121 @@
+{
+  "date": "2026-11-26",
+  "name": "chunking_stats",
+  "phase": 3,
+  "config": {
+    "embedding_model": "BAAI/bge-m3",
+    "max_tokens": 512,
+    "min_tokens": 100,
+    "overlap": 64,
+    "threshold": 0.4561,
+    "noise_events": [
+      "monitoring"
+    ],
+    "token_counts": "bge-m3 tokenizer, without special tokens"
+  },
+  "calibration": {
+    "pieces_over_max": 262,
+    "boundaries": 4673,
+    "percentile": 5.0,
+    "threshold": 0.4561,
+    "min": 0.2405,
+    "max": 0.9962,
+    "deciles": [
+      0.5092,
+      0.5739,
+      0.622,
+      0.6616,
+      0.6996,
+      0.7363,
+      0.7738,
+      0.822,
+      0.8828
+    ]
+  },
+  "documents": 88,
+  "strategies": {
+    "structure_semantic": {
+      "seconds": 92.8,
+      "embedding_seconds": 39.2,
+      "sentence_split_seconds": 25.9,
+      "new_sentences_embedded": 33,
+      "duplicate_chunk_ids": 0,
+      "semantic_cuts": 712,
+      "semantic_cuts_below_threshold": 89,
+      "tokens": {
+        "all": {
+          "chunks": 6886,
+          "min": 6,
+          "median": 195.0,
+          "p95": 456,
+          "max": 512,
+          "mean": 218.8,
+          "over_512": 0,
+          "under_100": 1016,
+          "tokens_total": 1506733
+        },
+        "logs/incident": {
+          "chunks": 200,
+          "min": 179,
+          "median": 180.0,
+          "p95": 204,
+          "max": 209,
+          "mean": 184.4,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 36890
+        },
+        "policies/policy_section": {
+          "chunks": 446,
+          "min": 23,
+          "median": 65.0,
+          "p95": 84,
+          "max": 98,
+          "mean": 63.9,
+          "over_512": 0,
+          "under_100": 446,
+          "tokens_total": 28481
+        },
+        "register/provider": {
+          "chunks": 18,
+          "min": 314,
+          "median": 320.0,
+          "p95": 342,
+          "max": 342,
+          "mean": 321.8,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 5792
+        },
+        "regulations/text": {
+          "chunks": 6222,
+          "min": 6,
+          "median": 208.0,
+          "p95": 463,
+          "max": 512,
+          "mean": 230.7,
+          "over_512": 0,
+          "under_100": 570,
+          "tokens_total": 1435570
+        }
+      },
+      "references_by_act": {
+        "1024/2013": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 10
+        },
+        "1025/2012": {
+          "chunks": 29,
+          "own_act_chunks": 0,
+          "other_act_chunks": 29,
+          "references": 41
+        },
+        "1060/2009": {
+          "chunks": 7,
+          "own_act_chunks": 0,
+          "other_act_chunks": 7,
+          "references": 7
+        },
+        "1093/2010": {
+          "chunks": 152,
+          "own_act_chunks": 0,
+          "other_act_chunks": 152,
+          "references": 381
+        },
+        "1094/2010": {
+          "chunks": 11,
+          "own_act_chunks": 0,
+          "other_act_chunks": 11,
+          "references": 15
+        },
+        "1095/2010": {
+          "chunks": 86,
+          "own_act_chunks": 0,
+          "other_act_chunks": 86,
+          "references": 207
+        },
+        "167/2013": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "168/2013": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "182/2011": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 8
+        },
+        "1999/468": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2000/46": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2002/21": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/47": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/65": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/87": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2003/361": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2004/109": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 4
+        },
+        "2006/48": {
+          "chunks": 15,
+          "own_act_chunks": 0,
+          "other_act_chunks": 15,
+          "references": 33
+        },
+        "2006/73": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2007/64": {
+          "chunks": 31,
+          "own_act_chunks": 0,
+          "other_act_chunks": 31,
+          "references": 67
+        },
+        "2008/48": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2009/138": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 12
+        },
+        "2009/65": {
+          "chunks": 19,
+          "own_act_chunks": 0,
+          "other_act_chunks": 19,
+          "references": 19
+        },
+        "2011/61": {
+          "chunks": 16,
+          "own_act_chunks": 0,
+          "other_act_chunks": 16,
+          "references": 16
+        },
+        "2013/34": {
+          "chunks": 18,
+          "own_act_chunks": 0,
+          "other_act_chunks": 18,
+          "references": 24
+        },
+        "2013/36": {
+          "chunks": 31,
+          "own_act_chunks": 0,
+          "other_act_chunks": 31,
+          "references": 49
+        },
+        "2014/17": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/24": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/49": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/59": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 10
+        },
+        "2014/65": {
+          "chunks": 23,
+          "own_act_chunks": 0,
+          "other_act_chunks": 23,
+          "references": 25
+        },
+        "2014/90": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/1535": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/2365": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/751": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "2015/847": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/849": {
+          "chunks": 14,
+          "own_act_chunks": 0,
+          "other_act_chunks": 14,
+          "references": 22
+        },
+        "2016/1011": {
+          "chunks": 11,
+          "own_act_chunks": 0,
+          "other_act_chunks": 11,
+          "references": 13
+        },
+        "2016/2341": {
+          "chunks": 11,
+          "own_act_chunks": 0,
+          "other_act_chunks": 11,
+          "references": 13
+        },
+        "2016/680": {
+          "chunks": 30,
+          "own_act_chunks": 0,
+          "other_act_chunks": 30,
+          "references": 40
+        },
+        "2016/797": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2016/943": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2016/97": {
+          "chunks": 12,
+          "own_act_chunks": 0,
+          "other_act_chunks": 12,
+          "references": 12
+        },
+        "2017/1131": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2017/1132": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/1371": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/1939": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/2402": {
+          "chunks": 9,
+          "own_act_chunks": 0,
+          "other_act_chunks": 9,
+          "references": 10
+        },
+        "2017/392": {
+          "chunks": 3,
+          "own_act_chunks": 0,
+          "other_act_chunks": 3,
+          "references": 3
+        },
+        "2017/541": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/745": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2018/1672": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2018/1673": {
+          "chunks": 3,
+          "own_act_chunks": 0,
+          "other_act_chunks": 3,
+          "references": 5
+        },
+        "2018/1725": {
+          "chunks": 28,
+          "own_act_chunks": 0,
+          "other_act_chunks": 28,
+          "references": 34
+        },
+        "2018/858": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/1020": {
+          "chunks": 28,
+          "own_act_chunks": 0,
+          "other_act_chunks": 28,
+          "references": 30
+        },
+        "2019/1238": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/2033": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2019/2034": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2019/2144": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/790": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "2019/881": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2020/1230": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2020/1503": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "2021/1042": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2021/23": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2065": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2254": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2555": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 10
+        },
+        "2022/2557": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "2023/1113": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 10
+        },
+        "2024/1620": {
+          "chunks": 20,
+          "own_act_chunks": 0,
+          "other_act_chunks": 20,
+          "references": 44
+        },
+        "2024/1640": {
+          "chunks": 38,
+          "own_act_chunks": 0,
+          "other_act_chunks": 38,
+          "references": 48
+        },
+        "241/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 8
+        },
+        "260/2012": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "300/2008": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "45/2001": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "575/2013": {
+          "chunks": 38,
+          "own_act_chunks": 0,
+          "other_act_chunks": 38,
+          "references": 70
+        },
+        "600/2014": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "648/2012": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "765/2008": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "806/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "909/2014": {
+          "chunks": 13,
+          "own_act_chunks": 0,
+          "other_act_chunks": 13,
+          "references": 13
+        },
+        "910/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "95/46": {
+          "chunks": 12,
+          "own_act_chunks": 0,
+          "other_act_chunks": 12,
+          "references": 12
+        },
+        "98/415": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "AIAct": {
+          "chunks": 351,
+          "own_act_chunks": 351,
+          "other_act_chunks": 0,
+          "references": 780
+        },
+        "AMLR": {
+          "chunks": 295,
+          "own_act_chunks": 295,
+          "other_act_chunks": 0,
+          "references": 1049
+        },
+        "DORA": {
+          "chunks": 397,
+          "own_act_chunks": 226,
+          "other_act_chunks": 171,
+          "references": 572
+        },
+        "EMD2": {
+          "chunks": 97,
+          "own_act_chunks": 55,
+          "other_act_chunks": 42,
+          "references": 178
+        },
+        "GDPR": {
+          "chunks": 319,
+          "own_act_chunks": 271,
+          "other_act_chunks": 48,
+          "references": 881
+        },
+        "ITS2024/2956": {
+          "chunks": 10,
+          "own_act_chunks": 10,
+          "other_act_chunks": 0,
+          "references": 11
+        },
+        "MiCA": {
+          "chunks": 540,
+          "own_act_chunks": 531,
+          "other_act_chunks": 9,
+          "references": 1342
+        },
+        "PSD2": {
+          "chunks": 322,
+          "own_act_chunks": 253,
+          "other_act_chunks": 69,
+          "references": 1151
+        },
+        "RTS2018/389": {
+          "chunks": 66,
+          "own_act_chunks": 66,
+          "other_act_chunks": 0,
+          "references": 123
+        },
+        "RTS2024/1772": {
+          "chunks": 18,
+          "own_act_chunks": 10,
+          "other_act_chunks": 8,
+          "references": 68
+        },
+        "RTS2024/1774": {
+          "chunks": 60,
+          "own_act_chunks": 60,
+          "other_act_chunks": 0,
+          "references": 102
+        },
+        "RTS2025/301": {
+          "chunks": 2,
+          "own_act_chunks": 2,
+          "other_act_chunks": 0,
+          "references": 2
+        }
+      },
+      "context_tokens": {
+        "all": {
+          "chunks": 4483,
+          "min": 6,
+          "median": 16,
+          "p95": 38,
+          "max": 77,
+          "mean": 18.4,
+          "over_512": 0,
+          "under_100": 4483,
+          "tokens_total": 82320
+        },
+        "policies/policy_section": {
+          "chunks": 384,
+          "min": 10,
+          "median": 16.0,
+          "p95": 24,
+          "max": 25,
+          "mean": 15.8,
+          "over_512": 0,
+          "under_100": 384,
+          "tokens_total": 6060
+        },
+        "regulations/text": {
+          "chunks": 4099,
+          "min": 6,
+          "median": 16,
+          "p95": 38,
+          "max": 77,
+          "mean": 18.6,
+          "over_512": 0,
+          "under_100": 4099,
+          "tokens_total": 76260
+        }
+      }
+    },
+    "recursive": {
+      "seconds": 27.4,
+      "embedding_seconds": 0.0,
+      "sentence_split_seconds": 0.0,
+      "new_sentences_embedded": 0,
+      "duplicate_chunk_ids": 0,
+      "semantic_cuts": 0,
+      "semantic_cuts_below_threshold": 0,
+      "tokens": {
+        "all": {
+          "chunks": 4075,
+          "min": 6,
+          "median": 430,
+          "p95": 507,
+          "max": 512,
+          "mean": 370.6,
+          "over_512": 0,
+          "under_100": 473,
+          "tokens_total": 1510245
+        },
+        "logs/incident": {
+          "chunks": 200,
+          "min": 179,
+          "median": 180.0,
+          "p95": 204,
+          "max": 209,
+          "mean": 184.4,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 36890
+        },
+        "policies/policy_section": {
+          "chunks": 446,
+          "min": 23,
+          "median": 65.0,
+          "p95": 84,
+          "max": 98,
+          "mean": 63.9,
+          "over_512": 0,
+          "under_100": 446,
+          "tokens_total": 28481
+        },
+        "register/provider": {
+          "chunks": 18,
+          "min": 314,
+          "median": 320.0,
+          "p95": 342,
+          "max": 342,
+          "mean": 321.8,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 5792
+        },
+        "regulations/text": {
+          "chunks": 3411,
+          "min": 6,
+          "median": 451,
+          "p95": 508,
+          "max": 512,
+          "mean": 421.9,
+          "over_512": 0,
+          "under_100": 27,
+          "tokens_total": 1439082
+        }
+      },
+      "references_by_act": {
+        "1024/2013": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 10
+        },
+        "1025/2012": {
+          "chunks": 27,
+          "own_act_chunks": 0,
+          "other_act_chunks": 27,
+          "references": 39
+        },
+        "1060/2009": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "1093/2010": {
+          "chunks": 138,
+          "own_act_chunks": 0,
+          "other_act_chunks": 138,
+          "references": 382
+        },
+        "1094/2010": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 13
+        },
+        "1095/2010": {
+          "chunks": 70,
+          "own_act_chunks": 0,
+          "other_act_chunks": 70,
+          "references": 203
+        },
+        "167/2013": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "168/2013": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "182/2011": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 8
+        },
+        "1999/468": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2000/46": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2002/21": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/47": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/65": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2002/87": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2003/361": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2004/109": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 4
+        },
+        "2006/48": {
+          "chunks": 14,
+          "own_act_chunks": 0,
+          "other_act_chunks": 14,
+          "references": 31
+        },
+        "2006/73": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2007/64": {
+          "chunks": 26,
+          "own_act_chunks": 0,
+          "other_act_chunks": 26,
+          "references": 69
+        },
+        "2008/48": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2009/138": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 12
+        },
+        "2009/65": {
+          "chunks": 17,
+          "own_act_chunks": 0,
+          "other_act_chunks": 17,
+          "references": 17
+        },
+        "2011/61": {
+          "chunks": 17,
+          "own_act_chunks": 0,
+          "other_act_chunks": 17,
+          "references": 17
+        },
+        "2013/34": {
+          "chunks": 17,
+          "own_act_chunks": 0,
+          "other_act_chunks": 17,
+          "references": 21
+        },
+        "2013/36": {
+          "chunks": 29,
+          "own_act_chunks": 0,
+          "other_act_chunks": 29,
+          "references": 47
+        },
+        "2014/17": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/24": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/49": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/59": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 10
+        },
+        "2014/65": {
+          "chunks": 22,
+          "own_act_chunks": 0,
+          "other_act_chunks": 22,
+          "references": 24
+        },
+        "2014/90": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/1535": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/2365": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/751": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2015/847": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/849": {
+          "chunks": 14,
+          "own_act_chunks": 0,
+          "other_act_chunks": 14,
+          "references": 22
+        },
+        "2016/1011": {
+          "chunks": 11,
+          "own_act_chunks": 0,
+          "other_act_chunks": 11,
+          "references": 13
+        },
+        "2016/2341": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 10
+        },
+        "2016/680": {
+          "chunks": 30,
+          "own_act_chunks": 0,
+          "other_act_chunks": 30,
+          "references": 42
+        },
+        "2016/797": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2016/943": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2016/97": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "2017/1131": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2017/1132": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/1371": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/1939": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/2402": {
+          "chunks": 9,
+          "own_act_chunks": 0,
+          "other_act_chunks": 9,
+          "references": 11
+        },
+        "2017/392": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/541": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/745": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2018/1672": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2018/1673": {
+          "chunks": 3,
+          "own_act_chunks": 0,
+          "other_act_chunks": 3,
+          "references": 4
+        },
+        "2018/1725": {
+          "chunks": 30,
+          "own_act_chunks": 0,
+          "other_act_chunks": 30,
+          "references": 36
+        },
+        "2018/858": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/1020": {
+          "chunks": 27,
+          "own_act_chunks": 0,
+          "other_act_chunks": 27,
+          "references": 31
+        },
+        "2019/1238": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/2033": {
+          "chunks": 3,
+          "own_act_chunks": 0,
+          "other_act_chunks": 3,
+          "references": 3
+        },
+        "2019/2034": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/2144": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/790": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "2019/881": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2020/1230": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2020/1503": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "2021/1042": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2021/23": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2065": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2254": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2555": {
+          "chunks": 9,
+          "own_act_chunks": 0,
+          "other_act_chunks": 9,
+          "references": 9
+        },
+        "2022/2557": {
+          "chunks": 5,
+          "own_act_chunks": 0,
+          "other_act_chunks": 5,
+          "references": 5
+        },
+        "2023/1113": {
+          "chunks": 9,
+          "own_act_chunks": 0,
+          "other_act_chunks": 9,
+          "references": 9
+        },
+        "2024/1620": {
+          "chunks": 22,
+          "own_act_chunks": 0,
+          "other_act_chunks": 22,
+          "references": 49
+        },
+        "2024/1640": {
+          "chunks": 38,
+          "own_act_chunks": 0,
+          "other_act_chunks": 38,
+          "references": 47
+        },
+        "241/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 8
+        },
+        "260/2012": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "300/2008": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "45/2001": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "575/2013": {
+          "chunks": 34,
+          "own_act_chunks": 0,
+          "other_act_chunks": 34,
+          "references": 68
+        },
+        "600/2014": {
+          "chunks": 5,
+          "own_act_chunks": 0,
+          "other_act_chunks": 5,
+          "references": 5
+        },
+        "648/2012": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "765/2008": {
+          "chunks": 3,
+          "own_act_chunks": 0,
+          "other_act_chunks": 3,
+          "references": 3
+        },
+        "806/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "909/2014": {
+          "chunks": 15,
+          "own_act_chunks": 0,
+          "other_act_chunks": 15,
+          "references": 15
+        },
+        "910/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "95/46": {
+          "chunks": 11,
+          "own_act_chunks": 0,
+          "other_act_chunks": 11,
+          "references": 12
+        },
+        "98/415": {
+          "chunks": 3,
+          "own_act_chunks": 0,
+          "other_act_chunks": 3,
+          "references": 3
+        },
+        "AIAct": {
+          "chunks": 284,
+          "own_act_chunks": 284,
+          "other_act_chunks": 0,
+          "references": 741
+        },
+        "AMLR": {
+          "chunks": 222,
+          "own_act_chunks": 222,
+          "other_act_chunks": 0,
+          "references": 924
+        },
+        "DORA": {
+          "chunks": 311,
+          "own_act_chunks": 178,
+          "other_act_chunks": 133,
+          "references": 511
+        },
+        "EMD2": {
+          "chunks": 79,
+          "own_act_chunks": 41,
+          "other_act_chunks": 38,
+          "references": 170
+        },
+        "GDPR": {
+          "chunks": 253,
+          "own_act_chunks": 206,
+          "other_act_chunks": 47,
+          "references": 836
+        },
+        "ITS2024/2956": {
+          "chunks": 8,
+          "own_act_chunks": 8,
+          "other_act_chunks": 0,
+          "references": 9
+        },
+        "MiCA": {
+          "chunks": 415,
+          "own_act_chunks": 407,
+          "other_act_chunks": 8,
+          "references": 1290
+        },
+        "PSD2": {
+          "chunks": 249,
+          "own_act_chunks": 184,
+          "other_act_chunks": 65,
+          "references": 1062
+        },
+        "RTS2018/389": {
+          "chunks": 46,
+          "own_act_chunks": 46,
+          "other_act_chunks": 0,
+          "references": 111
+        },
+        "RTS2024/1772": {
+          "chunks": 18,
+          "own_act_chunks": 10,
+          "other_act_chunks": 8,
+          "references": 69
+        },
+        "RTS2024/1774": {
+          "chunks": 52,
+          "own_act_chunks": 52,
+          "other_act_chunks": 0,
+          "references": 96
+        },
+        "RTS2025/301": {
+          "chunks": 2,
+          "own_act_chunks": 2,
+          "other_act_chunks": 0,
+          "references": 2
+        }
+      },
+      "context_tokens": {
+        "all": {
+          "chunks": 2693,
+          "min": 6,
+          "median": 16,
+          "p95": 38,
+          "max": 77,
+          "mean": 18.5,
+          "over_512": 0,
+          "under_100": 2693,
+          "tokens_total": 49823
+        },
+        "policies/policy_section": {
+          "chunks": 384,
+          "min": 10,
+          "median": 16.0,
+          "p95": 24,
+          "max": 25,
+          "mean": 15.8,
+          "over_512": 0,
+          "under_100": 384,
+          "tokens_total": 6060
+        },
+        "regulations/text": {
+          "chunks": 2309,
+          "min": 6,
+          "median": 16,
+          "p95": 39,
+          "max": 77,
+          "mean": 19.0,
+          "over_512": 0,
+          "under_100": 2309,
+          "tokens_total": 43763
+        }
+      }
+    },
+    "semantic": {
+      "seconds": 3930.7,
+      "embedding_seconds": 3736.7,
+      "sentence_split_seconds": 163.5,
+      "new_sentences_embedded": 22856,
+      "duplicate_chunk_ids": 0,
+      "semantic_cuts": 0,
+      "semantic_cuts_below_threshold": 0,
+      "tokens": {
+        "all": {
+          "chunks": 5538,
+          "min": 0,
+          "median": 250.0,
+          "p95": 479,
+          "max": 513,
+          "mean": 263.9,
+          "over_512": 1,
+          "under_100": 448,
+          "tokens_total": 1461605
+        },
+        "logs/incident": {
+          "chunks": 200,
+          "min": 179,
+          "median": 180.0,
+          "p95": 204,
+          "max": 209,
+          "mean": 184.4,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 36890
+        },
+        "policies/policy_section": {
+          "chunks": 446,
+          "min": 23,
+          "median": 65.0,
+          "p95": 84,
+          "max": 98,
+          "mean": 63.9,
+          "over_512": 0,
+          "under_100": 446,
+          "tokens_total": 28481
+        },
+        "register/provider": {
+          "chunks": 18,
+          "min": 314,
+          "median": 320.0,
+          "p95": 342,
+          "max": 342,
+          "mean": 321.8,
+          "over_512": 0,
+          "under_100": 0,
+          "tokens_total": 5792
+        },
+        "regulations/text": {
+          "chunks": 4874,
+          "min": 0,
+          "median": 279.0,
+          "p95": 483,
+          "max": 513,
+          "mean": 285.3,
+          "over_512": 1,
+          "under_100": 2,
+          "tokens_total": 1390442
+        }
+      },
+      "references_by_act": {
+        "1024/2013": {
+          "chunks": 9,
+          "own_act_chunks": 0,
+          "other_act_chunks": 9,
+          "references": 9
+        },
+        "1025/2012": {
+          "chunks": 25,
+          "own_act_chunks": 0,
+          "other_act_chunks": 25,
+          "references": 32
+        },
+        "1060/2009": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "1093/2010": {
+          "chunks": 130,
+          "own_act_chunks": 0,
+          "other_act_chunks": 130,
+          "references": 372
+        },
+        "1094/2010": {
+          "chunks": 9,
+          "own_act_chunks": 0,
+          "other_act_chunks": 9,
+          "references": 14
+        },
+        "1095/2010": {
+          "chunks": 74,
+          "own_act_chunks": 0,
+          "other_act_chunks": 74,
+          "references": 201
+        },
+        "167/2013": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "168/2013": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "182/2011": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 8
+        },
+        "1999/468": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2000/46": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2002/21": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/47": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/65": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2002/87": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2003/361": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2004/109": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 4
+        },
+        "2006/48": {
+          "chunks": 14,
+          "own_act_chunks": 0,
+          "other_act_chunks": 14,
+          "references": 30
+        },
+        "2006/73": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2007/64": {
+          "chunks": 29,
+          "own_act_chunks": 0,
+          "other_act_chunks": 29,
+          "references": 65
+        },
+        "2008/48": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2009/138": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 12
+        },
+        "2009/65": {
+          "chunks": 18,
+          "own_act_chunks": 0,
+          "other_act_chunks": 18,
+          "references": 18
+        },
+        "2011/61": {
+          "chunks": 16,
+          "own_act_chunks": 0,
+          "other_act_chunks": 16,
+          "references": 16
+        },
+        "2013/34": {
+          "chunks": 16,
+          "own_act_chunks": 0,
+          "other_act_chunks": 16,
+          "references": 20
+        },
+        "2013/36": {
+          "chunks": 29,
+          "own_act_chunks": 0,
+          "other_act_chunks": 29,
+          "references": 47
+        },
+        "2014/17": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/24": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/49": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2014/59": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 10
+        },
+        "2014/65": {
+          "chunks": 19,
+          "own_act_chunks": 0,
+          "other_act_chunks": 19,
+          "references": 21
+        },
+        "2014/90": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/1535": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/2365": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/751": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2015/847": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2015/849": {
+          "chunks": 14,
+          "own_act_chunks": 0,
+          "other_act_chunks": 14,
+          "references": 21
+        },
+        "2016/1011": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 12
+        },
+        "2016/2341": {
+          "chunks": 7,
+          "own_act_chunks": 0,
+          "other_act_chunks": 7,
+          "references": 8
+        },
+        "2016/680": {
+          "chunks": 28,
+          "own_act_chunks": 0,
+          "other_act_chunks": 28,
+          "references": 40
+        },
+        "2016/797": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2016/943": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2016/97": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "2017/1131": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "2017/1132": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/1371": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/1939": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/2402": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 9
+        },
+        "2017/392": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/541": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2017/745": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2018/1672": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2018/1673": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 4
+        },
+        "2018/1725": {
+          "chunks": 29,
+          "own_act_chunks": 0,
+          "other_act_chunks": 29,
+          "references": 34
+        },
+        "2018/858": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/1020": {
+          "chunks": 27,
+          "own_act_chunks": 0,
+          "other_act_chunks": 27,
+          "references": 30
+        },
+        "2019/1238": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/2033": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/2034": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/2144": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2019/790": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "2019/881": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2020/1230": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2020/1503": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "2021/1042": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2021/23": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2065": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2254": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "2022/2555": {
+          "chunks": 10,
+          "own_act_chunks": 0,
+          "other_act_chunks": 10,
+          "references": 10
+        },
+        "2022/2557": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "2023/1113": {
+          "chunks": 8,
+          "own_act_chunks": 0,
+          "other_act_chunks": 8,
+          "references": 8
+        },
+        "2024/1620": {
+          "chunks": 20,
+          "own_act_chunks": 0,
+          "other_act_chunks": 20,
+          "references": 44
+        },
+        "2024/1640": {
+          "chunks": 36,
+          "own_act_chunks": 0,
+          "other_act_chunks": 36,
+          "references": 45
+        },
+        "241/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 8
+        },
+        "260/2012": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "300/2008": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "45/2001": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "575/2013": {
+          "chunks": 35,
+          "own_act_chunks": 0,
+          "other_act_chunks": 35,
+          "references": 68
+        },
+        "600/2014": {
+          "chunks": 4,
+          "own_act_chunks": 0,
+          "other_act_chunks": 4,
+          "references": 4
+        },
+        "648/2012": {
+          "chunks": 6,
+          "own_act_chunks": 0,
+          "other_act_chunks": 6,
+          "references": 6
+        },
+        "765/2008": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "806/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "909/2014": {
+          "chunks": 12,
+          "own_act_chunks": 0,
+          "other_act_chunks": 12,
+          "references": 12
+        },
+        "910/2014": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "95/46": {
+          "chunks": 12,
+          "own_act_chunks": 0,
+          "other_act_chunks": 12,
+          "references": 12
+        },
+        "98/415": {
+          "chunks": 2,
+          "own_act_chunks": 0,
+          "other_act_chunks": 2,
+          "references": 2
+        },
+        "AIAct": {
+          "chunks": 337,
+          "own_act_chunks": 337,
+          "other_act_chunks": 0,
+          "references": 732
+        },
+        "AMLR": {
+          "chunks": 261,
+          "own_act_chunks": 261,
+          "other_act_chunks": 0,
+          "references": 898
+        },
+        "DORA": {
+          "chunks": 354,
+          "own_act_chunks": 205,
+          "other_act_chunks": 149,
+          "references": 528
+        },
+        "EMD2": {
+          "chunks": 87,
+          "own_act_chunks": 49,
+          "other_act_chunks": 38,
+          "references": 169
+        },
+        "GDPR": {
+          "chunks": 291,
+          "own_act_chunks": 247,
+          "other_act_chunks": 44,
+          "references": 813
+        },
+        "ITS2024/2956": {
+          "chunks": 10,
+          "own_act_chunks": 10,
+          "other_act_chunks": 0,
+          "references": 11
+        },
+        "MiCA": {
+          "chunks": 490,
+          "own_act_chunks": 483,
+          "other_act_chunks": 7,
+          "references": 1271
+        },
+        "PSD2": {
+          "chunks": 290,
+          "own_act_chunks": 227,
+          "other_act_chunks": 63,
+          "references": 1041
+        },
+        "RTS2018/389": {
+          "chunks": 52,
+          "own_act_chunks": 52,
+          "other_act_chunks": 0,
+          "references": 112
+        },
+        "RTS2024/1772": {
+          "chunks": 20,
+          "own_act_chunks": 12,
+          "other_act_chunks": 8,
+          "references": 62
+        },
+        "RTS2024/1774": {
+          "chunks": 57,
+          "own_act_chunks": 57,
+          "other_act_chunks": 0,
+          "references": 98
+        },
+        "RTS2025/301": {
+          "chunks": 4,
+          "own_act_chunks": 4,
+          "other_act_chunks": 0,
+          "references": 4
+        }
+      },
+      "context_tokens": {
+        "all": {
+          "chunks": 3797,
+          "min": 6,
+          "median": 16,
+          "p95": 39,
+          "max": 77,
+          "mean": 18.6,
+          "over_512": 0,
+          "under_100": 3797,
+          "tokens_total": 70703
+        },
+        "policies/policy_section": {
+          "chunks": 384,
+          "min": 10,
+          "median": 16.0,
+          "p95": 24,
+          "max": 25,
+          "mean": 15.8,
+          "over_512": 0,
+          "under_100": 384,
+          "tokens_total": 6060
+        },
+        "regulations/text": {
+          "chunks": 3413,
+          "min": 6,
+          "median": 16,
+          "p95": 40,
+          "max": 77,
+          "mean": 18.9,
+          "over_512": 0,
+          "under_100": 3413,
+          "tokens_total": 64643
+        }
+      }
+    }
+  },
+  "bge_m3_cpu": {
+    "setup_seconds": 30.8,
+    "model_load_seconds": 1.8,
+    "embedding_seconds_total": 7489.4,
+    "sentences_embedded": 27683,
+    "sentences_per_second": 3.7,
+    "parameter_mb": 2165.8,
+    "peak_process_memory_mb": 3188.6,
+    "spacy_sentence_seconds_total": 258.5
+  }
+}

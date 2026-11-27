@@ -1,5 +1,5 @@
 # Development infrastructure for RegLens.
-# Ports are bound to 127.0.0.1 so the databases are reachable only from this machine.
+# Ports are bound to 127.0.0.1 so the services are reachable only from this machine.
 # Start:  docker compose up -d      Stop:  docker compose down
 
 services:
@@ -41,26 +41,6 @@ services:
       retries: 5
     restart: unless-stopped
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: reglens-postgres
-    environment:
-      # Values come from .env (copy .env.example). Compose fails loudly if missing.
-      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
-    ports:
-      - "127.0.0.1:5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    restart: unless-stopped
-
 volumes:
   qdrant_data:
   redis_data:
-  postgres_data:

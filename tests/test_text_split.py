@@ -41,7 +41,7 @@ def test_repair_french_cuts_seen_from_spacy() -> None:
 
 
 def test_repair_corpus_fragments() -> None:
-    # Cuts seen in the first corpus run (results/archive/2026-11-21_chunking_stats.json)
+    # Cuts seen on the regulation corpus
     cases = [
         ("(3) paragraphs are replaced: ‘3. For services, a CSD shall act.",
          [(0, 28), (29, 32), (33, 63)],

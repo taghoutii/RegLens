@@ -6,10 +6,10 @@ from pathlib import Path
 import httpx
 
 from reglens.corpus.download import download_one
-from reglens.corpus.sources import DownloadTarget, FileFormat
+from reglens.corpus.sources import DownloadTarget
 
-GOOD_PDF = b"%PDF-1.7\n" + b"0" * 200_000
 GOOD_HTML = b"<html><body>" + b"Article 1 " * 10_000 + b"</body></html>"
+HTML = "text/html; charset=UTF-8"
 
 Handler = Callable[[httpx.Request], httpx.Response]
 
@@ -18,9 +18,9 @@ def _client(handler: Handler) -> httpx.Client:
     return httpx.Client(transport=httpx.MockTransport(handler))
 
 
-def _target(tmp_path: Path, fmt: FileFormat = "pdf") -> DownloadTarget:
+def _target(tmp_path: Path) -> DownloadTarget:
     return DownloadTarget(
-        "doc", "reports", fmt, "https://example.test/doc", tmp_path / f"d.{fmt}", None
+        "doc", "regulations", "html", "https://example.test/doc", tmp_path / "d.html", None
     )
 
 
@@ -30,35 +30,35 @@ def _respond(body: bytes, content_type: str, status: int = 200) -> Handler:
     )
 
 
-def test_valid_pdf_is_saved(tmp_path: Path) -> None:
-    result = download_one(_client(_respond(GOOD_PDF, "application/pdf")), _target(tmp_path))
+def test_valid_html_is_saved(tmp_path: Path) -> None:
+    result = download_one(_client(_respond(GOOD_HTML, HTML)), _target(tmp_path))
     assert result.status == "downloaded"
-    assert (tmp_path / "d.pdf").read_bytes() == GOOD_PDF
+    assert (tmp_path / "d.html").read_bytes() == GOOD_HTML
     assert not list(tmp_path.glob("*.part"))
 
 
-def test_html_error_page_disguised_as_pdf_is_rejected(tmp_path: Path) -> None:
-    handler = _respond(b"<html>Access denied</html>" * 10_000, "application/octet-stream")
+def test_page_without_the_expected_marker_is_rejected(tmp_path: Path) -> None:
+    handler = _respond(b"<html>Access denied</html>" * 10_000, HTML)
     result = download_one(_client(handler), _target(tmp_path))
     assert result.status == "failed"
-    assert "%PDF-" in result.detail
+    assert "Article" in result.detail
     assert not any(tmp_path.iterdir())  # nothing left behind
 
 
 def test_small_captcha_page_is_rejected(tmp_path: Path) -> None:
     handler = _respond(b"<html>Please verify you are human</html>", "text/html")
-    result = download_one(_client(handler), _target(tmp_path, "html"))
+    result = download_one(_client(handler), _target(tmp_path))
     assert result.status == "failed"
     assert "too small" in result.detail
 
 
-def test_valid_html_is_saved(tmp_path: Path) -> None:
-    handler = _respond(GOOD_HTML, "text/html; charset=UTF-8")
-    assert download_one(_client(handler), _target(tmp_path, "html")).status == "downloaded"
+def test_unexpected_content_type_is_rejected(tmp_path: Path) -> None:
+    result = download_one(_client(_respond(GOOD_HTML, "application/pdf")), _target(tmp_path))
+    assert result.status == "failed" and "content type" in result.detail
 
 
 def test_existing_valid_file_is_skipped(tmp_path: Path) -> None:
-    (tmp_path / "d.pdf").write_bytes(GOOD_PDF)
+    (tmp_path / "d.html").write_bytes(GOOD_HTML)
 
     def fail(request: httpx.Request) -> httpx.Response:
         raise AssertionError("must not hit the network")
@@ -73,7 +73,7 @@ def test_transient_error_is_retried(tmp_path: Path) -> None:
         calls["n"] += 1
         if calls["n"] < 3:
             return httpx.Response(503)
-        return httpx.Response(200, content=GOOD_PDF, headers={"content-type": "application/pdf"})
+        return httpx.Response(200, content=GOOD_HTML, headers={"content-type": HTML})
 
     result = download_one(_client(flaky), _target(tmp_path), backoff_s=0)
     assert result.status == "downloaded"
@@ -115,18 +115,3 @@ def test_404_is_not_retried(tmp_path: Path) -> None:
     result = download_one(_client(missing), _target(tmp_path), backoff_s=0)
     assert result.status == "failed"
     assert calls["n"] == 1
-
-
-XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
-
-def test_valid_spreadsheet_is_saved(tmp_path: Path) -> None:
-    body = b"PK\x03\x04" + b"0" * 20_000 + b"xl/workbook.xml"
-    result = download_one(_client(_respond(body, XLSX)), _target(tmp_path, "xlsx"))
-    assert result.status == "downloaded"
-
-
-def test_zip_that_is_not_a_workbook_is_rejected(tmp_path: Path) -> None:
-    body = b"PK\x03\x04" + b"0" * 20_000
-    result = download_one(_client(_respond(body, XLSX)), _target(tmp_path, "xlsx"))
-    assert result.status == "failed" and "xl/workbook.xml" in result.detail

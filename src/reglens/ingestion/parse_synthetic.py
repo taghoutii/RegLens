@@ -6,8 +6,11 @@ Policies: one document per file, doc_id = policy id ("POL-005").
 Log: one document, doc_id "incident_log"; one block per incident
     -> parent_id "incident_log#INC-0010", with all its events as structured records.
     (Phase 3 decides which events go into the incident's chunk.)
+Register: one document, doc_id "register"; one block per provider (CSV row)
+    -> parent_id "register#PRV-003", text = one line "Column: value | Column: value ...".
 """
 
+import csv
 import json
 import re
 from collections import defaultdict
@@ -20,6 +23,8 @@ from reglens.ingestion.models import Block, ParsedDocument
 POLICY_FILE = re.compile(r"^(POL-\d{3})_[a-z_]+_(en|fr)\.md$")
 SECTION_HEADING = re.compile(r"^##\s+(\d+)\.\s+(.+)$")
 LOG_DOC_ID = "incident_log"
+REGISTER_DOC_ID = "register"
+REGISTER_FILE = "register_of_information.csv"
 
 
 def parse_policy(path: Path, *, source: str) -> ParsedDocument:
@@ -97,5 +102,26 @@ def parse_incident_log(path: Path, *, source: str) -> ParsedDocument:
         langue="en",
         title="ICT incident log",
         parser="incident_jsonl",
+        blocks=blocks,
+    )
+
+
+def parse_register(path: Path, *, source: str) -> ParsedDocument:
+    """One block per provider: every non-empty column, in file order, on one line."""
+    blocks = []
+    with path.open(encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            parent_id = f"{REGISTER_DOC_ID}#{row['Provider ID']}"
+            text = " | ".join(f"{column}: {value}" for column, value in row.items() if value)
+            blocks.append(
+                Block(block_id=f"{parent_id}/row", parent_id=parent_id, kind="text", text=text)
+            )
+    return ParsedDocument(
+        doc_id=REGISTER_DOC_ID,
+        source=source,
+        type_doc="register",
+        langue="en",
+        title="Register of information on ICT third-party service providers",
+        parser="register_csv",
         blocks=blocks,
     )

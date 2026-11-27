@@ -1,151 +1,76 @@
 # RegLens
 
-**Cited answers on EU financial regulation, in under a minute.**
+Cited answers on EU financial regulation for fintech compliance teams.
 
-## The problem and the user
-  
-RegLens is a retrieval-augmented question-answering system that answers such questions, **cites the exact source of every claim** (document, article, page, table) and **refuses** when the corpus does not support a conclusion. It cites and summarizes; humans decide.
+RegLens answers compliance questions from a payment or e-money fintech by searching EU regulations and the company's internal records. Every claim cites its exact source (document, article, section, record), and the system refuses when the corpus does not support an answer.
 
-## Architecture overview
+## What it can answer
+- **Regulation:** "What must an initial notification of a major ICT incident contain?"
+- **Cross-references:** "Which articles does DORA Article 19 depend on?"
+- **Policy compliance:** "Does the safeguarding policy of the Payments unit meet the PSD2 and EMD2 deadlines?"
+- **Incident deadlines:** "Was INC-0010 reported on time, under DORA and under the unit's own policy?"
+- **ICT providers:** "Which critical providers support the payments gateway, and which have no exit plan?"
+- **Payment obligations:** "After how many failed authentication attempts must access be blocked?"
+- **Refusal:** "What were ING's capital ratios in 2025?" (not in the corpus)
 
-Three decoupled parts: ingestion never slows down a question.
-
+## Architecture
 ```
-1. Ingestion (asynchronous)
-   POST /api/v1/documents ─► 202 + job_id ─► Redis Streams ─► worker
-   worker: parse (Docling / EUR-Lex HTML) ─► mask PII + secrets (Presidio)
-           ─► chunk by structure ─► embed (bge-m3 dense + sparse)
-           ─► Qdrant (chunks + vectors) | PostgreSQL (exact table values)
+Ingestion   sources ─► parse (EUR-Lex HTML, Markdown, JSONL, CSV) ─► mask PII (Presidio)
+            ─► chunk (structure + semantic) ─► embed (bge-m3, dense + sparse) ─► Qdrant
 
-2. Question (live, streamed)
-   Next.js ─► FastAPI /api/v1/chat/stream
-   embed question ─► semantic cache (Redis) ─► hybrid search in Qdrant (dense + sparse, RRF)
-   ─► cross-encoder reranker (top-20 → top-5) ─► refuse if relevance too low
-   ─► LLM answer with citations ─► output PII guard ─► SSE events
-
-3. Stores
-   Qdrant      chunks + vectors      → hybrid search
-   PostgreSQL  exact table values    → SQL
+Question    FastAPI ─► hybrid search in Qdrant (dense + sparse, RRF) ─► cross-encoder reranking
+            ─► refusal if evidence is too weak ─► LLM answer with citations ─► PII check
+            ─► streamed to the Next.js interface (SSE)
 ```
+
+## Corpus
+Listed in [`data/sources.yaml`](data/sources.yaml); raw files are not committed.
+
+| Type | Content |
+| :--- | :--- |
+| EU regulations (EN + FR) | DORA and its technical standards (RTS 2024/1772, RTS 2025/301, RTS 2024/1774, ITS 2024/2956), PSD2 and the SCA standard (RTS 2018/389), the E-Money Directive, GDPR, AMLR, MiCA, the AI Act |
+| Internal records (synthetic) | Policies (EN + FR), ICT incident log, register of ICT providers, generated with fake personal data |
 
 ## Tech stack
-
-| Layer | Choice |
-| :--- | :--- |
-| Backend | FastAPI (async), Pydantic v2 |
-| RAG framework | LlamaIndex |
-| Parsing | Docling |
-| Embeddings | BAAI/bge-m3 (dense + sparse, FR + EN) |
-| Vector database | Qdrant |
-| Reranker | BAAI/bge-reranker-v2-m3 |
-| LLM | Mistral Small (API) |
-| Queue & cache | Redis |
-| Tables | PostgreSQL |
-| PII | Microsoft Presidio |
-| Observability | Langfuse |
-| Evaluation | Ragas + Recall@k / MRR script |
-| Frontend | Next.js |
-| Quality | pytest, ruff, mypy, GitHub Actions |
-| Infrastructure | Docker Compose |
-
-## Folder structure
-
-```
-RegLens/
-├── data/
-│   ├── sources.yaml        # list of corpus documents (committed)
-│   ├── raw/                # downloaded + generated files (not committed) — the only input of the build
-│   ├── cache/              # raw parser output, e.g. Docling JSON (not committed, never ingested)
-│   ├── processed/          # parsed documents and chunks, always PII-masked (not committed)
-│   ├── ground_truth/       # what the synthetic generator planted (not committed, never ingested)
-│   └── golden_set/         # evaluation questions
-├── docs/                   # project scoping and backlog
-├── results/                # experiment results (committed) + EXPERIMENTS.md
-├── scripts/                # build_corpus.py and one script per build stage
-│   └── measure/            # measurements (results/), not part of the build
-├── src/reglens/
-│   ├── config.py           # settings from environment variables
-│   ├── corpus/             # source list, downloader, synthetic data generator
-│   ├── ingestion/          # parsing, PII masking, table store, chunking, embedding, indexing
-│   ├── evaluation/         # result files, table and PII checks (retrieval metrics: Phase 4)
-│   ├── retrieval/          # hybrid search, reranking
-│   ├── generation/         # LLM client, prompts, guards
-│   ├── api/                # FastAPI app and schemas
-│   └── observability/      # tracing helpers
-├── tests/
-├── frontend/               # Next.js app
-├── docker-compose.yml      # development infrastructure
-└── pyproject.toml          # dependencies + tool configuration
-```
+FastAPI · Pydantic v2 · LlamaIndex · Presidio · BAAI/bge-m3 · Qdrant · BAAI/bge-reranker-v2-m3 · Mistral · Redis · Ragas · Langfuse · Next.js · Docker Compose · GitHub Actions
 
 ## Getting started (Windows, PowerShell)
-
 Requirements: Python 3.11, Docker Desktop.
 
 ```powershell
-# 1. Configuration (fake local values; edit as needed)
 Copy-Item .env.example .env
-
-# 2. Infrastructure: Qdrant, Redis, PostgreSQL
-docker compose up -d
-docker compose ps            # all services should be "healthy"
-# Qdrant dashboard: http://localhost:6333/dashboard
-
-# 3. Python environment
+docker compose up -d                      # Qdrant, Redis
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -e ".[dev,models]"   # "models" = spaCy NER models for PII masking (EN + FR)
-
-# 4. Checks
-ruff check .
-mypy
-pytest -m "not integration"      # unit tests (what CI runs)
-pytest                           # + integration tests (need the models, corpus, PostgreSQL)
+pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu   # bge-m3 runs on CPU
+pip install -e ".[dev,models]"            # "models": spaCy NER models for PII masking
+pytest -m "not integration"
 ```
 
-The spaCy models are not published on PyPI: spaCy distributes them as wheel files on GitHub. Their exact URLs and versions are pinned in `pyproject.toml` (the `models` extra), so the install is reproducible. Docling downloads its own layout and table models from Hugging Face on first use.
-
-Stop the infrastructure with `docker compose down` (data is kept in Docker volumes; add `-v` to delete it).
-
-## Corpus
-
-The corpus is listed in [`data/sources.yaml`](data/sources.yaml):
-
-- **regulations**: EU texts from EUR-Lex (HTML, French + English);
-- **reports**: Pillar 3 risk reports of European banks (PDF);
-- **policies** and **logs**: internal documents and an ICT incident log of a fictional fintech, generated with fake personal data.
-
-Raw files live in `data/raw/<type>/` and are **not committed** (bank reports are copyrighted). One command builds the whole corpus, from download to chunks, and skips every stage that is already up to date:
-
+## Building the corpus
 ```powershell
-python scripts/build_corpus.py               # download -> generate -> Docling -> parse + mask -> chunk
-python scripts/build_corpus.py --record      # same, and record the Docling and chunking runs in results/
-python scripts/build_corpus.py --from parse  # force a stage and every stage after it
-python scripts/build_corpus.py --dry-run     # show what would run
+python scripts/build_corpus.py            # download -> generate -> parse + mask -> chunk
+python scripts/build_corpus.py --dry-run  # show which stages would run
+python scripts/build_corpus.py --from parse
+python scripts/chunk_corpus.py --baselines   # also the two comparison strategies (slow on CPU)
 ```
 
-| Stage | Script | Output |
-| :--- | :--- | :--- |
-| download | `download_corpus.py` | `data/raw/regulations/`, `data/raw/reports/` (PDF reports, and ING's spreadsheet appendix) |
-| generate | `generate_synthetic.py` | `data/raw/policies/`, `data/raw/logs/`, `data/ground_truth/` (seed 42) |
-| docling | `run_docling.py` | `data/cache/docling/` (hours on CPU, resumable; not committed, never ingested) |
-| parse | `parse_corpus.py` | `data/processed/parsed/` (masked) + report tables in PostgreSQL |
-| chunk | `chunk_corpus.py` | `data/processed/chunks/<strategy>/` (3 strategies; downloads BAAI/bge-m3, ~2.3 GB, on first run) |
-
-Parsing masks every derived file before it is written: names, e-mail addresses, IBANs, phone numbers and API keys become placeholders such as `<PERSON>`. Report tables get inferred header rows when the PDF marks none, and ING tables that its spreadsheet appendix matches with certainty take their exact values from it. Measurements (table checks, PII recall, mapping counts) are separate scripts in `scripts/measure/`.
-
-Every download is checked (content type, file signature, size) before it is kept; failures are listed at the end and the script exits with code 1. Regulations are fetched through the EU Publications Office repository (CELLAR), which serves the same documents as the EUR-Lex links in `sources.yaml` in a machine-readable form.
-
-The synthetic documents are linked the way real ones would be. Every log line names the business unit that owns the failing system, e.g. `"owning_unit": "Payments (BU-PAY)"`. Each unit has exactly one ICT incident policy, whose header carries the same unit code. That policy sets the unit's own reporting deadline, which may be stricter or more lenient than DORA's.
-
-The generator also writes `data/ground_truth/` (not committed): every planted fake personal data value and secret, which policies break a regulatory rule, the policy that applies to each incident, and whether each incident was reported late under DORA and under that policy. It sits outside `data/raw/` on purpose: ingestion reads only `data/raw/`, so these answers can never end up in the search index. Later phases test against it.
-
-## Project status
-
-| Phase | Status |
+| Stage | Output |
 | :--- | :--- |
-| 0. Setup (repository, tooling, Docker infrastructure, CI) | done |
-| 1. Corpus download and synthetic data | done |
-| 2. Parsing and PII masking | done; table-cell criterion not met (see `results/`) |
-| 3. Chunking | done (table work closed; see `results/EXPERIMENTS.md`); strategy comparison in Phase 6 |
-| 4–11. Evaluation, indexing, retrieval, API, generation, observability, frontend, production | planned |
+| download | `data/raw/regulations/` |
+| generate | synthetic records in `data/raw/`, answer key in `data/ground_truth/` (never indexed) |
+| parse + mask | `data/processed/parsed/` |
+| chunk | `data/processed/chunks/structure_semantic/`; baselines in `recursive/` and `semantic/` |
+
+Personal data is masked before anything derived is written. Sentence vectors are cached in `data/cache/`, so a rebuild only embeds new or changed sentences. Measurement scripts live in `scripts/measure/`; results are in [`results/EXPERIMENTS.md`](results/EXPERIMENTS.md).
+
+## Repository structure
+```
+data/          sources.yaml, golden_set/ (raw, processed, ground_truth and cache are not committed)
+docs/          project scoping and backlog
+results/       evaluation results
+scripts/       build_corpus.py and one script per stage; measure/ for measurements
+src/reglens/   corpus, ingestion, evaluation, retrieval, generation, api, observability
+tests/
+frontend/
+```

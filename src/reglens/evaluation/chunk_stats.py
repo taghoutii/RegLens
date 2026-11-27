@@ -48,3 +48,23 @@ def stats_by_group(chunks: Iterable[Chunk], *, max_tokens: int, min_tokens: int)
         key: length_stats(v, max_tokens=max_tokens, min_tokens=min_tokens)
         for key, v in sorted(groups.items())
     }
+
+
+def reference_counts(chunks: Iterable[Chunk]) -> dict[str, dict[str, int]]:
+    """Per cited act: chunks citing it, split into chunks of that act itself (its own
+    articles) and chunks of other acts; and the total number of references (one chunk can
+    cite several articles of the same act). Both languages are counted."""
+    out: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"chunks": 0, "own_act_chunks": 0, "other_act_chunks": 0, "references": 0}
+    )
+    for c in chunks:
+        own = c.reglement.replace(" ", "") if c.reglement else None  # as references.ref_key
+        cited: dict[str, int] = defaultdict(int)
+        for ref in c.references:
+            cited[ref.split(":", 1)[0]] += 1
+        for act, n in cited.items():
+            row = out[act]
+            row["chunks"] += 1
+            row["own_act_chunks" if act == own else "other_act_chunks"] += 1
+            row["references"] += n
+    return dict(sorted(out.items()))

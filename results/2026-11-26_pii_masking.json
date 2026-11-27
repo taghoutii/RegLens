@@ -1,6 +1,6 @@
 {
   "name": "pii_masking",
-  "date": "2026-11-20",
+  "date": "2026-11-26",
   "config": {
     "spacy_models": {
       "en": "en_core_web_md",
@@ -17,12 +17,13 @@
     "batch_size": 64
   },
   "synthetic": {
+    "seed": 42,
     "planted": {
-      "names": 300,
-      "emails": 300,
-      "phones": 50,
-      "ibans": 50,
-      "secrets": 50
+      "names": 342,
+      "emails": 342,
+      "phones": 80,
+      "ibans": 62,
+      "secrets": 62
     },
     "leaked": {},
     "recall": {
@@ -34,29 +35,61 @@
     },
     "failures": []
   },
-  "regulations_false_positives": {
-    "documents": 16,
-    "chars_scanned": 5349367,
-    "detections_by_type": {
-      "PERSON": 323
+  "holdout": [
+    {
+      "seed": 43,
+      "planted": {
+        "names": 342,
+        "emails": 342,
+        "phones": 80,
+        "ibans": 62,
+        "secrets": 62
+      },
+      "leaked": {},
+      "recall": {
+        "names": 1.0,
+        "emails": 1.0,
+        "phones": 1.0,
+        "ibans": 1.0,
+        "secrets": 1.0
+      }
+    }
+  ],
+  "register_masked_vs_planted": {
+    "planted": {
+      "names": 18,
+      "emails": 18,
+      "phones": 18
     },
-    "dropped_by_person_filter": 362,
-    "caps_multiword_masked": 276,
+    "masked": {
+      "PHONE_NUMBER": 18,
+      "EMAIL_ADDRESS": 18,
+      "PERSON": 18
+    }
+  },
+  "regulations_false_positives": {
+    "documents": 24,
+    "chars_scanned": 6541081,
+    "detections_by_type": {
+      "PERSON": 108
+    },
+    "dropped_by_person_filter": 725,
+    "caps_multiword_masked": 0,
     "top_examples": [
       {
         "entity": "PERSON",
-        "text": "CHAPTER III HIGH-RISK",
-        "count": 247
+        "text": "Alphanumerical",
+        "count": 18
       },
       {
         "entity": "PERSON",
-        "text": "CHAPTER III ICT",
-        "count": 29
+        "text": "Instructions",
+        "count": 18
       },
       {
         "entity": "PERSON",
-        "text": "Alphanumérique",
-        "count": 12
+        "text": "Titles III",
+        "count": 15
       },
       {
         "entity": "PERSON",
@@ -65,17 +98,27 @@
       },
       {
         "entity": "PERSON",
+        "text": "mm",
+        "count": 8
+      },
+      {
+        "entity": "PERSON",
+        "text": "Alphanumérique",
+        "count": 8
+      },
+      {
+        "entity": "PERSON",
         "text": "nominee shareholders",
         "count": 5
       },
       {
         "entity": "PERSON",
-        "text": "Contenu",
-        "count": 3
+        "text": "lex specialis",
+        "count": 2
       },
       {
         "entity": "PERSON",
-        "text": "lex specialis",
+        "text": "Contenu",
         "count": 2
       },
       {
@@ -85,17 +128,32 @@
       },
       {
         "entity": "PERSON",
-        "text": "Alphanumérique\n",
+        "text": "iii",
         "count": 1
       },
       {
         "entity": "PERSON",
-        "text": "Booléen",
+        "text": "Cyrillic",
         "count": 1
       },
       {
         "entity": "PERSON",
-        "text": "Alphanumérique\nContenu",
+        "text": "Name",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Choisir",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Entités",
+        "count": 1
+      },
+      {
+        "entity": "PERSON",
+        "text": "Raison",
         "count": 1
       },
       {
@@ -111,11 +169,6 @@
       {
         "entity": "PERSON",
         "text": "Structures",
-        "count": 1
-      },
-      {
-        "entity": "PERSON",
-        "text": "Titles III",
         "count": 1
       },
       {
@@ -147,32 +200,32 @@
         "entity": "PERSON",
         "text": "vii",
         "count": 1
-      },
-      {
-        "entity": "PERSON",
-        "text": "Succursales",
-        "count": 1
       }
     ],
-    "caps_multiword_masked_spans": {
-      "CHAPTER III HIGH-RISK": 247,
-      "CHAPTER III ICT": 29
-    },
+    "caps_multiword_masked_spans": {},
     "top_dropped": [
       {
+        "text": "CHAPTER III HIGH-RISK",
+        "count": 247
+      },
+      {
+        "text": "Annex",
+        "count": 69
+      },
+      {
         "text": "CHAPTER VI",
-        "count": 55
+        "count": 61
+      },
+      {
+        "text": "Annex III",
+        "count": 45
       },
       {
         "text": "Chapter III",
         "count": 44
       },
       {
-        "text": "Annex III",
-        "count": 40
-      },
-      {
-        "text": "Annex",
+        "text": "Directive",
         "count": 38
       },
       {
@@ -180,36 +233,40 @@
         "count": 30
       },
       {
-        "text": "| Oui",
-        "count": 20
+        "text": "CHAPTER III ICT",
+        "count": 29
+      },
+      {
+        "text": "IV",
+        "count": 17
       },
       {
         "text": "2024/1620",
         "count": 12
       },
       {
+        "text": "Annex I.",
+        "count": 10
+      },
+      {
+        "text": "Chapter",
+        "count": 9
+      },
+      {
         "text": "JON",
         "count": 9
       },
       {
-        "text": "YYYY-MM-DD",
-        "count": 8
-      },
-      {
-        "text": "Directive",
-        "count": 7
-      },
-      {
-        "text": "Chapter",
-        "count": 7
-      },
-      {
-        "text": "| Oui | Alphanumérique",
-        "count": 7
+        "text": "| Obligatoire",
+        "count": 9
       },
       {
         "text": "2023/1114",
-        "count": 7
+        "count": 8
+      },
+      {
+        "text": "Annex IV",
+        "count": 6
       },
       {
         "text": "TFEU",
@@ -218,18 +275,6 @@
       {
         "text": "Annex VI",
         "count": 6
-      },
-      {
-        "text": "Annex I.",
-        "count": 5
-      },
-      {
-        "text": "Annex IV",
-        "count": 5
-      },
-      {
-        "text": "| Non",
-        "count": 5
       },
       {
         "text": "Chapter IV",
@@ -244,97 +289,26 @@
         "count": 4
       },
       {
+        "text": "B_02.01",
+        "count": 3
+      },
+      {
+        "text": "B_05.01",
+        "count": 3
+      },
+      {
         "text": "Annex XI",
         "count": 3
       },
       {
         "text": "Chapter VI",
         "count": 3
-      },
-      {
-        "text": "| Oui |",
-        "count": 2
-      },
-      {
-        "text": "Annex X",
-        "count": 2
-      },
-      {
-        "text": "2018/1860",
-        "count": 2
-      },
-      {
-        "text": "June 2023",
-        "count": 2
-      },
-      {
-        "text": "2022/2557",
-        "count": 1
-      },
-      {
-        "text": "IV",
-        "count": 1
-      },
-      {
-        "text": "2016/1148",
-        "count": 1
-      },
-      {
-        "text": "| Alphanumérique",
-        "count": 1
-      },
-      {
-        "text": "Annexes VI",
-        "count": 1
-      },
-      {
-        "text": "Annex IX",
-        "count": 1
-      },
-      {
-        "text": "Annex XIII",
-        "count": 1
-      },
-      {
-        "text": "Annexes XI",
-        "count": 1
-      },
-      {
-        "text": "Articles",
-        "count": 1
-      },
-      {
-        "text": "Chapter XII",
-        "count": 1
-      },
-      {
-        "text": "26.5.2016",
-        "count": 1
-      },
-      {
-        "text": "2018/1726",
-        "count": 1
-      },
-      {
-        "text": "XI",
-        "count": 1
       }
     ]
   },
-  "reports_false_positives": {
-    "documents": 6,
-    "chars_scanned": 3505660,
-    "detections_by_type": {
-      "PERSON": 669,
-      "PHONE_NUMBER": 1
-    },
-    "dropped_by_person_filter": 2094,
-    "caps_multiword_masked": 21
-  },
   "timing_s": {
-    "analyzer_load": 4.4,
-    "synthetic_parse_and_mask": 52.6,
-    "regulations_scan": 183.0,
-    "reports_scan": 127.9
+    "analyzer_load": 9.3,
+    "synthetic_parse_and_mask": 84.8,
+    "regulations_scan": 328.0
   }
 }

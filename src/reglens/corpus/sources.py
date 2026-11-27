@@ -7,21 +7,9 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
-DocType = Literal["regulations", "reports", "policies", "logs"]
+DocType = Literal["regulations", "policies", "logs", "register"]
 Language = Literal["en", "fr"]
-FileFormat = Literal["html", "pdf", "md", "jsonl", "xlsx"]
-
-
-class Appendix(BaseModel):
-    """A structured companion of a report (e.g. its tables as a spreadsheet). It is
-    downloaded next to the report as data/raw/<type>/<id>.<format>; it adds no document:
-    it replaces the content of the report's tables it matches with certainty."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    format: Literal["xlsx"]
-    url: HttpUrl
-    what: str | None = None
+FileFormat = Literal["html", "md", "jsonl", "csv"]
 
 
 class Source(BaseModel):
@@ -35,11 +23,11 @@ class Source(BaseModel):
     what: str
     format: FileFormat
     mode: Literal["auto", "generated"]
-    # Regulations exist in several languages (one URL each); reports have one URL.
+    # Regulations exist in several languages (one URL each); a single-language source
+    # has one URL.
     urls: dict[Language, HttpUrl] | None = None
     url: HttpUrl | None = None
     language: Language | None = None
-    appendix: Appendix | None = None
 
     @model_validator(mode="after")
     def _check_urls(self) -> "Source":
@@ -56,16 +44,16 @@ class Corpus(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     regulations: list[Source] = []
-    reports: list[Source] = []
     policies: list[Source] = []
     logs: list[Source] = []
+    register_of_information: list[Source] = []
 
     def by_type(self) -> dict[DocType, list[Source]]:
         return {
             "regulations": self.regulations,
-            "reports": self.reports,
             "policies": self.policies,
             "logs": self.logs,
+            "register": self.register_of_information,
         }
 
 
@@ -109,11 +97,5 @@ def download_targets(corpus: Corpus, raw_dir: Path) -> list[DownloadTarget]:
                 path = raw_dir / doc_type / f"{src.id}.{src.format}"
                 targets.append(
                     DownloadTarget(src.id, doc_type, src.format, str(src.url), path, src.language)
-                )
-            if src.appendix is not None:
-                fmt = src.appendix.format
-                path = raw_dir / doc_type / f"{src.id}.{fmt}"
-                targets.append(
-                    DownloadTarget(src.id, doc_type, fmt, str(src.appendix.url), path, src.language)
                 )
     return targets

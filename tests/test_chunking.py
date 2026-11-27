@@ -10,14 +10,13 @@ import pytest
 
 from reglens.ingestion.chunking import (
     STRATEGIES,
-    Chunk,
     Chunker,
     ChunkParams,
     chunk_id,
+    unit_contexts,
 )
-from reglens.ingestion.models import Block, ParsedDocument, TableData
-from reglens.ingestion.table_rows import header_paths
-from tests.chunk_stubs import stub_tools
+from reglens.ingestion.models import Block, ParsedDocument
+from tests.chunk_stubs import required_fields_filled, stub_tools
 
 PARAMS = ChunkParams(max_tokens=60, min_tokens=10, overlap=5, threshold=0.5)
 ACTS = {"2022/2554": "DORA"}
@@ -61,22 +60,7 @@ def unit_text(doc: ParsedDocument, parent_id: str) -> str:
 
 
 def chunker() -> Chunker:
-    return Chunker(stub_tools(), PARAMS, acts=ACTS, titles={"rep": "Bank report 2025"})
-
-
-def required_fields_filled(c: Chunk) -> bool:
-    common = all([c.chunk_id, c.text.strip(), c.n_tokens > 0, c.doc_id, c.source, c.langue,
-                  c.parent_id.startswith(c.doc_id + "#")])  # fmt: skip
-    if c.type_doc == "regulations":
-        is_article = "#art-" in c.parent_id
-        common = common and c.reglement is not None and (c.article is not None) == is_article
-    if c.type_doc == "reports":
-        common = common and c.page_number is not None
-    tables = (c.header_uncertain, c.header_issues, c.has_fused_rows, c.row_lines,
-              c.table_source)  # fmt: skip
-    if c.kind == "table":
-        return common and all(v is not None for v in tables)
-    return common and all(v is None for v in tables)
+    return Chunker(stub_tools(), PARAMS, acts=ACTS)
 
 
 def test_required_1_no_chunk_crosses_an_article_and_metadata_is_filled() -> None:
@@ -108,7 +92,8 @@ def test_article_chunks_carry_a_context_line(strategy: Any) -> None:
     assert all(c.context is None for c in chunks if "#art-" not in c.parent_id)
 
 
-def test_references_skip_headings() -> None:
+def test_chunks_carry_the_references_of_their_text() -> None:
+    # the regex itself is tested in test_references.py; here: they reach the chunks
     chunks = chunker().chunk(regulation(), "structure_semantic")
     refs = {r for c in chunks for r in c.references}
     assert refs == {"DORA:1", "DORA:5"}
@@ -130,76 +115,6 @@ def test_chunk_ids_are_deterministic_and_language_aware() -> None:
     assert a == b
     assert chunk_id("dora", "en", "dora#art-1", 0, "x") != chunk_id("dora", "fr", "dora#art-1", 0,
                                                                     "x")  # fmt: skip
-
-
-def report() -> ParsedDocument:
-    table = TableData(table_id="rep#tbl-1", caption="EU CC1 - Own funds", n_rows=3, n_cols=3,
-                      header_rows=2,
-                      cells=[["", "2025", "2025"], ["EUR m", "Total", "IRB"],
-                             ["CET1", "1 571 898", "12"]],
-                      low_confidence=[(2, 1)], header_issues=["same_label_cells"])  # fmt: skip
-    blocks = [
-        Block(
-            block_id="rep#sec-1/title",
-            parent_id="rep#sec-1",
-            kind="title",
-            text="Capital",
-            page_number=3,
-            section="Capital",
-        ),  # fmt: skip
-        Block(
-            block_id="rep#sec-1/t1",
-            parent_id="rep#sec-1",
-            kind="text",
-            page_number=3,
-            text=_sentences("Capital", 4),
-            section="Capital",
-        ),  # fmt: skip
-        Block(
-            block_id="rep#tbl-1/table",
-            parent_id="rep#tbl-1",
-            kind="table",
-            page_number=4,
-            text="EU CC1 - Own funds",
-            section="Capital",
-            table=table,
-        ),  # fmt: skip
-    ]
-    return ParsedDocument(doc_id="rep", source="data/raw/reports/rep.pdf", type_doc="reports",
-                          langue="en", parser="docling", blocks=blocks, masked=True)  # fmt: skip
-
-
-def test_table_chunk_carries_summary_and_quality_flags() -> None:
-    chunks = chunker().chunk(report(), "structure_semantic")
-    table = next(c for c in chunks if c.kind == "table")
-    assert table.parent_id == "rep#tbl-1"  # = report_tables.table_id in PostgreSQL
-    assert table.header_uncertain is True and table.header_issues == ["same_label_cells"]
-    assert table.has_fused_rows is True
-    assert table.context is not None
-    assert table.context.startswith("Table: EU CC1 - Own funds\nSource: Bank report 2025, page 4")
-    assert "Columns: EUR m; 2025 > Total; 2025 > IRB" in table.context
-    assert table.text == report().blocks[2].table.to_markdown()  # type: ignore[union-attr]
-    assert table.row_lines == "CET1 — 2025 > Total = 1 571 898; 2025 > IRB = 12"
-    assert table.table_source == "pdf"
-    text = next(c for c in chunks if c.kind == "text")
-    assert text.header_uncertain is None and text.has_fused_rows is None
-
-
-@pytest.mark.parametrize("strategy", STRATEGIES)
-def test_report_heading_without_text_is_dropped(strategy: Any) -> None:
-    doc = report()
-    heading = Block(block_id="rep#sec-2/title", parent_id="rep#sec-2", kind="title",
-                    text="CONTENTS", page_number=2, section="CONTENTS")  # fmt: skip
-    doc.blocks.insert(0, heading)
-    chunks = chunker().chunk(doc, strategy)
-    assert "rep#sec-2" not in {c.parent_id for c in chunks}
-    assert all("CONTENTS" not in c.text for c in chunks)
-    assert "rep#sec-1" in {c.parent_id for c in chunks}  # a heading with text is kept
-
-
-def test_header_paths_without_header() -> None:
-    t = TableData(table_id="x#tbl-1", n_rows=1, n_cols=2, cells=[["a", "b"]])
-    assert header_paths(t) == ["", ""]
 
 
 def test_policy_and_incident_chunks() -> None:
@@ -242,3 +157,33 @@ def test_unmasked_documents_are_refused() -> None:
     doc = regulation().model_copy(update={"masked": False})
     with pytest.raises(ValueError, match="unmasked"):
         chunker().chunk(doc, "structure_semantic")
+
+
+def test_annex_context_line() -> None:
+    doc = ParsedDocument(
+        doc_id="ai_act", source="a.html", type_doc="regulations", langue="en",
+        reglement="AI Act", parser="eurlex", masked=True,
+        blocks=[Block(block_id=f"ai_act#anx-III/t{i}", parent_id="ai_act#anx-III",
+                      kind="text", text=text)
+                for i, text in enumerate(["ANNEX III", "High-risk AI systems",
+                                          "High-risk AI systems are the following."])],
+    )  # fmt: skip
+    assert unit_contexts(doc)["ai_act#anx-III"] == "AI Act — Annex III — High-risk AI systems"
+
+
+def test_one_chunk_per_provider_in_every_strategy() -> None:
+    line = ("Provider ID: PRV-001 | Provider name: Nimbus Cloud Services | Systems: "
+            "payments-gateway | Exit plan: No | Contact person: <PERSON>")  # fmt: skip
+    register = ParsedDocument(
+        doc_id="register", source="r.csv", type_doc="register", langue="en",
+        parser="register_csv", masked=True,
+        blocks=[Block(block_id="register#PRV-001/row", parent_id="register#PRV-001",
+                      kind="text", text=line),
+                Block(block_id="register#PRV-002/row", parent_id="register#PRV-002",
+                      kind="text", text=line.replace("PRV-001", "PRV-002"))],
+    )  # fmt: skip
+    for strategy in STRATEGIES:
+        chunks = chunker().chunk(register, strategy)
+        assert [c.parent_id for c in chunks] == ["register#PRV-001", "register#PRV-002"]
+        assert all(c.kind == "provider" and c.context is None for c in chunks)
+        assert chunks[0].text == line and all(required_fields_filled(c) for c in chunks)
