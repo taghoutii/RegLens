@@ -71,6 +71,5 @@ def test_article_without_numbered_paragraphs(doc: ParsedDocument) -> None:
     assert body[0].paragraph is None
 
 
-def test_html_has_no_page_numbers(doc: ParsedDocument) -> None:
-    assert all(b.page_number is None for b in doc.blocks)
+def test_document_type_and_regulation(doc: ParsedDocument) -> None:
     assert doc.type_doc == "regulations" and doc.reglement == "DORA"

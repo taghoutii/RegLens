@@ -74,7 +74,7 @@ Une interface de question-réponse en streaming qui interroge la réglementation
     4. Chaque chunk garde l'identifiant de son article parent. La recherche se fait sur les petits chunks (précision) ; le LLM reçoit l'article parent (contexte), limité à ~1 500 tokens.
   - **Autres types :** politiques internes = 1 chunk par section ; 1 incident = 1 chunk ; 1 prestataire du registre = 1 chunk (une ligne avec ses champs).
   - **Validation :** comparaison de 3 stratégies (récursif 512, sémantique seul, structure + sémantique) sur le Recall@5 ; tests complémentaires : overlap 64 vs 0, article parent avec vs sans (Ragas).
-  - *Métadonnées :* `doc_id, chunk_id, page_number, source, type_doc, reglement, article, parent_id, langue, references, context`.
+  - *Métadonnées :* `chunk_id, doc_id, parent_id, source, type_doc, langue, reglement, article, references, context, strategy, kind, position, n_tokens`.
 - **Modèle d'Embeddings :** `BAAI/bge-m3` (Dimension : `1024`) — un vecteur **dense** (le sens) et un vecteur **sparse** (les mots-clés, comme un BM25 appris), en français et en anglais. La question est vectorisée une seule fois, pour le cache et la recherche.
 - **Base Vectorielle retenue :** `[x] Qdrant` `[ ] Milvus` `[ ] pgvector`
   - *Justification du choix :* recherche hybride dense + sparse native (fusion RRF), filtrage par métadonnées pendant la recherche HNSW, quantification pour atteindre 5 M de chunks. pgvector n'a pas de sparse natif ; Milvus est surdimensionné pour le PoC.

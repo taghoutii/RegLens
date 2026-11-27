@@ -54,7 +54,6 @@ class Chunk(BaseModel):
     n_tokens: int
     doc_id: str
     parent_id: str
-    page_number: int | None
     source: str
     type_doc: DocType
     reglement: str | None
@@ -100,7 +99,6 @@ class ChunkTools:
 @dataclass
 class _Piece:
     text: str
-    page: int | None
     starts_block: bool = True  # False for the 2nd, 3rd... piece of a semantically cut block
     ends_block: bool = True
 
@@ -146,16 +144,16 @@ class Chunker:
             pieces: list[_Piece] = []
             for b in unit:
                 if self.tools.tokens.count(b.text) <= p.max_tokens:
-                    pieces.append(_Piece(b.text, b.page_number))
+                    pieces.append(_Piece(b.text))
                     continue
                 spans = self._semantic(b.text, doc, parent_id, overlap=p.overlap)
                 last = len(spans) - 1
-                pieces.extend(_Piece(b.text[s:e], b.page_number, starts_block=i == 0,
+                pieces.extend(_Piece(b.text[s:e], starts_block=i == 0,
                                      ends_block=i == last)
                               for i, (s, e) in enumerate(spans))  # fmt: skip
             for pos, piece in enumerate(self._merge_small(pieces)):
                 chunks.append(self._make(doc, "structure_semantic", "text", piece.text,
-                                         parent_id, pos, piece.page, unit[0].article))  # fmt: skip
+                                         parent_id, pos, unit[0].article))  # fmt: skip
         return chunks
 
     def _semantic(self, text: str, doc: ParsedDocument, where: str, *, overlap: int) -> list[Span]:
@@ -180,7 +178,7 @@ class Chunker:
                 a, b = count(out[-1].text), count(piece.text)
                 if (a < p.min_tokens or b < p.min_tokens) and a + b <= p.max_tokens:
                     prev = out[-1]
-                    out[-1] = _Piece(prev.text + "\n" + piece.text, prev.page,
+                    out[-1] = _Piece(prev.text + "\n" + piece.text,
                                      starts_block=prev.starts_block,
                                      ends_block=piece.ends_block)  # fmt: skip
                     continue
@@ -217,7 +215,6 @@ class Chunker:
                         for i, (bs, be) in enumerate(block_spans) if bs < e and be > s]  # fmt: skip
             if not overlaps:
                 continue
-            first = blocks[overlaps[0][1]]
             weight: dict[str, int] = defaultdict(int)
             for size, i in overlaps:
                 weight[blocks[i].parent_id] += size
@@ -225,7 +222,7 @@ class Chunker:
             article = next(blocks[i].article for _, i in overlaps
                            if blocks[i].parent_id == parent_id)  # fmt: skip
             chunks.append(self._make(doc, strategy, "text", text[s:e], parent_id,
-                                     positions[parent_id], first.page_number, article))  # fmt: skip
+                                     positions[parent_id], article))  # fmt: skip
             positions[parent_id] += 1
         return chunks
 
@@ -242,7 +239,7 @@ class Chunker:
             else:
                 number = b.parent_id.rsplit("#s", 1)[-1]
                 text = f"{number}. {b.section}\n{b.text}"
-            chunk = self._make(doc, strategy, "policy_section", text, b.parent_id, 0, None, None)
+            chunk = self._make(doc, strategy, "policy_section", text, b.parent_id, 0, None)
             chunk.reglement = reglement
             chunk.context = context
             chunks.append(chunk)
@@ -257,11 +254,11 @@ class Chunker:
                     continue
                 lines.append(f"{r['timestamp']} {r['event']} ({r['status']}): {r['message']}")
             chunks.append(self._make(doc, strategy, "incident", "\n".join(lines),
-                                     b.parent_id, 0, None, None))  # fmt: skip
+                                     b.parent_id, 0, None))  # fmt: skip
         return chunks
 
     def _provider_chunks(self, doc: ParsedDocument, strategy: Strategy) -> list[Chunk]:
-        return [self._make(doc, strategy, "provider", b.text, b.parent_id, 0, None, None)
+        return [self._make(doc, strategy, "provider", b.text, b.parent_id, 0, None)
                 for b in doc.blocks]  # fmt: skip
 
     # ---------- metadata ----------
@@ -274,7 +271,6 @@ class Chunker:
         text: str,
         parent_id: str,
         position: int,
-        page: int | None,
         article: str | None,
     ) -> Chunk:
         references: list[str] = []
@@ -290,7 +286,6 @@ class Chunker:
             n_tokens=self.tools.tokens.count(text),
             doc_id=doc.doc_id,
             parent_id=parent_id,
-            page_number=page,
             source=doc.source,
             type_doc=doc.type_doc,
             reglement=doc.reglement,

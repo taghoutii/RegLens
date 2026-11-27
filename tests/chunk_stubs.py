@@ -49,4 +49,4 @@ def required_fields_filled(c: Chunk) -> bool:
     if c.type_doc == "regulations":
         is_article = "#art-" in c.parent_id
         common = common and c.reglement is not None and (c.article is not None) == is_article
-    return common and c.page_number is None  # no paginated source in the corpus
+    return common

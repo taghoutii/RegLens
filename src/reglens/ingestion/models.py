@@ -5,7 +5,7 @@ same structure, so chunking works on one model, not four file formats.
 
 A document is a list of *blocks*. Each block knows where it comes from (provenance):
 its logical unit (`parent_id`, e.g. "dora#art-19"), and its article / paragraph /
-page / section when they exist. Citations later point back to exactly this.
+section when they exist. Citations later point back to exactly this.
 """
 
 from typing import Any, Literal
@@ -26,7 +26,6 @@ class Block(BaseModel):
     parent_id: str  # logical unit, globally unique: "<doc_id>#<unit>"
     kind: BlockKind
     text: str  # PII-masked before the document is written anywhere
-    page_number: int | None = None  # page of a paginated source (1-based); None otherwise
     article: str | None = None  # article number for regulations ("19", "5a")
     paragraph: int | None = None  # numbered paragraph inside the article
     section: str | None = None  # heading path, e.g. "Chapter III > Section 1"
