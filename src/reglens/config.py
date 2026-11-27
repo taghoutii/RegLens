@@ -63,6 +63,12 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-m3"
     embedding_batch_size: int = 32
 
+    @property
+    def embedding_cache_dir(self) -> Path:
+        """Sentence vectors already computed, so a rebuild embeds only new sentences.
+        Derived from masked text only; safe to delete (it is rebuilt on the next run)."""
+        return self.data_dir / "cache" / "embeddings"
+
     # Chunking (Phase 3). Starting values, kept until the Phase 6 retrieval comparison.
     chunk_max_tokens: int = 512
     chunk_min_tokens: int = 100  # a smaller piece is merged with its neighbour

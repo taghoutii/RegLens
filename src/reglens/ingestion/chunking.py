@@ -35,6 +35,8 @@ from reglens.ingestion.text_split import (
 
 Strategy = Literal["structure_semantic", "recursive", "semantic"]
 STRATEGIES: tuple[Strategy, ...] = ("structure_semantic", "recursive", "semantic")
+MAIN_STRATEGY: Strategy = "structure_semantic"  # the one indexed; the others are baselines
+BASELINES: tuple[Strategy, ...] = ("recursive", "semantic")
 ChunkKind = Literal["text", "policy_section", "incident", "provider"]
 
 # Fixed namespace: the same inputs give the same chunk_id on every machine and every run.

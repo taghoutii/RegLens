@@ -52,6 +52,7 @@ pytest -m "not integration"
 python scripts/build_corpus.py            # download -> generate -> parse + mask -> chunk
 python scripts/build_corpus.py --dry-run  # show which stages would run
 python scripts/build_corpus.py --from parse
+python scripts/chunk_corpus.py --baselines   # also the two comparison strategies (slow on CPU)
 ```
 
 | Stage | Output |
@@ -59,13 +60,13 @@ python scripts/build_corpus.py --from parse
 | download | `data/raw/regulations/` |
 | generate | synthetic records in `data/raw/`, answer key in `data/ground_truth/` (never indexed) |
 | parse + mask | `data/processed/parsed/` |
-| chunk | `data/processed/chunks/<strategy>/` |
+| chunk | `data/processed/chunks/structure_semantic/`; baselines in `recursive/` and `semantic/` |
 
-Personal data is masked before anything derived is written. Measurement scripts live in `scripts/measure/`; results are in [`results/EXPERIMENTS.md`](results/EXPERIMENTS.md).
+Personal data is masked before anything derived is written. Sentence vectors are cached in `data/cache/`, so a rebuild only embeds new or changed sentences. Measurement scripts live in `scripts/measure/`; results are in [`results/EXPERIMENTS.md`](results/EXPERIMENTS.md).
 
 ## Repository structure
 ```
-data/          sources.yaml, golden_set/ (raw, processed and ground_truth are not committed)
+data/          sources.yaml, golden_set/ (raw, processed, ground_truth and cache are not committed)
 docs/          project scoping and backlog
 results/       evaluation results
 scripts/       build_corpus.py and one script per stage; measure/ for measurements

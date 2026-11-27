@@ -1,9 +1,10 @@
 """Chunk the parsed corpus: data/processed/parsed/ -> data/processed/chunks/<strategy>/.
 
 Usage (repository root, virtual environment active):
-    python scripts/chunk_corpus.py                                  # all 3 strategies
-    python scripts/chunk_corpus.py --strategies structure_semantic
-    python scripts/chunk_corpus.py --record             # also write the result file to results/
+    python scripts/chunk_corpus.py                       # main strategy (structure_semantic)
+    python scripts/chunk_corpus.py --baselines           # + recursive and semantic-only baselines
+    python scripts/chunk_corpus.py --strategies semantic # only the listed strategies
+    python scripts/chunk_corpus.py --record              # also write the result file to results/
 
 Steps:
   1. calibrate the semantic threshold (unless CHUNK_SEMANTIC_THRESHOLD is set): the
@@ -11,12 +12,15 @@ Steps:
      regulation pieces longer than CHUNK_MAX_TOKENS (the only places it is used);
   2. chunk every document with every strategy, one JSONL file per document;
   3. write data/processed/chunks/run.json on every run: the threshold used (and its
-     calibration), the chunking parameters and the date, so the chunks on disk always say
-     how they were cut; a threshold that differs from the previous run is logged;
+     calibration), the chunking parameters, and per strategy the date and threshold of its
+     last build, so the chunks on disk always say how they were cut; a threshold that
+     differs from the one a kept strategy folder was built with is logged;
   4. with --record, record token statistics, bge-m3 CPU time and memory in results/
      (without it, the statistics are only printed: a rebuild adds no result file).
 Every semantic cut of the main strategy goes to data/processed/chunks/semantic_cuts.jsonl
 for inspection. Input documents are masked; chunks are only slices of them.
+Sentence vectors are kept in data/cache/embeddings/ (reglens/ingestion/encoders.py): a
+rebuild computes vectors only for sentences it has not seen with the same model.
 Only the documents of the corpus are chunked (reglens/ingestion/inventory.py): a parsed
 file left by a document no longer listed is ignored, and each strategy folder is rebuilt
 from scratch, so it keeps no stale chunk file.
@@ -37,7 +41,16 @@ from reglens.corpus.sources import Language, load_corpus
 from reglens.evaluation.chunk_stats import reference_counts, stats_by_group
 from reglens.evaluation.memory import peak_memory_mb
 from reglens.evaluation.results import write_result
-from reglens.ingestion.chunking import STRATEGIES, Chunk, Chunker, ChunkParams, ChunkTools
+from reglens.ingestion.chunking import (
+    BASELINES,
+    MAIN_STRATEGY,
+    STRATEGIES,
+    Chunk,
+    Chunker,
+    ChunkParams,
+    ChunkTools,
+    Strategy,
+)
 from reglens.ingestion.encoders import Bgem3, SpacySentences
 from reglens.ingestion.inventory import expected_documents
 from reglens.ingestion.models import ParsedDocument
@@ -84,16 +97,23 @@ def calibrate(docs: list[ParsedDocument], tools: ChunkTools, max_tokens: int,
 
 
 def record_run(path: Path, threshold: float, calibration: dict[str, object],
-               params: ChunkParams, strategies: list[str]) -> None:  # fmt: skip
-    """Write the parameters of this run next to the chunks (run.json); log a threshold that
-    differs from the previous run's, since it changes where long articles are cut."""
+               params: ChunkParams, strategies: list[Strategy]) -> None:  # fmt: skip
+    """Write the parameters of this run next to the chunks (run.json). Strategies not run
+    keep their entry; one built with another threshold is logged, since the threshold
+    changes where long articles are cut."""
+    built: dict[str, dict[str, object]] = {}
     if path.exists():
-        previous = json.loads(path.read_text(encoding="utf-8")).get("threshold")
-        if previous is not None and previous != threshold:
-            logger.warning("semantic threshold changed: %s -> %s", previous, threshold)
+        previous = json.loads(path.read_text(encoding="utf-8")).get("strategies")
+        built = previous if isinstance(previous, dict) else {}
+    for name, entry in built.items():
+        if name not in strategies and entry.get("threshold") != threshold:
+            logger.warning("%s was built with threshold %s, this run uses %s",
+                           name, entry.get("threshold"), threshold)  # fmt: skip
+    for name in strategies:
+        built[name] = {"date": date.today().isoformat(), "threshold": threshold}
     run = {
         "date": date.today().isoformat(),
-        "strategies": strategies,
+        "strategies": dict(sorted(built.items())),
         "threshold": threshold,
         "calibration": calibration,
         "max_tokens": params.max_tokens,
@@ -108,10 +128,17 @@ def record_run(path: Path, threshold: float, calibration: dict[str, object],
 def main() -> int:
     settings = get_settings()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--strategies", nargs="+", choices=STRATEGIES, default=list(STRATEGIES))
+    which = parser.add_mutually_exclusive_group()
+    which.add_argument("--baselines", action="store_true",
+                       help="also build the recursive and semantic-only baselines")  # fmt: skip
+    which.add_argument("--strategies", nargs="+", choices=STRATEGIES,
+                       help="build only these strategies")  # fmt: skip
     parser.add_argument("--record", action="store_true", help="write the run to results/")
     args = parser.parse_args()
     logging.basicConfig(level=settings.log_level, format="%(levelname)-7s %(message)s")
+    strategies: list[Strategy] = args.strategies or [MAIN_STRATEGY]
+    if args.baselines:
+        strategies += BASELINES
 
     corpus = load_corpus(settings.sources_file)
     acts = {}
@@ -131,7 +158,9 @@ def main() -> int:
     logger.info("%d parsed documents, acts %s", len(docs), acts)
 
     t0 = time.perf_counter()
-    bge = Bgem3(settings.embedding_model, batch_size=settings.embedding_batch_size)
+    bge = Bgem3(settings.embedding_model, batch_size=settings.embedding_batch_size,
+                cache_dir=settings.embedding_cache_dir)  # fmt: skip
+    logger.info("vector cache: %d vectors on disk", bge.store.loaded)
     sentences = TimedSentences(SpacySentences(settings.pii_spacy_models))
     tools = ChunkTools(tokens=bge, sentences=sentences, similarities=bge.similarities)
     setup_seconds = time.perf_counter() - t0
@@ -141,6 +170,7 @@ def main() -> int:
     if threshold is None:
         threshold, calibration = calibrate(docs, tools, settings.chunk_max_tokens,
                                            settings.chunk_semantic_percentile)  # fmt: skip
+        bge.store.save()
     logger.info("semantic threshold %.4f (%s)", threshold, calibration)
     params = ChunkParams(max_tokens=settings.chunk_max_tokens,
                          min_tokens=settings.chunk_min_tokens,
@@ -148,9 +178,9 @@ def main() -> int:
                          noise_events=tuple(settings.chunk_incident_noise_events))  # fmt: skip
 
     out_root = settings.processed_dir / "chunks"
-    record_run(out_root / "run.json", threshold, calibration, params, args.strategies)
+    record_run(out_root / "run.json", threshold, calibration, params, strategies)
     per_strategy: dict[str, dict[str, Any]] = {}
-    for strategy in args.strategies:
+    for strategy in strategies:
         chunker = Chunker(tools, params, acts=acts)
         out_dir = out_root / strategy
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -198,7 +228,10 @@ def main() -> int:
             with (out_root / "semantic_cuts.jsonl").open("w", encoding="utf-8") as fh:
                 for cut in chunker.cuts:
                     fh.write(json.dumps(cut, ensure_ascii=False) + "\n")
-        logger.info("%-20s %6d chunks in %.0fs", strategy, len(all_chunks), seconds)
+        bge.store.save()
+        new_vectors = per_strategy[strategy]["new_sentences_embedded"]
+        logger.info("%-20s %6d chunks in %.0fs (%d new sentence vectors)", strategy,
+                    len(all_chunks), seconds, new_vectors)  # fmt: skip
 
     sentence_count = bge.embedded
     result = {
@@ -221,6 +254,7 @@ def main() -> int:
             "setup_seconds": round(setup_seconds, 1),
             "model_load_seconds": round(bge.load_seconds, 1),
             "embedding_seconds_total": round(bge.embed_seconds, 1),
+            "vectors_in_cache_at_start": bge.store.loaded,
             "sentences_embedded": sentence_count,
             "sentences_per_second": round(sentence_count / bge.embed_seconds, 1)
             if bge.embed_seconds

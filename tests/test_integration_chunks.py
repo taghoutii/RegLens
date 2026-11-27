@@ -72,3 +72,8 @@ def test_run_records_the_threshold_used() -> None:
     assert isinstance(record["threshold"], float)
     calibrated = record["calibration"].get("threshold")
     assert calibrated is None or calibrated == record["threshold"]  # None: fixed in config
+    # every strategy folder on disk says when and with which threshold it was built
+    built = record["strategies"]
+    for strategy in STRATEGIES:
+        if any((CHUNKS / strategy).glob("*.jsonl")):
+            assert isinstance(built[strategy]["threshold"], float)

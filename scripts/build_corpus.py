@@ -11,7 +11,8 @@ Stages, in order (each one is its own script, run as a separate process):
     download  scripts/download_corpus.py     data/raw/regulations/
     generate  scripts/generate_synthetic.py  data/raw/{policies,logs,register}/, data/ground_truth/
     parse     scripts/parse_corpus.py        data/processed/parsed/
-    chunk     scripts/chunk_corpus.py        data/processed/chunks/<strategy>/
+    chunk     scripts/chunk_corpus.py        data/processed/chunks/structure_semantic/
+                                             (baselines: chunk_corpus.py --baselines)
 
 A stage is out of date when its output is missing or older than its input, or when its
 output folder holds files of documents no longer in the corpus (they are deleted by the
@@ -27,7 +28,7 @@ from pathlib import Path
 
 from reglens.config import Settings, get_settings
 from reglens.corpus.sources import download_targets, load_corpus
-from reglens.ingestion.chunking import STRATEGIES
+from reglens.ingestion.chunking import MAIN_STRATEGY
 from reglens.ingestion.inventory import expected_documents, stale_files
 from reglens.ingestion.parse_synthetic import REGISTER_FILE
 
@@ -78,14 +79,11 @@ def out_of_date(settings: Settings) -> dict[str, Callable[[], bool]]:
         return stale or _newest(inputs) > _oldest(outputs)
 
     def chunk() -> bool:
-        newest_parsed = _newest(_files(processed / "parsed", "*.json"))
-        for strategy in STRATEGIES:
-            folder = processed / "chunks" / strategy
-            if not complete(folder, "*.jsonl"):
-                return True
-            if _oldest(_files(folder, "*.jsonl")) < newest_parsed:
-                return True
-        return False
+        # only the main strategy: the baselines are rebuilt on request (chunk_corpus.py --baselines)
+        folder = processed / "chunks" / MAIN_STRATEGY
+        if not complete(folder, "*.jsonl"):
+            return True
+        return _oldest(_files(folder, "*.jsonl")) < _newest(_files(processed / "parsed", "*.json"))
 
     return {"download": download, "generate": generate, "parse": parse, "chunk": chunk}
 
